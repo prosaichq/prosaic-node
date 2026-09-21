@@ -1,0 +1,72 @@
+# API resource reference
+
+Generated from the reviewed API snapshot. Path IDs come first, then query/body parameters, then request options.
+
+| SDK method | HTTP endpoint |
+| --- | --- |
+| `changeSets.create` | `POST /api/public/v1/entities/{entityId}/change-sets` |
+| `charts.createAccount` | `POST /api/public/v1/charts/{chartId}/accounts` |
+| `charts.create` | `POST /api/public/v1/charts` |
+| `charts.del` | `POST /api/public/v1/charts/{chartId}/delete` |
+| `charts.deleteAccount` | `POST /api/public/v1/charts/{chartId}/accounts/{accountId}/delete` |
+| `charts.listAccounts` | `GET /api/public/v1/charts/{chartId}` |
+| `charts.list` | `GET /api/public/v1/charts` |
+| `charts.updateAccount` | `POST /api/public/v1/charts/{chartId}/accounts/{accountId}/update` |
+| `charts.update` | `POST /api/public/v1/charts/{chartId}/update` |
+| `clients.createOnboardingLink` | `POST /api/public/v1/clients/{clientId}/onboarding` |
+| `clients.create` | `POST /api/public/v1/clients` |
+| `clients.listBankAccounts` | `GET /api/public/v1/clients/{clientId}/bank-accounts` |
+| `clients.listTransactions` | `GET /api/public/v1/clients/{clientId}/transactions` |
+| `clients.list` | `GET /api/public/v1/clients` |
+| `dimensions.list` | `GET /api/public/v1/entities/{entityId}/dimensions` |
+| `entities.create` | `POST /api/public/v1/entities` |
+| `entities.list` | `GET /api/public/v1/entities` |
+| `entityAccounts.create` | `POST /api/public/v1/entities/{entityId}/charts` |
+| `entityAccounts.del` | `POST /api/public/v1/entities/{entityId}/charts/{accountId}/delete` |
+| `entityAccounts.list` | `GET /api/public/v1/entities/{entityId}/charts` |
+| `entityAccounts.reset` | `POST /api/public/v1/entities/{entityId}/charts/{accountId}/reset` |
+| `entityAccounts.restore` | `POST /api/public/v1/entities/{entityId}/charts/excluded/{templateAccountId}/restore` |
+| `entityAccounts.update` | `POST /api/public/v1/entities/{entityId}/charts/{accountId}/update` |
+| `extensions.request` | `POST /api/public/v1/extensions/{extensionId}/http` |
+| `files.upload` | `POST /api/public/v1/entities/{entityId}/files/upload` |
+| `fixedAssetTypes.create` | `POST /api/public/v1/entities/{entityId}/fixed-asset-types` |
+| `fixedAssetTypes.list` | `GET /api/public/v1/entities/{entityId}/fixed-asset-types` |
+| `fixedAssets.create` | `POST /api/public/v1/entities/{entityId}/fixed-assets` |
+| `fixedAssets.list` | `GET /api/public/v1/entities/{entityId}/fixed-assets` |
+| `fixedAssets.retrieve` | `GET /api/public/v1/entities/{entityId}/fixed-assets/{assetId}` |
+| `generalLedger.byAccount` | `GET /api/public/v1/entities/{entityId}/general-ledger/account` |
+| `generalLedger.byTransaction` | `GET /api/public/v1/entities/{entityId}/general-ledger/transaction` |
+| `globalAccounts.list` | `GET /api/public/v1/global-accounts` |
+| `gstReturns.listForEntity` | `GET /api/public/v1/entities/{entityId}/gst-returns` |
+| `gstReturns.list` | `GET /api/public/v1/gst-returns` |
+| `gstReturns.retrieve` | `GET /api/public/v1/entities/{entityId}/gst-returns/{gstReturnId}` |
+| `invoices.create` | `POST /api/public/v1/entities/{entityId}/invoices` |
+| `invoices.list` | `GET /api/public/v1/invoices` |
+| `invoices.retrieve` | `GET /api/public/v1/entities/{entityId}/invoices/{invoiceId}` |
+| `journals.attachFiles` | `POST /api/public/v1/entities/{entityId}/journals/{journalId}/attachments` |
+| `journals.create` | `POST /api/public/v1/entities/{entityId}/journals` |
+| `journals.list` | `GET /api/public/v1/entities/{entityId}/journals` |
+| `journals.void` | `PATCH /api/public/v1/entities/{entityId}/journals/{journalId}/void` |
+| `ledger.list` | `GET /api/public/v1/entities/{entityId}/ledger` |
+| `me.retrieve` | `GET /api/public/v1/me` |
+| `reports.balanceSheet` | `GET /api/public/v1/entities/{entityId}/reports/balance-sheet` |
+| `reports.currentAccounts` | `GET /api/public/v1/entities/{entityId}/reports/current-accounts` |
+| `reports.depreciationSchedule` | `GET /api/public/v1/entities/{entityId}/reports/depreciation-schedule` |
+| `reports.profitLoss` | `GET /api/public/v1/entities/{entityId}/reports/profit-loss` |
+| `reports.trialBalance` | `GET /api/public/v1/entities/{entityId}/trial-balance` |
+| `rules.create` | `POST /api/public/v1/rules` |
+| `rules.del` | `DELETE /api/public/v1/rules/{ruleId}` |
+| `rules.list` | `GET /api/public/v1/rules` |
+| `rules.retrieve` | `GET /api/public/v1/rules/{ruleId}` |
+| `rules.update` | `PATCH /api/public/v1/rules/{ruleId}` |
+| `scheduledTasks.create` | `POST /api/public/v1/scheduled-tasks` |
+| `scheduledTasks.del` | `DELETE /api/public/v1/scheduled-tasks/{id}` |
+| `scheduledTasks.list` | `GET /api/public/v1/scheduled-tasks` |
+| `scheduledTasks.retrieve` | `GET /api/public/v1/scheduled-tasks/{id}` |
+| `scheduledTasks.run` | `POST /api/public/v1/scheduled-tasks/{id}/run` |
+| `scheduledTasks.update` | `PATCH /api/public/v1/scheduled-tasks/{id}` |
+| `transactions.list` | `GET /api/public/v1/entities/{entityId}/transactions` |
+| `transactions.reconcileBulk` | `POST /api/public/v1/transactions/reconcile` |
+| `transactions.reconcile` | `POST /api/public/v1/entities/{entityId}/transactions/{transactionId}/reconcile` |
+| `transactions.reverse` | `POST /api/public/v1/entities/{entityId}/transactions/{transactionId}/reverse` |
+| `version.retrieve` | `GET /api/public/v1` |

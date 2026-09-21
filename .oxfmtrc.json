@@ -1,0 +1,12 @@
+{
+  "singleQuote": true,
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "openapi/prosaic.json",
+    "src/resources.ts",
+    "src/types.ts",
+    "docs/api-reference.md",
+    ".e2e-state.json"
+  ]
+}

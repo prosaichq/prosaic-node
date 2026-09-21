@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.yarn/
+*.tgz
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+.e2e-state.json
+.e2e-*.json
+*.log
