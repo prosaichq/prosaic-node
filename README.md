@@ -1,10 +1,22 @@
-# Prosaic TypeScript SDK
+# Prosaic Node.js SDK
 
-Typed access to the Prosaic public API, with resource methods inspired by [Stripe's Node SDK](https://github.com/stripe/stripe-node). Supports Node.js 22+, ESM and CommonJS. This is an initial alpha; the package has not been published to npm.
+Build accounting integrations with Prosaic in TypeScript or JavaScript. Read transactions, create journals and work with financial reports through typed resource methods, with automatic pagination and OAuth helpers built in.
 
-## Install the alpha
+[Developer documentation](https://developer.prosaic.works/) · [API resource reference](docs/api-reference.md) · [Examples](examples) · [One-page quickstart](docs/sdk-quickstart.pdf)
 
-The repository is `prosaichq/prosaic-node`; the package and import name are `@prosaic/sdk`. Build an installable archive from this source:
+**Node.js 22+ · TypeScript types included · ESM and CommonJS · No runtime dependencies**
+
+> **Alpha — `0.1.0-alpha.1`.** The package is not published to npm yet. Install an archive using the steps below. Contacts endpoints and newer rules pagination are not supported in this version; see [compatibility](#alpha-compatibility).
+
+## Installation
+
+If you received `prosaic-sdk.tgz` from Prosaic, install it from your application directory:
+
+```sh
+yarn add ./prosaic-sdk.tgz
+```
+
+Otherwise, build the archive from this repository:
 
 ```sh
 git clone https://github.com/prosaichq/prosaic-node.git
@@ -20,150 +32,237 @@ Then, from your application directory:
 yarn add /absolute/path/prosaic-node/prosaic-sdk.tgz
 ```
 
-If Prosaic supplied an archive, install it directly with `yarn add ./prosaic-sdk.tgz`. See the [one-page quickstart](docs/sdk-quickstart.pdf) for installation, authentication and two examples.
+The repository is `prosaic-node`; the package you import is **`@prosaic/sdk`**.
 
-**Alpha compatibility:** the checked-in contract covers 66 operations from the 7 September 2026 server snapshot. Newer contacts endpoints and rules pagination are not included yet. Against the newer paginated rules endpoint, `rules.list()` returns only the first page and automatic iteration can fail when more pages exist. Do not depend on complete rules enumeration with this alpha. Regeneration checks validate the checked-in snapshot, not compatibility with later server changes.
+## Your first API request
 
-## Quick start
+Use an API key for your own server-side integration. See the [developer documentation](https://developer.prosaic.works/) for API authentication and setup. Keep the key in your server environment.
+
+Save this as `quickstart.mts`:
 
 ```ts
 import Prosaic from '@prosaic/sdk';
 
-const prosaic = new Prosaic(process.env.PROSAIC_API_KEY!);
+const apiKey = process.env.PROSAIC_API_KEY;
+if (!apiKey) throw new Error('Set PROSAIC_API_KEY before running this example.');
+
+const prosaic = new Prosaic(apiKey);
+
+// Confirm that authentication works.
 const { data: me } = await prosaic.me.retrieve();
-const { data: entities } = await prosaic.entities.list();
-console.log(
-  me.name,
-  entities.map((entity) => entity.name),
-);
+console.log(`Connected as ${me.name}`);
+
+// Find the entity IDs to use in subsequent requests.
+for await (const entity of prosaic.entities.list()) {
+  console.log(entity.id, entity.name);
+}
 ```
 
-For local development, pass `{ baseUrl: 'http://localhost:3024' }` as the second argument. `baseUrl` is the server origin, without `/api/public/v1`. HTTPS is required except on loopback hosts. Keep keys and confidential-client secrets on your server.
+With `PROSAIC_API_KEY` set, run it using `tsx`:
 
-For CommonJS: `const { Prosaic } = require('@prosaic/sdk')`.
+```sh
+yarn add --dev tsx
+yarn tsx quickstart.mts
+```
 
-## Authentication
+The client connects to `https://app.prosaic.works` by default. CommonJS applications can use `const { Prosaic } = require('@prosaic/sdk')` inside their existing async code.
 
-API keys and OAuth access tokens both travel as Bearer credentials. Select a workspace with a client default or per-request `workspaceId`:
+## Examples
+
+These examples use the `prosaic` client above. Replace `YOUR_ENTITY_ID` with an ID from `entities.list()`.
+
+### Read transactions across every page
 
 ```ts
-const prosaic = new Prosaic({
-  accessToken: tokens.access_token,
-  workspaceId: selectedWorkspaceId,
-});
-const me = await prosaic.me.retrieve({ workspaceId: anotherWorkspaceId });
+for await (const transaction of prosaic.transactions.list('YOUR_ENTITY_ID', {
+  dateFrom: '2026-04-01',
+  dateTo: '2026-04-30',
+  pageSize: 100,
+})) {
+  console.log(transaction.id, transaction.date, transaction.amount);
+}
 ```
 
-A workspace header does not grant permissions or override a token pinned to another workspace. Permission checks remain on the server.
-
-### OAuth authorization code with PKCE
-
-Register an OAuth application with Prosaic first. Public clients use PKCE without a secret; confidential web applications also authenticate with their client secret. See [OAuth security guidance](https://www.rfc-editor.org/rfc/rfc9700.html).
+`for await` fetches subsequent pages as you need them. To collect a bounded number of results into an array:
 
 ```ts
-import { OAuth, Prosaic } from '@prosaic/sdk';
-
-const oauth = new OAuth({
-  clientId: process.env.PROSAIC_CLIENT_ID!,
-  clientSecret: process.env.PROSAIC_CLIENT_SECRET, // omit for a public client
-});
-
-const authorization = oauth.createAuthorization({
-  redirectUri: 'https://your-app.example/oauth/callback',
-});
-// Store authorization in the initiating user's server-side session, then
-// redirect their browser to authorization.url. Do not log the verifier.
-
-// On callback, consume that session record once; enforce a short login expiry.
-const tokens = await oauth.completeAuthorization(callbackUrl, authorization);
-// Save tokens, including expires_at and the rotated refresh_token, securely.
-
-const tokenProvider = oauth.createTokenProvider(tokens, async (updated) => {
-  await saveTokensForThisUser(updated);
-});
-const prosaic = new Prosaic({ accessToken: tokenProvider });
-const { data: me } = await prosaic.me.retrieve();
+const transactions = await prosaic.transactions
+  .list('YOUR_ENTITY_ID')
+  .autoPagingToArray({ limit: 50 });
 ```
 
-The default scopes are `openid profile email offline_access`. Request `offline_access` for refresh tokens. Supported client authentication methods are `none`, `client_secret_basic` (the confidential-client default), and `client_secret_post`. You can also call `exchangeCode`, `refreshToken`, and `revokeToken` directly. `completeAuthorization` checks the redirect destination and state before sending a code.
+Awaiting `prosaic.transactions.list(...)` directly returns one page, including its response envelope. You can also use `autoPagingEach()` and return `false` to stop early. Pagination does not provide a fixed snapshot: records can change while you iterate.
 
-Create one token provider per user grant. It shares a single refresh across concurrent requests in that instance and waits for persistence before returning a rotated token. Applications with multiple processes need a distributed lock around refresh-token rotation. Handle `invalid_grant` by asking the user to authorize again. Tokens without expiry metadata cannot be proactively refreshed; persist the returned `expires_at` value. ID tokens are returned unchanged; this SDK does not verify them or turn their claims into an authenticated application session.
+### Create a balanced draft journal
 
-## Resources and types
-
-The 66 supported operations are generated from the checked-in [API contract](openapi/prosaic.json). See the [resource reference](docs/api-reference.md). Request and response types are exported by method, such as `JournalsCreateParams`, `InvoicesCreateParams`, and `EntitiesListResponse`.
+This creates a **draft** with `autoPost: false`. Use account codes from `entityAccounts.list(entityId)` and a tax rate ID appropriate to your entity. Replace all placeholders before running it against a test entity.
 
 ```ts
 import type { JournalsCreateParams } from '@prosaic/sdk';
 
 const params: JournalsCreateParams = {
   date: '2026-04-01',
-  narration: 'Opening journal',
+  narration: 'Opening balance',
   taxMode: 'NO_TAX',
+  autoPost: false,
   lines: [
-    { entityAccountCode: '1000', taxRateId, debit: '10.25' },
-    { entityAccountCode: '4000', taxRateId, credit: '10.25' },
+    {
+      entityAccountCode: 'YOUR_DEBIT_ACCOUNT_CODE',
+      taxRateId: 'YOUR_TAX_RATE_ID',
+      debit: '10.25',
+    },
+    {
+      entityAccountCode: 'YOUR_CREDIT_ACCOUNT_CODE',
+      taxRateId: 'YOUR_TAX_RATE_ID',
+      credit: '10.25',
+    },
   ],
 };
-const journal = await prosaic.journals.create(entityId, params);
+
+const journal = await prosaic.journals.create('YOUR_ENTITY_ID', params);
+console.log(journal.id, journal.status);
 ```
 
-Responses preserve the API's exact JSON envelope. Most return `{ data }`; journal creation, reports and uploads return plain objects. Dates stay strings. Financial decimals stay strings where the server serializes Decimal values; some endpoints, including invoices, return numeric amounts. Use Decimal.js for calculations. Supply financial calendar dates as `YYYY-MM-DD`; do not shift them through your machine's timezone.
+Journal creation returns the journal directly. Most other resources return a `{ data }` envelope. The SDK preserves the API's response shape; exported TypeScript types show what each method returns.
 
-Some contracts need special care:
+## Authentication and workspaces
 
-- `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the server returns an unpaginated list.
-- Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
-- `journals.void` and `journals.attachFiles` take the returned `logicalJournalId`, not the journal version's `id`.
-- Invoice line quantities, unit prices and tax rates are decimal strings on input.
-- Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.
-- `extensions.request` requires an extension-scoped token. Ordinary API keys and user OAuth tokens cannot call it. An upstream error is represented by its embedded `status`/`ok` inside an HTTP 200 response.
+Keep API keys and confidential-client secrets on your server, outside browser bundles and source control. API keys and OAuth access tokens are sent as Bearer credentials.
 
-## Pagination, uploads and errors
+To select a workspace, set `workspaceId` on the client or override it on an individual request:
 
 ```ts
-for await (const transaction of prosaic.transactions.list(entityId, { pageSize: 100 })) {
-  console.log(transaction.id);
-}
-const first50 = await prosaic.journals.list(entityId).autoPagingToArray({ limit: 50 });
-const uploaded = await prosaic.files.upload(
-  entityId,
-  new File([bytes], 'receipt.pdf', {
-    type: 'application/pdf',
-  }),
-);
+const workspaceClient = new Prosaic(apiKey, {
+  workspaceId: 'YOUR_WORKSPACE_ID',
+});
+
+const { data: me } = await workspaceClient.me.retrieve({
+  workspaceId: 'ANOTHER_WORKSPACE_ID',
+});
 ```
 
-Awaiting a list returns one page. Iteration follows the API's page-number pagination; it also works for unpaginated lists. Use `autoPagingEach` and return `false` to stop early. Page contents can change while you iterate; the API does not promise a snapshot.
+Workspace selection does not grant permissions or override a token pinned to a different workspace.
+
+### Connect users with OAuth
+
+Use OAuth when users authorise your application to access Prosaic on their behalf. Register an OAuth application first, then begin an authorisation-code flow with PKCE:
+
+```ts
+import { OAuth } from '@prosaic/sdk';
+
+const clientId = process.env.PROSAIC_CLIENT_ID;
+if (!clientId) throw new Error('Set PROSAIC_CLIENT_ID before starting OAuth.');
+
+const oauth = new OAuth({
+  clientId,
+  clientSecret: process.env.PROSAIC_CLIENT_SECRET, // Omit for a public client.
+});
+
+const authorization = oauth.createAuthorization({
+  redirectUri: 'https://your-app.example/oauth/callback',
+});
+
+// Store authorization in the initiating user's server-side session.
+// Redirect their browser to authorization.url.
+```
+
+On the callback, consume the stored authorisation once and enforce a short expiry. `oauth.completeAuthorization(callbackUrl, authorization)` checks the redirect destination and state before exchanging the code. Persist the returned tokens securely, including `expires_at` and the refresh token.
+
+Pass `oauth.createTokenProvider(tokens, persistTokens)` as the client's `accessToken` option to refresh expiring tokens automatically. Your `persistTokens` callback must atomically save the updated tokens and return a promise. See the [OAuth example](examples/oauth.ts) for a typed callback helper that connects these steps.
+
+The default scopes are `openid profile email offline_access`. Create one token provider per user grant; applications with multiple processes must coordinate refresh-token rotation across them. An `invalid_grant` error requires the user to authorise again. The SDK returns ID tokens unchanged and does not verify them for application login.
+
+## Errors and request options
+
+Catch `APIError` for HTTP errors and use its status, code and request ID to diagnose a failed request:
 
 ```ts
 import { APIError } from '@prosaic/sdk';
 
 try {
-  const { data, response, requestId } = await prosaic.me.retrieve().withResponse();
+  const { data: payload, requestId } = await prosaic.me.retrieve().withResponse();
+  console.log(payload.data.name, requestId);
 } catch (error) {
   if (error instanceof APIError) {
     console.error(error.status, error.code, error.requestId);
-    // error.details carries validation details when supplied by the API.
+  } else {
+    throw error;
   }
 }
 ```
 
-Errors include `AuthenticationError`, `PermissionError`, `NotFoundError`, `ValidationError`, `ConflictError`, `RateLimitError`, `ConnectionError`, `TimeoutError`, `InvalidResponseError`, and `OAuthError`. HTTP error metadata does not retain request headers or bodies. Treat response error details as potentially sensitive application data.
+Typed errors include `AuthenticationError`, `PermissionError`, `NotFoundError`, `ValidationError`, `ConflictError` and `RateLimitError`. Transport failures use `ConnectionError`, `TimeoutError` or `InvalidResponseError`; OAuth failures use `OAuthError`. Validation details are available in `error.details` when the API supplies them. Keep those details out of public logs because they may contain application data.
 
-The default timeout is 30 seconds. GET/HEAD requests retry transient failures at most twice, honoring `Retry-After` within the total deadline. Writes and OAuth token requests are never automatically retried: the server has no general idempotency-key contract. Configure `timeout`/`maxNetworkRetries` globally or per request; pass `signal` for cancellation. Credential-bearing redirects are not followed.
+| Option              | Default                     | Purpose                                                    |
+| ------------------- | --------------------------- | ---------------------------------------------------------- |
+| `baseUrl`           | `https://app.prosaic.works` | Server origin, without `/api/public/v1`.                   |
+| `timeout`           | `30000`                     | Total request deadline in milliseconds, including retries. |
+| `maxNetworkRetries` | `2`                         | Maximum retries for transient GET/HEAD failures.           |
+| `workspaceId`       | Unset                       | Workspace to select for requests.                          |
 
-## Local development
+Set defaults in the second argument to `new Prosaic(apiKey, options)`. Override `timeout`, `maxNetworkRetries` or `workspaceId` in a method's final request-options argument; pass `signal` there to cancel a request. For local development, `baseUrl: 'http://localhost:3024'` is supported. Other non-loopback origins require HTTPS.
+
+Retries respect `Retry-After` within the request deadline. **Writes and OAuth token requests are never automatically retried.** There is no general idempotency-key contract, so check the outcome of a failed mutation before trying it again. Credential-bearing redirects are not followed.
+
+## Working with financial data
+
+- **Amounts:** preserve values as returned. Many financial decimals are strings; some endpoints, including invoice responses, return numbers. Use Decimal.js for calculations. Invoice line quantities, unit prices and tax rates are decimal strings on input.
+- **Dates:** supply financial calendar dates as `YYYY-MM-DD`. The SDK leaves date strings unchanged; avoid converting calendar dates through your machine's timezone.
+- **Responses:** most methods return `{ data }`; journal creation, reports and uploads return plain objects. Request and response types are exported, including `JournalsCreateParams`, `InvoicesCreateParams` and `EntitiesListResponse`.
+
+<details>
+<summary>Endpoint-specific details</summary>
+
+- `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the response is unpaginated.
+- Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
+- `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
+- `files.upload(entityId, file)` accepts a `File` or `Blob`. Use a named `File`, or pass a `filename` request option for a `Blob`.
+- Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.
+- `extensions.request()` requires an extension-scoped token. Ordinary API keys and user OAuth tokens cannot call it. An upstream error is represented by embedded `status`/`ok` fields inside an HTTP 200 response.
+
+</details>
+
+## API coverage
+
+This alpha includes 66 operations across 22 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+
+| Area                      | Resources                                                  |
+| ------------------------- | ---------------------------------------------------------- |
+| Identity and setup        | `me`, `version`, `entities`, `clients`                     |
+| Accounts and dimensions   | `charts`, `entityAccounts`, `globalAccounts`, `dimensions` |
+| Transactions and journals | `transactions`, `journals`, `changeSets`                   |
+| Financial reporting       | `ledger`, `generalLedger`, `reports`, `gstReturns`         |
+| Invoices and assets       | `invoices`, `fixedAssets`, `fixedAssetTypes`, `files`      |
+| Automation and extensions | `rules`, `scheduledTasks`, `extensions`                    |
+
+Use the [API resource reference](docs/api-reference.md) to find a method, and the [developer documentation](https://developer.prosaic.works/) for the wider API.
+
+### Alpha compatibility
+
+The SDK targets the **7 September 2026** API snapshot. The developer documentation may describe newer API capabilities.
+
+- **Contacts:** newer contacts endpoints are not included in this alpha.
+- **Rules pagination:** `rules.list()` has no pagination contract in this snapshot. Against the newer paginated endpoint, awaiting it returns only the first page; automatic iteration fails when more pages exist. Do not rely on it to enumerate every rule.
+- **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and API contract updates.
 
 ```sh
-yarn install
+yarn install --immutable
 yarn test
 yarn typecheck
 yarn generate:check
 yarn lint
 yarn format:check
-yarn build
-yarn pack --out prosaic-sdk.tgz
+yarn test:package
 ```
 
-Install the tarball in a separate consumer with `yarn add /absolute/path/prosaic-sdk.tgz`. See [CONTRIBUTING.md](CONTRIBUTING.md) for contract updates, [local end-to-end testing](docs/local-testing.md), and [release instructions](docs/releasing.md). The API snapshot makes this repository buildable without the private Prosaic monorepo. See [skills](skills/prosaic-sdk/SKILL.md) for agent-assisted use and maintenance.
+The package smoke test builds the SDK and checks installation in ESM and CommonJS consumers. See [local API testing](docs/local-testing.md), [release instructions](docs/releasing.md) and the [SDK skill](skills/prosaic-sdk/SKILL.md) for agent-assisted integrations.
+
+Found an SDK bug? [Open an issue](https://github.com/prosaichq/prosaic-node/issues) with a minimal reproduction, SDK version and request ID where available. Remove credentials and customer data before sharing.
+
+## License
+
+[MIT](LICENSE).
