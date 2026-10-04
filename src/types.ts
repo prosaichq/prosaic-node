@@ -292,6 +292,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/v1/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List contacts
+         * @description Returns non-deleted contacts from entities visible in the active workspace.
+         */
+        get: operations["contacts.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/v1/entities/{entityId}/change-sets": {
         parameters: {
             query?: never;
@@ -411,6 +431,94 @@ export interface paths {
          *     Parent account can be referenced by ID, code, or mappedCode to support external system integrations.
          */
         post: operations["entityAccounts.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/contacts/{contactId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive a contact
+         * @description Archives an active contact, optionally archiving a business's people with it.
+         */
+        post: operations["contacts.archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/contacts/{contactId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore a contact
+         * @description Restores an archived contact and optionally the people archived with the same business operation.
+         */
+        post: operations["contacts.restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/contacts/{contactId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a contact
+         * @description Returns one active or archived contact belonging to the path entity.
+         */
+        get: operations["contacts.retrieve"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a contact
+         * @description Soft-deletes an active contact that has no invoice history.
+         */
+        delete: operations["contacts.del"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a contact
+         * @description Updates only the supplied mutable fields on an active contact. Omitted fields, including nested email labels and person invoice preferences, are unchanged; send null to clear an email label. Type and entity cannot be changed.
+         */
+        patch: operations["contacts.update"];
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a contact
+         * @description Creates a contact in the path entity and returns its public representation.
+         */
+        post: operations["contacts.create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1428,6 +1536,81 @@ export interface components {
          * @example 2024-04-01
          */
         IsoDateString: string;
+        PublicContact: components["schemas"]["PublicBusinessContact"] | components["schemas"]["PublicIndividualContact"];
+        PublicContactBase: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspaceId: string;
+            /** Format: uuid */
+            entityId: string;
+            /** @enum {string} */
+            status: "active" | "archived";
+            displayName: string;
+            legalName: string | null;
+            identifierScheme: string | null;
+            identifier: string | null;
+            gstNumber: string | null;
+            website: string | null;
+            notes: string | null;
+            invoiceNotes: string | null;
+            /** Format: uuid */
+            organisationId: string | null;
+            receivesInvoices: boolean;
+            addresses: Record<string, never>[];
+            phones: Record<string, never>[];
+            organisation: {
+                /** Format: uuid */
+                id: string;
+                displayName: string;
+            } | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            archivedAt: string | null;
+        };
+        PublicBusinessContact: components["schemas"]["PublicContactBase"] & {
+            /** @enum {string} */
+            type: "BUSINESS";
+            people: components["schemas"]["PublicContactPerson"][];
+        } & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "BUSINESS";
+        };
+        PublicIndividualContact: components["schemas"]["PublicContactBase"] & {
+            /** @enum {string} */
+            type: "INDIVIDUAL";
+            emails: components["schemas"]["PublicContactEmail"][];
+        } & {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "INDIVIDUAL";
+        };
+        PublicContactEmail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: email */
+            email: string;
+            label: string | null;
+        };
+        PublicContactPerson: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+            receivesInvoices: boolean;
+            /** @enum {string} */
+            status: "active" | "archived";
+            /** Format: date-time */
+            archivedAt: string | null;
+            emails: components["schemas"]["PublicContactEmail"][];
+        };
         GeneralLedgerEntry: {
             /**
              * Format: uuid
@@ -2584,6 +2767,18 @@ export interface operations {
                     };
                 };
             };
+            /** @description Invitation email rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error?: string;
+                        code?: string;
+                    };
+                };
+            };
             /** @description Internal server error */
             500: {
                 headers: {
@@ -2595,6 +2790,188 @@ export interface operations {
                         code?: string;
                     };
                 };
+            };
+        };
+    };
+    "contacts.list": {
+        parameters: {
+            query?: {
+                entityId?: string;
+                type?: "BUSINESS" | "INDIVIDUAL";
+                status?: "active" | "archived" | "all";
+                updatedSince?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: ({
+                            /** @enum {string} */
+                            type: "BUSINESS";
+                            people: {
+                                id: string;
+                                displayName: string;
+                                receivesInvoices: boolean;
+                                /** @enum {string} */
+                                status: "active" | "archived";
+                                /** Format: date-time */
+                                archivedAt: string | null;
+                                emails: {
+                                    id: string;
+                                    email: string;
+                                    label: string | null;
+                                }[];
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        } | {
+                            /** @enum {string} */
+                            type: "INDIVIDUAL";
+                            emails: {
+                                id: string;
+                                email: string;
+                                label: string | null;
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        })[];
+                        pagination: {
+                            currentPage: number;
+                            pageSize: number;
+                            totalCount: number;
+                            totalPages: number;
+                            hasNextPage: boolean;
+                            hasPreviousPage: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid query parameters. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Insufficient role or token scope. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3147,6 +3524,849 @@ export interface operations {
             };
         };
     };
+    "contacts.archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                contactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    archivePeople?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "archived" | "last-person";
+                    };
+                };
+            };
+            /** @description Invalid contact ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Insufficient workspace role or entity permission. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contact or entity not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Archiving would leave a live business without a person to invoice. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "contacts.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                contactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    restorePeople?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "restored";
+                    };
+                };
+            };
+            /** @description Invalid contact ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Insufficient workspace role or entity permission. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contact or entity not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "contacts.retrieve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                contactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            type: "BUSINESS";
+                            people: {
+                                id: string;
+                                displayName: string;
+                                receivesInvoices: boolean;
+                                /** @enum {string} */
+                                status: "active" | "archived";
+                                /** Format: date-time */
+                                archivedAt: string | null;
+                                emails: {
+                                    id: string;
+                                    email: string;
+                                    label: string | null;
+                                }[];
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        } | {
+                            /** @enum {string} */
+                            type: "INDIVIDUAL";
+                            emails: {
+                                id: string;
+                                email: string;
+                                label: string | null;
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid contact ID. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Insufficient workspace role. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contact or entity not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "contacts.del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                contactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "last-person" | "deleted" | "has-history";
+                    };
+                };
+            };
+            /** @description Invalid contact ID. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Insufficient workspace role or entity permission. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contact or entity not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contact has invoice history or removal would leave a business without a person to invoice. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "contacts.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                contactId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName?: string;
+                    email?: {
+                        email: string;
+                        label?: string | null;
+                    } | null;
+                    people?: {
+                        receivesInvoices?: boolean;
+                        id?: string;
+                        email?: string;
+                        label?: string;
+                        displayName?: string;
+                    }[];
+                    phones?: {
+                        id: string;
+                        number: string;
+                        label?: string;
+                        isPrimary?: boolean;
+                    }[];
+                    addresses?: {
+                        id: string;
+                        /** @enum {string} */
+                        type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                        addressLines: string[];
+                        countryCode: string;
+                        label?: string;
+                        attentionTo?: string;
+                        sublocality?: string;
+                        locality?: string;
+                        administrativeArea?: string;
+                        postalCode?: string;
+                        sortingCode?: string;
+                        isInvoiceDefault?: boolean;
+                    }[];
+                    linkPastInvoices?: boolean;
+                    legalName?: string | null;
+                    identifierScheme?: string | null;
+                    identifier?: string | null;
+                    gstNumber?: string | null;
+                    website?: string | null;
+                    notes?: string | null;
+                    invoiceNotes?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            type: "BUSINESS";
+                            people: {
+                                id: string;
+                                displayName: string;
+                                receivesInvoices: boolean;
+                                /** @enum {string} */
+                                status: "active" | "archived";
+                                /** Format: date-time */
+                                archivedAt: string | null;
+                                emails: {
+                                    id: string;
+                                    email: string;
+                                    label: string | null;
+                                }[];
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        } | {
+                            /** @enum {string} */
+                            type: "INDIVIDUAL";
+                            emails: {
+                                id: string;
+                                email: string;
+                                label: string | null;
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        };
+                        linkedInvoiceCount: number;
+                    };
+                };
+            };
+            /** @description Invalid ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Insufficient workspace role or entity permission. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Contact or entity not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "contacts.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    displayName: string;
+                    /** @enum {string} */
+                    type: "BUSINESS" | "INDIVIDUAL";
+                    email?: {
+                        email: string;
+                        label?: string;
+                    };
+                    people?: {
+                        receivesInvoices?: boolean;
+                        id?: string;
+                        email?: string;
+                        label?: string;
+                        displayName?: string;
+                    }[];
+                    phones?: {
+                        id: string;
+                        number: string;
+                        label?: string;
+                        isPrimary?: boolean;
+                    }[];
+                    addresses?: {
+                        id: string;
+                        /** @enum {string} */
+                        type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                        addressLines: string[];
+                        countryCode: string;
+                        label?: string;
+                        attentionTo?: string;
+                        sublocality?: string;
+                        locality?: string;
+                        administrativeArea?: string;
+                        postalCode?: string;
+                        sortingCode?: string;
+                        isInvoiceDefault?: boolean;
+                    }[];
+                    linkPastInvoices?: boolean;
+                    legalName?: string;
+                    identifierScheme?: string;
+                    identifier?: string;
+                    gstNumber?: string;
+                    website?: string;
+                    notes?: string;
+                    invoiceNotes?: string;
+                } | {
+                    people: {
+                        receivesInvoices?: boolean;
+                        id?: string;
+                        email?: string;
+                        label?: string;
+                        displayName?: string;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            type: "BUSINESS";
+                            people: {
+                                id: string;
+                                displayName: string;
+                                receivesInvoices: boolean;
+                                /** @enum {string} */
+                                status: "active" | "archived";
+                                /** Format: date-time */
+                                archivedAt: string | null;
+                                emails: {
+                                    id: string;
+                                    email: string;
+                                    label: string | null;
+                                }[];
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        } | {
+                            /** @enum {string} */
+                            type: "INDIVIDUAL";
+                            emails: {
+                                id: string;
+                                email: string;
+                                label: string | null;
+                            }[];
+                            id: string;
+                            workspaceId: string;
+                            entityId: string;
+                            /** @enum {string} */
+                            status: "active" | "archived";
+                            displayName: string;
+                            legalName: string | null;
+                            identifierScheme: string | null;
+                            identifier: string | null;
+                            gstNumber: string | null;
+                            website: string | null;
+                            notes: string | null;
+                            invoiceNotes: string | null;
+                            organisationId: string | null;
+                            receivesInvoices: boolean;
+                            addresses: {
+                                id: string;
+                                label?: string;
+                                /** @enum {string} */
+                                type: "BILLING" | "DELIVERY" | "POSTAL" | "PHYSICAL" | "REMITTANCE" | "OTHER";
+                                attentionTo?: string;
+                                addressLines: string[];
+                                sublocality?: string;
+                                locality?: string;
+                                administrativeArea?: string;
+                                postalCode?: string;
+                                sortingCode?: string;
+                                countryCode: string;
+                                isInvoiceDefault: boolean;
+                            }[];
+                            phones: {
+                                id: string;
+                                label?: string;
+                                number: string;
+                                isPrimary: boolean;
+                            }[];
+                            organisation: {
+                                id: string;
+                                displayName: string;
+                            } | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            /** Format: date-time */
+                            archivedAt: string | null;
+                        };
+                        linkedInvoiceCount: number;
+                    };
+                };
+            };
+            /** @description Invalid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Insufficient workspace role or entity permission. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "dimensions.list": {
         parameters: {
             query?: never;
@@ -3532,7 +4752,6 @@ export interface operations {
                             purchaseDate: string | null;
                             startDate: string | null;
                             purchasePrice: number | null;
-                            costLimit: number | null;
                             residualValue: number | null;
                             businessUsePercentage: number | null;
                             initialAccumulatedDepreciation: number | null;
@@ -3656,7 +4875,6 @@ export interface operations {
                             purchaseDate: string | null;
                             startDate: string | null;
                             purchasePrice: number | null;
-                            costLimit: number | null;
                             residualValue: number | null;
                             businessUsePercentage: number | null;
                             initialAccumulatedDepreciation: number | null;
@@ -3768,6 +4986,7 @@ export interface operations {
                     usefulLifeYears?: number;
                     depreciationRate?: number | null;
                     immediateExpensePercentage?: number;
+                    dimensionOptionIds?: string[];
                     /** @enum {string} */
                     status: "active";
                 } | {
@@ -3786,6 +5005,7 @@ export interface operations {
                     usefulLifeYears?: number;
                     depreciationRate?: number | null;
                     immediateExpensePercentage?: number;
+                    dimensionOptionIds?: string[];
                     /** @enum {string} */
                     status?: "draft";
                 };
@@ -3808,7 +5028,6 @@ export interface operations {
                             purchaseDate: string | null;
                             startDate: string | null;
                             purchasePrice: number | null;
-                            costLimit: number | null;
                             residualValue: number | null;
                             businessUsePercentage: number | null;
                             initialAccumulatedDepreciation: number | null;
@@ -4493,12 +5712,12 @@ export interface operations {
                         taxRate?: string;
                     }[];
                     bankAccountId?: string | null;
+                    notes?: string | null;
+                    contactId?: string | null;
                     dueDate?: string | null;
                     invoiceNumber?: string;
                     recipientEmail?: string | null;
                     recipientAddress?: string | null;
-                    notes?: string | null;
-                    contactId?: string | null;
                     recipientEmails?: string[];
                 };
             };
@@ -5676,6 +6895,7 @@ export interface operations {
                         metadata: {
                             entityId: string;
                             entityName: string;
+                            currency: string;
                             startDate: string;
                             endDate: string;
                             generatedAt: string;
@@ -5696,6 +6916,7 @@ export interface operations {
                             purchases: number;
                             disposals: number;
                             depreciation: number;
+                            investmentBoost?: number;
                             accumulatedDepreciation: number;
                             closingValue: number;
                             privateUseAmount: number;
@@ -5706,6 +6927,7 @@ export interface operations {
                             purchases: number;
                             disposals: number;
                             depreciation: number;
+                            investmentBoost?: number;
                             accumulatedDepreciation: number;
                             closingValue: number;
                             privateUseAmount: number;
@@ -6728,11 +7950,18 @@ export interface operations {
                     parties?: {
                         name: string;
                         roles: ("other" | "director" | "shareholder" | "trustee" | "partner" | "beneficiary" | "settlor" | "owner")[];
+                        id?: string;
                         isOrganisation?: boolean;
                         nzbn?: string;
                         shares?: number;
                         /** @enum {string} */
                         source?: "manual" | "nzbn";
+                        sourceReferences?: {
+                            /** @enum {string} */
+                            source: "nzbn-role";
+                            sourceEntityNzbn: string;
+                            uniqueIdentifier: string;
+                        }[];
                     }[];
                     registeredAddress?: string;
                     postalAddress?: string;
@@ -7639,7 +8868,15 @@ export interface operations {
                  * @description Filter rules by active status. `true` (default) returns only active rules,
                  *     `false` returns only inactive rules, `all` returns both.
                  */
-                isActive?: "false" | "true" | "all";
+                isActive?: "all" | "false" | "true";
+                /**
+                 * @description Only rules whose scope reaches this entity: workspace-wide rules, rules on
+                 *     the entity's chart template, rules on the entity itself, and rules on any of
+                 *     its bank accounts.
+                 */
+                entityId?: string;
+                page?: number;
+                pageSize?: number;
             };
             header?: never;
             path?: never;
@@ -7693,8 +8930,13 @@ export interface operations {
                                 } | null;
                             }[];
                         }[];
-                        meta?: {
-                            count: number;
+                        pagination: {
+                            currentPage: number;
+                            pageSize: number;
+                            totalCount: number;
+                            totalPages: number;
+                            hasNextPage: boolean;
+                            hasPreviousPage: boolean;
                         };
                     };
                 };
@@ -7720,7 +8962,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Workspace not found */
+            /** @description Workspace not found, or entityId is not in the workspace */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -7781,7 +9023,7 @@ export interface operations {
                     /** @enum {string} */
                     targetType?: "bank_transaction";
                     /** @enum {string} */
-                    source?: "manual" | "ai" | "duplicate" | "transactions_filters" | "transactions_reconcile" | "dimension_proposal" | "demo_seed";
+                    source?: "ai" | "manual" | "duplicate" | "transactions_filters" | "transactions_reconcile" | "dimension_proposal" | "demo_seed";
                 };
             };
         };

@@ -26,6 +26,8 @@ export type ClientsCreateOnboardingLinkResponse = operations["clients.createOnbo
 export type ClientsCreateOnboardingLinkParams = operations["clients.createOnboardingLink"]['requestBody']['content']['application/json'];
 export type ClientsListTransactionsResponse = operations["clients.listTransactions"]['responses'][200]['content']['application/json'];
 export type ClientsListTransactionsParams = NonNullable<operations["clients.listTransactions"]['parameters']['query']>;
+export type ContactsListResponse = operations["contacts.list"]['responses'][200]['content']['application/json'];
+export type ContactsListParams = NonNullable<operations["contacts.list"]['parameters']['query']>;
 export type EntitiesListResponse = operations["entities.list"]['responses'][200]['content']['application/json'];
 export type EntitiesListParams = NonNullable<operations["entities.list"]['parameters']['query']>;
 export type EntitiesCreateResponse = operations["entities.create"]['responses'][201]['content']['application/json'];
@@ -41,6 +43,16 @@ export type EntityAccountsDelResponse = operations["entityAccounts.del"]['respon
 export type EntityAccountsResetResponse = operations["entityAccounts.reset"]['responses'][200]['content']['application/json'];
 export type EntityAccountsUpdateResponse = operations["entityAccounts.update"]['responses'][200]['content']['application/json'];
 export type EntityAccountsUpdateParams = operations["entityAccounts.update"]['requestBody']['content']['application/json'];
+export type ContactsCreateResponse = operations["contacts.create"]['responses'][201]['content']['application/json'];
+export type ContactsCreateParams = operations["contacts.create"]['requestBody']['content']['application/json'];
+export type ContactsDelResponse = operations["contacts.del"]['responses'][200]['content']['application/json'];
+export type ContactsRetrieveResponse = operations["contacts.retrieve"]['responses'][200]['content']['application/json'];
+export type ContactsUpdateResponse = operations["contacts.update"]['responses'][200]['content']['application/json'];
+export type ContactsUpdateParams = operations["contacts.update"]['requestBody']['content']['application/json'];
+export type ContactsArchiveResponse = operations["contacts.archive"]['responses'][200]['content']['application/json'];
+export type ContactsArchiveParams = operations["contacts.archive"]['requestBody']['content']['application/json'];
+export type ContactsRestoreResponse = operations["contacts.restore"]['responses'][200]['content']['application/json'];
+export type ContactsRestoreParams = operations["contacts.restore"]['requestBody']['content']['application/json'];
 export type DimensionsListResponse = operations["dimensions.list"]['responses'][200]['content']['application/json'];
 export type FilesUploadResponse = operations["files.upload"]['responses'][201]['content']['application/json'];
 export type FixedAssetTypesListResponse = operations["fixedAssetTypes.list"]['responses'][200]['content']['application/json'];
@@ -307,6 +319,65 @@ export class ClientsResource {
    */
   listTransactions(clientId: string, params: ClientsListTransactionsParams = {}, options: RequestOptions = {}): APIListPromise<ClientsListTransactionsResponse> {
     return new APIListPromise(this.transport.request<ClientsListTransactionsResponse>("GET", `/api/public/v1/clients/${pathParam(clientId)}/transactions`, { query: params }, options), (page) => this.transport.request<ClientsListTransactionsResponse>("GET", `/api/public/v1/clients/${pathParam(clientId)}/transactions`, { query: { ...params, page } }, options));
+  }
+}
+
+export class ContactsResource {
+  constructor(private readonly transport: Transport) {}
+  /**
+   * List contacts
+   * Returns non-deleted contacts from entities visible in the active workspace.
+   */
+  list(params: ContactsListParams = {}, options: RequestOptions = {}): APIListPromise<ContactsListResponse> {
+    return new APIListPromise(this.transport.request<ContactsListResponse>("GET", `/api/public/v1/contacts`, { query: params }, options), (page) => this.transport.request<ContactsListResponse>("GET", `/api/public/v1/contacts`, { query: { ...params, page } }, options));
+  }
+
+  /**
+   * Create a contact
+   * Creates a contact in the path entity and returns its public representation.
+   */
+  create(entityId: string, params: ContactsCreateParams, options: RequestOptions = {}): APIPromise<ContactsCreateResponse> {
+    return new APIPromise(this.transport.request<ContactsCreateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/contacts`, { body: params }, options));
+  }
+
+  /**
+   * Delete a contact
+   * Soft-deletes an active contact that has no invoice history.
+   */
+  del(entityId: string, contactId: string, options: RequestOptions = {}): APIPromise<ContactsDelResponse> {
+    return new APIPromise(this.transport.request<ContactsDelResponse>("DELETE", `/api/public/v1/entities/${pathParam(entityId)}/contacts/${pathParam(contactId)}`, {}, options));
+  }
+
+  /**
+   * Get a contact
+   * Returns one active or archived contact belonging to the path entity.
+   */
+  retrieve(entityId: string, contactId: string, options: RequestOptions = {}): APIPromise<ContactsRetrieveResponse> {
+    return new APIPromise(this.transport.request<ContactsRetrieveResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/contacts/${pathParam(contactId)}`, {}, options));
+  }
+
+  /**
+   * Update a contact
+   * Updates only the supplied mutable fields on an active contact. Omitted fields, including nested email labels and person invoice preferences, are unchanged; send null to clear an email label. Type and entity cannot be changed.
+   */
+  update(entityId: string, contactId: string, params: ContactsUpdateParams = {}, options: RequestOptions = {}): APIPromise<ContactsUpdateResponse> {
+    return new APIPromise(this.transport.request<ContactsUpdateResponse>("PATCH", `/api/public/v1/entities/${pathParam(entityId)}/contacts/${pathParam(contactId)}`, { body: params }, options));
+  }
+
+  /**
+   * Archive a contact
+   * Archives an active contact, optionally archiving a business's people with it.
+   */
+  archive(entityId: string, contactId: string, params: ContactsArchiveParams = {}, options: RequestOptions = {}): APIPromise<ContactsArchiveResponse> {
+    return new APIPromise(this.transport.request<ContactsArchiveResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/contacts/${pathParam(contactId)}/archive`, { body: params }, options));
+  }
+
+  /**
+   * Restore a contact
+   * Restores an archived contact and optionally the people archived with the same business operation.
+   */
+  restore(entityId: string, contactId: string, params: ContactsRestoreParams = {}, options: RequestOptions = {}): APIPromise<ContactsRestoreResponse> {
+    return new APIPromise(this.transport.request<ContactsRestoreResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/contacts/${pathParam(contactId)}/restore`, { body: params }, options));
   }
 }
 
@@ -941,7 +1012,7 @@ export class RulesResource {
    * Returns rules in the workspace associated with the API key. By default returns only active rules.
    */
   list(params: RulesListParams = {}, options: RequestOptions = {}): APIListPromise<RulesListResponse> {
-    return new APIListPromise(this.transport.request<RulesListResponse>("GET", `/api/public/v1/rules`, { query: params }, options));
+    return new APIListPromise(this.transport.request<RulesListResponse>("GET", `/api/public/v1/rules`, { query: params }, options), (page) => this.transport.request<RulesListResponse>("GET", `/api/public/v1/rules`, { query: { ...params, page } }, options));
   }
 
   /**
@@ -1047,6 +1118,7 @@ export class Resources {
   readonly version: VersionResource;
   readonly charts: ChartsResource;
   readonly clients: ClientsResource;
+  readonly contacts: ContactsResource;
   readonly entities: EntitiesResource;
   readonly changeSets: ChangeSetsResource;
   readonly entityAccounts: EntityAccountsResource;
@@ -1070,6 +1142,7 @@ export class Resources {
     this.version = new VersionResource(transport);
     this.charts = new ChartsResource(transport);
     this.clients = new ClientsResource(transport);
+    this.contacts = new ContactsResource(transport);
     this.entities = new EntitiesResource(transport);
     this.changeSets = new ChangeSetsResource(transport);
     this.entityAccounts = new EntityAccountsResource(transport);

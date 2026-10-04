@@ -1,6 +1,6 @@
 # Releasing
 
-The initial version is `0.1.0-alpha.1` and has not been published to npm. The public source repository is [prosaichq/prosaic-node](https://github.com/prosaichq/prosaic-node). The intended package is `@prosaic/sdk`; confirm ownership of that registry scope before a first release. Resolve the compatibility gaps documented in README.md before publishing a package for the current server API.
+The current version is `0.1.0-alpha.2` and has not been published to npm. The public source repository is [prosaichq/prosaic-node](https://github.com/prosaichq/prosaic-node). The intended package is `@prosaic/sdk`; confirm ownership of that registry scope before a first release. Regenerate from the current server API before publishing.
 
 1. Export the current server contract and review its diff. Run `yarn generate`; document breaking changes and new methods in CHANGELOG.md. Public method names, request/response types and supported Node versions are compatibility commitments.
 2. Run `yarn test`, `yarn typecheck`, `yarn generate:check`, `yarn lint`, `yarn format:check`, and the live tests for changed behavior.

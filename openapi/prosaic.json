@@ -80,6 +80,269 @@
         "description": "Calendar date in YYYY-MM-DD format (ISO 8601). An optional time suffix (for example `T00:00:00.000Z`) is accepted. Regional formats such as DD-MM-YYYY are rejected.",
         "example": "2024-04-01"
       },
+      "PublicContact": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/PublicBusinessContact"
+          },
+          {
+            "$ref": "#/components/schemas/PublicIndividualContact"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "BUSINESS": "#/components/schemas/PublicBusinessContact",
+            "INDIVIDUAL": "#/components/schemas/PublicIndividualContact"
+          }
+        }
+      },
+      "PublicContactBase": {
+        "type": "object",
+        "required": [
+          "id",
+          "workspaceId",
+          "entityId",
+          "status",
+          "displayName",
+          "legalName",
+          "identifierScheme",
+          "identifier",
+          "gstNumber",
+          "website",
+          "notes",
+          "invoiceNotes",
+          "organisationId",
+          "receivesInvoices",
+          "addresses",
+          "phones",
+          "organisation",
+          "createdAt",
+          "updatedAt",
+          "archivedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workspaceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "archived"
+            ]
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "legalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "identifierScheme": {
+            "type": "string",
+            "nullable": true
+          },
+          "identifier": {
+            "type": "string",
+            "nullable": true
+          },
+          "gstNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "invoiceNotes": {
+            "type": "string",
+            "nullable": true
+          },
+          "organisationId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "receivesInvoices": {
+            "type": "boolean"
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "phones": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "organisation": {
+            "type": "object",
+            "nullable": true,
+            "required": [
+              "id",
+              "displayName"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "displayName": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PublicBusinessContact": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PublicContactBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "people"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "BUSINESS"
+                ]
+              },
+              "people": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PublicContactPerson"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PublicIndividualContact": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PublicContactBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "type",
+              "emails"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "INDIVIDUAL"
+                ]
+              },
+              "emails": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PublicContactEmail"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PublicContactEmail": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "PublicContactPerson": {
+        "type": "object",
+        "required": [
+          "id",
+          "displayName",
+          "receivesInvoices",
+          "status",
+          "archivedAt",
+          "emails"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "receivesInvoices": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "archived"
+            ]
+          },
+          "archivedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "emails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicContactEmail"
+            }
+          }
+        }
+      },
       "GeneralLedgerEntry": {
         "type": "object",
         "properties": {
@@ -2746,6 +3009,24 @@
               }
             }
           },
+          "429": {
+            "description": "Invitation email rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -2769,6 +3050,661 @@
         "x-sdk-resource": "clients",
         "x-sdk-method": "create",
         "parameters": []
+      }
+    },
+    "/api/public/v1/contacts": {
+      "get": {
+        "summary": "List contacts",
+        "description": "Returns non-deleted contacts from entities visible in the active workspace.",
+        "tags": [
+          "Contacts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "entityId",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BUSINESS",
+                "INDIVIDUAL"
+              ]
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "archived",
+                "all"
+              ]
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "updatedSince",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 100
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "BUSINESS"
+                                ]
+                              },
+                              "people": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "displayName": {
+                                      "type": "string"
+                                    },
+                                    "receivesInvoices": {
+                                      "type": "boolean"
+                                    },
+                                    "status": {
+                                      "type": "string",
+                                      "enum": [
+                                        "active",
+                                        "archived"
+                                      ]
+                                    },
+                                    "archivedAt": {
+                                      "type": "string",
+                                      "format": "date-time",
+                                      "nullable": true
+                                    },
+                                    "emails": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string"
+                                          },
+                                          "email": {
+                                            "type": "string"
+                                          },
+                                          "label": {
+                                            "type": "string",
+                                            "nullable": true
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "email",
+                                          "label"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "displayName",
+                                    "receivesInvoices",
+                                    "status",
+                                    "archivedAt",
+                                    "emails"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "workspaceId": {
+                                "type": "string"
+                              },
+                              "entityId": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "active",
+                                  "archived"
+                                ]
+                              },
+                              "displayName": {
+                                "type": "string"
+                              },
+                              "legalName": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "identifierScheme": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "identifier": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "gstNumber": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "website": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "notes": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "invoiceNotes": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "organisationId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "receivesInvoices": {
+                                "type": "boolean"
+                              },
+                              "addresses": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "label": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "BILLING",
+                                        "DELIVERY",
+                                        "POSTAL",
+                                        "PHYSICAL",
+                                        "REMITTANCE",
+                                        "OTHER"
+                                      ]
+                                    },
+                                    "attentionTo": {
+                                      "type": "string"
+                                    },
+                                    "addressLines": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "sublocality": {
+                                      "type": "string"
+                                    },
+                                    "locality": {
+                                      "type": "string"
+                                    },
+                                    "administrativeArea": {
+                                      "type": "string"
+                                    },
+                                    "postalCode": {
+                                      "type": "string"
+                                    },
+                                    "sortingCode": {
+                                      "type": "string"
+                                    },
+                                    "countryCode": {
+                                      "type": "string"
+                                    },
+                                    "isInvoiceDefault": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "type",
+                                    "addressLines",
+                                    "countryCode",
+                                    "isInvoiceDefault"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "phones": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "label": {
+                                      "type": "string"
+                                    },
+                                    "number": {
+                                      "type": "string"
+                                    },
+                                    "isPrimary": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "number",
+                                    "isPrimary"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "organisation": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "displayName": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "displayName"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "archivedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "people",
+                              "id",
+                              "workspaceId",
+                              "entityId",
+                              "status",
+                              "displayName",
+                              "legalName",
+                              "identifierScheme",
+                              "identifier",
+                              "gstNumber",
+                              "website",
+                              "notes",
+                              "invoiceNotes",
+                              "organisationId",
+                              "receivesInvoices",
+                              "addresses",
+                              "phones",
+                              "organisation",
+                              "createdAt",
+                              "updatedAt",
+                              "archivedAt"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "INDIVIDUAL"
+                                ]
+                              },
+                              "emails": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "email": {
+                                      "type": "string"
+                                    },
+                                    "label": {
+                                      "type": "string",
+                                      "nullable": true
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "email",
+                                    "label"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "workspaceId": {
+                                "type": "string"
+                              },
+                              "entityId": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "active",
+                                  "archived"
+                                ]
+                              },
+                              "displayName": {
+                                "type": "string"
+                              },
+                              "legalName": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "identifierScheme": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "identifier": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "gstNumber": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "website": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "notes": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "invoiceNotes": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "organisationId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "receivesInvoices": {
+                                "type": "boolean"
+                              },
+                              "addresses": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "label": {
+                                      "type": "string"
+                                    },
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "BILLING",
+                                        "DELIVERY",
+                                        "POSTAL",
+                                        "PHYSICAL",
+                                        "REMITTANCE",
+                                        "OTHER"
+                                      ]
+                                    },
+                                    "attentionTo": {
+                                      "type": "string"
+                                    },
+                                    "addressLines": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "sublocality": {
+                                      "type": "string"
+                                    },
+                                    "locality": {
+                                      "type": "string"
+                                    },
+                                    "administrativeArea": {
+                                      "type": "string"
+                                    },
+                                    "postalCode": {
+                                      "type": "string"
+                                    },
+                                    "sortingCode": {
+                                      "type": "string"
+                                    },
+                                    "countryCode": {
+                                      "type": "string"
+                                    },
+                                    "isInvoiceDefault": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "type",
+                                    "addressLines",
+                                    "countryCode",
+                                    "isInvoiceDefault"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "phones": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "label": {
+                                      "type": "string"
+                                    },
+                                    "number": {
+                                      "type": "string"
+                                    },
+                                    "isPrimary": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "number",
+                                    "isPrimary"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "organisation": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "displayName": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "displayName"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "archivedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "emails",
+                              "id",
+                              "workspaceId",
+                              "entityId",
+                              "status",
+                              "displayName",
+                              "legalName",
+                              "identifierScheme",
+                              "identifier",
+                              "gstNumber",
+                              "website",
+                              "notes",
+                              "invoiceNotes",
+                              "organisationId",
+                              "receivesInvoices",
+                              "addresses",
+                              "phones",
+                              "organisation",
+                              "createdAt",
+                              "updatedAt",
+                              "archivedAt"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "currentPage": {
+                          "type": "number"
+                        },
+                        "pageSize": {
+                          "type": "number"
+                        },
+                        "totalCount": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        },
+                        "hasNextPage": {
+                          "type": "boolean"
+                        },
+                        "hasPreviousPage": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "currentPage",
+                        "pageSize",
+                        "totalCount",
+                        "totalPages",
+                        "hasNextPage",
+                        "hasPreviousPage"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Insufficient role or token scope."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "contacts.list",
+        "x-sdk-resource": "contacts",
+        "x-sdk-method": "list"
       }
     },
     "/api/public/v1/entities/{entityId}/change-sets": {
@@ -4011,6 +4947,2391 @@
         "x-sdk-method": "create"
       }
     },
+    "/api/public/v1/entities/{entityId}/contacts/{contactId}/archive": {
+      "post": {
+        "summary": "Archive a contact",
+        "description": "Archives an active contact, optionally archiving a business's people with it.",
+        "tags": [
+          "Contacts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contactId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "archivePeople": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "archived",
+                        "last-person"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid contact ID",
+            "JSON": null,
+            "or archive option.": null
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Insufficient workspace role or entity permission."
+          },
+          "404": {
+            "description": "Contact or entity not found."
+          },
+          "409": {
+            "description": "Archiving would leave a live business without a person to invoice."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "contacts.archive",
+        "x-sdk-resource": "contacts",
+        "x-sdk-method": "archive"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/contacts/{contactId}/restore": {
+      "post": {
+        "summary": "Restore a contact",
+        "description": "Restores an archived contact and optionally the people archived with the same business operation.",
+        "tags": [
+          "Contacts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contactId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "restorePeople": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "restored"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid contact ID",
+            "JSON": null,
+            "or restore option.": null
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Insufficient workspace role or entity permission."
+          },
+          "404": {
+            "description": "Contact or entity not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "contacts.restore",
+        "x-sdk-resource": "contacts",
+        "x-sdk-method": "restore"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/contacts/{contactId}": {
+      "get": {
+        "summary": "Get a contact",
+        "description": "Returns one active or archived contact belonging to the path entity.",
+        "tags": [
+          "Contacts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contactId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS"
+                              ]
+                            },
+                            "people": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "displayName": {
+                                    "type": "string"
+                                  },
+                                  "receivesInvoices": {
+                                    "type": "boolean"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "active",
+                                      "archived"
+                                    ]
+                                  },
+                                  "archivedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "emails": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "email": {
+                                          "type": "string"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "nullable": true
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "email",
+                                        "label"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "displayName",
+                                  "receivesInvoices",
+                                  "status",
+                                  "archivedAt",
+                                  "emails"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "workspaceId": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "active",
+                                "archived"
+                              ]
+                            },
+                            "displayName": {
+                              "type": "string"
+                            },
+                            "legalName": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifierScheme": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifier": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "website": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "notes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "invoiceNotes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "organisationId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "BILLING",
+                                      "DELIVERY",
+                                      "POSTAL",
+                                      "PHYSICAL",
+                                      "REMITTANCE",
+                                      "OTHER"
+                                    ]
+                                  },
+                                  "attentionTo": {
+                                    "type": "string"
+                                  },
+                                  "addressLines": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "sublocality": {
+                                    "type": "string"
+                                  },
+                                  "locality": {
+                                    "type": "string"
+                                  },
+                                  "administrativeArea": {
+                                    "type": "string"
+                                  },
+                                  "postalCode": {
+                                    "type": "string"
+                                  },
+                                  "sortingCode": {
+                                    "type": "string"
+                                  },
+                                  "countryCode": {
+                                    "type": "string"
+                                  },
+                                  "isInvoiceDefault": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "addressLines",
+                                  "countryCode",
+                                  "isInvoiceDefault"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "phones": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "number": {
+                                    "type": "string"
+                                  },
+                                  "isPrimary": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "number",
+                                  "isPrimary"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "organisation": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ],
+                              "additionalProperties": false,
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "archivedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "people",
+                            "id",
+                            "workspaceId",
+                            "entityId",
+                            "status",
+                            "displayName",
+                            "legalName",
+                            "identifierScheme",
+                            "identifier",
+                            "gstNumber",
+                            "website",
+                            "notes",
+                            "invoiceNotes",
+                            "organisationId",
+                            "receivesInvoices",
+                            "addresses",
+                            "phones",
+                            "organisation",
+                            "createdAt",
+                            "updatedAt",
+                            "archivedAt"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "INDIVIDUAL"
+                              ]
+                            },
+                            "emails": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "email",
+                                  "label"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "workspaceId": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "active",
+                                "archived"
+                              ]
+                            },
+                            "displayName": {
+                              "type": "string"
+                            },
+                            "legalName": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifierScheme": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifier": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "website": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "notes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "invoiceNotes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "organisationId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "BILLING",
+                                      "DELIVERY",
+                                      "POSTAL",
+                                      "PHYSICAL",
+                                      "REMITTANCE",
+                                      "OTHER"
+                                    ]
+                                  },
+                                  "attentionTo": {
+                                    "type": "string"
+                                  },
+                                  "addressLines": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "sublocality": {
+                                    "type": "string"
+                                  },
+                                  "locality": {
+                                    "type": "string"
+                                  },
+                                  "administrativeArea": {
+                                    "type": "string"
+                                  },
+                                  "postalCode": {
+                                    "type": "string"
+                                  },
+                                  "sortingCode": {
+                                    "type": "string"
+                                  },
+                                  "countryCode": {
+                                    "type": "string"
+                                  },
+                                  "isInvoiceDefault": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "addressLines",
+                                  "countryCode",
+                                  "isInvoiceDefault"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "phones": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "number": {
+                                    "type": "string"
+                                  },
+                                  "isPrimary": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "number",
+                                  "isPrimary"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "organisation": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ],
+                              "additionalProperties": false,
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "archivedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "emails",
+                            "id",
+                            "workspaceId",
+                            "entityId",
+                            "status",
+                            "displayName",
+                            "legalName",
+                            "identifierScheme",
+                            "identifier",
+                            "gstNumber",
+                            "website",
+                            "notes",
+                            "invoiceNotes",
+                            "organisationId",
+                            "receivesInvoices",
+                            "addresses",
+                            "phones",
+                            "organisation",
+                            "createdAt",
+                            "updatedAt",
+                            "archivedAt"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid contact ID."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Insufficient workspace role."
+          },
+          "404": {
+            "description": "Contact or entity not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "contacts.retrieve",
+        "x-sdk-resource": "contacts",
+        "x-sdk-method": "retrieve"
+      },
+      "patch": {
+        "summary": "Update a contact",
+        "description": "Updates only the supplied mutable fields on an active contact. Omitted fields, including nested email labels and person invoice preferences, are unchanged; send null to clear an email label. Type and entity cannot be changed.",
+        "tags": [
+          "Contacts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contactId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "object",
+                    "properties": {
+                      "email": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string",
+                        "nullable": true
+                      }
+                    },
+                    "required": [
+                      "email"
+                    ],
+                    "additionalProperties": false,
+                    "nullable": true
+                  },
+                  "people": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "receivesInvoices": {
+                          "type": "boolean"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "displayName": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "phones": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "number": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "isPrimary": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "number"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "addresses": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "BILLING",
+                            "DELIVERY",
+                            "POSTAL",
+                            "PHYSICAL",
+                            "REMITTANCE",
+                            "OTHER"
+                          ]
+                        },
+                        "addressLines": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "countryCode": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "attentionTo": {
+                          "type": "string"
+                        },
+                        "sublocality": {
+                          "type": "string"
+                        },
+                        "locality": {
+                          "type": "string"
+                        },
+                        "administrativeArea": {
+                          "type": "string"
+                        },
+                        "postalCode": {
+                          "type": "string"
+                        },
+                        "sortingCode": {
+                          "type": "string"
+                        },
+                        "isInvoiceDefault": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "type",
+                        "addressLines",
+                        "countryCode"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "linkPastInvoices": {
+                    "type": "boolean"
+                  },
+                  "legalName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "identifierScheme": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "identifier": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "gstNumber": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "website": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "notes": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "invoiceNotes": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS"
+                              ]
+                            },
+                            "people": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "displayName": {
+                                    "type": "string"
+                                  },
+                                  "receivesInvoices": {
+                                    "type": "boolean"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "active",
+                                      "archived"
+                                    ]
+                                  },
+                                  "archivedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "emails": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "email": {
+                                          "type": "string"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "nullable": true
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "email",
+                                        "label"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "displayName",
+                                  "receivesInvoices",
+                                  "status",
+                                  "archivedAt",
+                                  "emails"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "workspaceId": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "active",
+                                "archived"
+                              ]
+                            },
+                            "displayName": {
+                              "type": "string"
+                            },
+                            "legalName": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifierScheme": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifier": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "website": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "notes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "invoiceNotes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "organisationId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "BILLING",
+                                      "DELIVERY",
+                                      "POSTAL",
+                                      "PHYSICAL",
+                                      "REMITTANCE",
+                                      "OTHER"
+                                    ]
+                                  },
+                                  "attentionTo": {
+                                    "type": "string"
+                                  },
+                                  "addressLines": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "sublocality": {
+                                    "type": "string"
+                                  },
+                                  "locality": {
+                                    "type": "string"
+                                  },
+                                  "administrativeArea": {
+                                    "type": "string"
+                                  },
+                                  "postalCode": {
+                                    "type": "string"
+                                  },
+                                  "sortingCode": {
+                                    "type": "string"
+                                  },
+                                  "countryCode": {
+                                    "type": "string"
+                                  },
+                                  "isInvoiceDefault": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "addressLines",
+                                  "countryCode",
+                                  "isInvoiceDefault"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "phones": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "number": {
+                                    "type": "string"
+                                  },
+                                  "isPrimary": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "number",
+                                  "isPrimary"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "organisation": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ],
+                              "additionalProperties": false,
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "archivedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "people",
+                            "id",
+                            "workspaceId",
+                            "entityId",
+                            "status",
+                            "displayName",
+                            "legalName",
+                            "identifierScheme",
+                            "identifier",
+                            "gstNumber",
+                            "website",
+                            "notes",
+                            "invoiceNotes",
+                            "organisationId",
+                            "receivesInvoices",
+                            "addresses",
+                            "phones",
+                            "organisation",
+                            "createdAt",
+                            "updatedAt",
+                            "archivedAt"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "INDIVIDUAL"
+                              ]
+                            },
+                            "emails": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "email",
+                                  "label"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "workspaceId": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "active",
+                                "archived"
+                              ]
+                            },
+                            "displayName": {
+                              "type": "string"
+                            },
+                            "legalName": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifierScheme": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifier": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "website": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "notes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "invoiceNotes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "organisationId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "BILLING",
+                                      "DELIVERY",
+                                      "POSTAL",
+                                      "PHYSICAL",
+                                      "REMITTANCE",
+                                      "OTHER"
+                                    ]
+                                  },
+                                  "attentionTo": {
+                                    "type": "string"
+                                  },
+                                  "addressLines": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "sublocality": {
+                                    "type": "string"
+                                  },
+                                  "locality": {
+                                    "type": "string"
+                                  },
+                                  "administrativeArea": {
+                                    "type": "string"
+                                  },
+                                  "postalCode": {
+                                    "type": "string"
+                                  },
+                                  "sortingCode": {
+                                    "type": "string"
+                                  },
+                                  "countryCode": {
+                                    "type": "string"
+                                  },
+                                  "isInvoiceDefault": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "addressLines",
+                                  "countryCode",
+                                  "isInvoiceDefault"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "phones": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "number": {
+                                    "type": "string"
+                                  },
+                                  "isPrimary": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "number",
+                                  "isPrimary"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "organisation": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ],
+                              "additionalProperties": false,
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "archivedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "emails",
+                            "id",
+                            "workspaceId",
+                            "entityId",
+                            "status",
+                            "displayName",
+                            "legalName",
+                            "identifierScheme",
+                            "identifier",
+                            "gstNumber",
+                            "website",
+                            "notes",
+                            "invoiceNotes",
+                            "organisationId",
+                            "receivesInvoices",
+                            "addresses",
+                            "phones",
+                            "organisation",
+                            "createdAt",
+                            "updatedAt",
+                            "archivedAt"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "linkedInvoiceCount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "linkedInvoiceCount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "JSON": null,
+            "field values": null,
+            "or saved contact relationships.": null
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Insufficient workspace role or entity permission."
+          },
+          "404": {
+            "description": "Contact or entity not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "contacts.update",
+        "x-sdk-resource": "contacts",
+        "x-sdk-method": "update"
+      },
+      "delete": {
+        "summary": "Delete a contact",
+        "description": "Soft-deletes an active contact that has no invoice history.",
+        "tags": [
+          "Contacts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contactId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "last-person",
+                        "deleted",
+                        "has-history"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid contact ID."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Insufficient workspace role or entity permission."
+          },
+          "404": {
+            "description": "Contact or entity not found."
+          },
+          "409": {
+            "description": "Contact has invoice history or removal would leave a business without a person to invoice."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "contacts.del",
+        "x-sdk-resource": "contacts",
+        "x-sdk-method": "del"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/contacts": {
+      "post": {
+        "summary": "Create a contact",
+        "description": "Creates a contact in the path entity and returns its public representation.",
+        "tags": [
+          "Contacts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "displayName": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "BUSINESS",
+                          "INDIVIDUAL"
+                        ]
+                      },
+                      "email": {
+                        "type": "object",
+                        "properties": {
+                          "email": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "email"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "people": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "displayName": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "phones": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "number": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "isPrimary": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "number"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "addresses": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "BILLING",
+                                "DELIVERY",
+                                "POSTAL",
+                                "PHYSICAL",
+                                "REMITTANCE",
+                                "OTHER"
+                              ]
+                            },
+                            "addressLines": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "countryCode": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "attentionTo": {
+                              "type": "string"
+                            },
+                            "sublocality": {
+                              "type": "string"
+                            },
+                            "locality": {
+                              "type": "string"
+                            },
+                            "administrativeArea": {
+                              "type": "string"
+                            },
+                            "postalCode": {
+                              "type": "string"
+                            },
+                            "sortingCode": {
+                              "type": "string"
+                            },
+                            "isInvoiceDefault": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type",
+                            "addressLines",
+                            "countryCode"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "linkPastInvoices": {
+                        "type": "boolean"
+                      },
+                      "legalName": {
+                        "type": "string"
+                      },
+                      "identifierScheme": {
+                        "type": "string"
+                      },
+                      "identifier": {
+                        "type": "string"
+                      },
+                      "gstNumber": {
+                        "type": "string"
+                      },
+                      "website": {
+                        "type": "string"
+                      },
+                      "notes": {
+                        "type": "string"
+                      },
+                      "invoiceNotes": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "displayName",
+                      "type"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "people": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "displayName": {
+                              "type": "string"
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "people"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS"
+                              ]
+                            },
+                            "people": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "displayName": {
+                                    "type": "string"
+                                  },
+                                  "receivesInvoices": {
+                                    "type": "boolean"
+                                  },
+                                  "status": {
+                                    "type": "string",
+                                    "enum": [
+                                      "active",
+                                      "archived"
+                                    ]
+                                  },
+                                  "archivedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "nullable": true
+                                  },
+                                  "emails": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "email": {
+                                          "type": "string"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "nullable": true
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "email",
+                                        "label"
+                                      ],
+                                      "additionalProperties": false
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "displayName",
+                                  "receivesInvoices",
+                                  "status",
+                                  "archivedAt",
+                                  "emails"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "workspaceId": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "active",
+                                "archived"
+                              ]
+                            },
+                            "displayName": {
+                              "type": "string"
+                            },
+                            "legalName": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifierScheme": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifier": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "website": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "notes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "invoiceNotes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "organisationId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "BILLING",
+                                      "DELIVERY",
+                                      "POSTAL",
+                                      "PHYSICAL",
+                                      "REMITTANCE",
+                                      "OTHER"
+                                    ]
+                                  },
+                                  "attentionTo": {
+                                    "type": "string"
+                                  },
+                                  "addressLines": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "sublocality": {
+                                    "type": "string"
+                                  },
+                                  "locality": {
+                                    "type": "string"
+                                  },
+                                  "administrativeArea": {
+                                    "type": "string"
+                                  },
+                                  "postalCode": {
+                                    "type": "string"
+                                  },
+                                  "sortingCode": {
+                                    "type": "string"
+                                  },
+                                  "countryCode": {
+                                    "type": "string"
+                                  },
+                                  "isInvoiceDefault": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "addressLines",
+                                  "countryCode",
+                                  "isInvoiceDefault"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "phones": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "number": {
+                                    "type": "string"
+                                  },
+                                  "isPrimary": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "number",
+                                  "isPrimary"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "organisation": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ],
+                              "additionalProperties": false,
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "archivedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "people",
+                            "id",
+                            "workspaceId",
+                            "entityId",
+                            "status",
+                            "displayName",
+                            "legalName",
+                            "identifierScheme",
+                            "identifier",
+                            "gstNumber",
+                            "website",
+                            "notes",
+                            "invoiceNotes",
+                            "organisationId",
+                            "receivesInvoices",
+                            "addresses",
+                            "phones",
+                            "organisation",
+                            "createdAt",
+                            "updatedAt",
+                            "archivedAt"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "INDIVIDUAL"
+                              ]
+                            },
+                            "emails": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "email",
+                                  "label"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "id": {
+                              "type": "string"
+                            },
+                            "workspaceId": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "active",
+                                "archived"
+                              ]
+                            },
+                            "displayName": {
+                              "type": "string"
+                            },
+                            "legalName": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifierScheme": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "identifier": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "website": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "notes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "invoiceNotes": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "organisationId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "receivesInvoices": {
+                              "type": "boolean"
+                            },
+                            "addresses": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "BILLING",
+                                      "DELIVERY",
+                                      "POSTAL",
+                                      "PHYSICAL",
+                                      "REMITTANCE",
+                                      "OTHER"
+                                    ]
+                                  },
+                                  "attentionTo": {
+                                    "type": "string"
+                                  },
+                                  "addressLines": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "sublocality": {
+                                    "type": "string"
+                                  },
+                                  "locality": {
+                                    "type": "string"
+                                  },
+                                  "administrativeArea": {
+                                    "type": "string"
+                                  },
+                                  "postalCode": {
+                                    "type": "string"
+                                  },
+                                  "sortingCode": {
+                                    "type": "string"
+                                  },
+                                  "countryCode": {
+                                    "type": "string"
+                                  },
+                                  "isInvoiceDefault": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "type",
+                                  "addressLines",
+                                  "countryCode",
+                                  "isInvoiceDefault"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "phones": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "number": {
+                                    "type": "string"
+                                  },
+                                  "isPrimary": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "number",
+                                  "isPrimary"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "organisation": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "displayName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "displayName"
+                              ],
+                              "additionalProperties": false,
+                              "nullable": true
+                            },
+                            "createdAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updatedAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "archivedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "emails",
+                            "id",
+                            "workspaceId",
+                            "entityId",
+                            "status",
+                            "displayName",
+                            "legalName",
+                            "identifierScheme",
+                            "identifier",
+                            "gstNumber",
+                            "website",
+                            "notes",
+                            "invoiceNotes",
+                            "organisationId",
+                            "receivesInvoices",
+                            "addresses",
+                            "phones",
+                            "organisation",
+                            "createdAt",
+                            "updatedAt",
+                            "archivedAt"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "linkedInvoiceCount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "linkedInvoiceCount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON",
+            "field values": null,
+            "or saved contact relationships.": null
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "403": {
+            "description": "Insufficient workspace role or entity permission."
+          },
+          "404": {
+            "description": "Entity not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "contacts.create",
+        "x-sdk-resource": "contacts",
+        "x-sdk-method": "create"
+      }
+    },
     "/api/public/v1/entities/{entityId}/dimensions": {
       "get": {
         "summary": "List dimensions",
@@ -4979,10 +8300,6 @@
                           "type": "number",
                           "nullable": true
                         },
-                        "costLimit": {
-                          "type": "number",
-                          "nullable": true
-                        },
                         "residualValue": {
                           "type": "number",
                           "nullable": true
@@ -5075,7 +8392,6 @@
                         "purchaseDate",
                         "startDate",
                         "purchasePrice",
-                        "costLimit",
                         "residualValue",
                         "businessUsePercentage",
                         "initialAccumulatedDepreciation",
@@ -5309,10 +8625,6 @@
                             "type": "number",
                             "nullable": true
                           },
-                          "costLimit": {
-                            "type": "number",
-                            "nullable": true
-                          },
                           "residualValue": {
                             "type": "number",
                             "nullable": true
@@ -5405,7 +8717,6 @@
                           "purchaseDate",
                           "startDate",
                           "purchasePrice",
-                          "costLimit",
                           "residualValue",
                           "businessUsePercentage",
                           "initialAccumulatedDepreciation",
@@ -5612,6 +8923,12 @@
                       "immediateExpensePercentage": {
                         "type": "number"
                       },
+                      "dimensionOptionIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
                       "status": {
                         "type": "string",
                         "enum": [
@@ -5673,6 +8990,12 @@
                       "immediateExpensePercentage": {
                         "type": "number"
                       },
+                      "dimensionOptionIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
                       "status": {
                         "type": "string",
                         "enum": [
@@ -5727,10 +9050,6 @@
                           "nullable": true
                         },
                         "purchasePrice": {
-                          "type": "number",
-                          "nullable": true
-                        },
-                        "costLimit": {
                           "type": "number",
                           "nullable": true
                         },
@@ -5826,7 +9145,6 @@
                         "purchaseDate",
                         "startDate",
                         "purchasePrice",
-                        "costLimit",
                         "residualValue",
                         "businessUsePercentage",
                         "initialAccumulatedDepreciation",
@@ -7676,6 +10994,14 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "notes": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "contactId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "dueDate": {
                     "type": "string",
                     "nullable": true
@@ -7688,14 +11014,6 @@
                     "nullable": true
                   },
                   "recipientAddress": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "notes": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "contactId": {
                     "type": "string",
                     "nullable": true
                   },
@@ -11040,6 +14358,9 @@
                         "entityName": {
                           "type": "string"
                         },
+                        "currency": {
+                          "type": "string"
+                        },
                         "startDate": {
                           "type": "string"
                         },
@@ -11056,6 +14377,7 @@
                       "required": [
                         "entityId",
                         "entityName",
+                        "currency",
                         "startDate",
                         "endDate",
                         "generatedAt",
@@ -11115,6 +14437,9 @@
                           "depreciation": {
                             "type": "number"
                           },
+                          "investmentBoost": {
+                            "type": "number"
+                          },
                           "accumulatedDepreciation": {
                             "type": "number"
                           },
@@ -11163,6 +14488,9 @@
                           "type": "number"
                         },
                         "depreciation": {
+                          "type": "number"
+                        },
+                        "investmentBoost": {
                           "type": "number"
                         },
                         "accumulatedDepreciation": {
@@ -14152,6 +17480,9 @@
                             ]
                           }
                         },
+                        "id": {
+                          "type": "string"
+                        },
                         "isOrganisation": {
                           "type": "boolean"
                         },
@@ -14167,6 +17498,32 @@
                             "manual",
                             "nzbn"
                           ]
+                        },
+                        "sourceReferences": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "nzbn-role"
+                                ]
+                              },
+                              "sourceEntityNzbn": {
+                                "type": "string"
+                              },
+                              "uniqueIdentifier": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "source",
+                              "sourceEntityNzbn",
+                              "uniqueIdentifier"
+                            ],
+                            "additionalProperties": false
+                          }
                         }
                       },
                       "required": [
@@ -16322,13 +19679,43 @@
             "schema": {
               "type": "string",
               "enum": [
+                "all",
                 "false",
-                "true",
-                "all"
+                "true"
               ]
             },
             "required": false,
             "description": "Filter rules by active status. `true` (default) returns only active rules,\n`false` returns only inactive rules, `all` returns both.\n"
+          },
+          {
+            "in": "query",
+            "name": "entityId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Only rules whose scope reaches this entity: workspace-wide rules, rules on\nthe entity's chart template, rules on the entity itself, and rules on any of\nits bank accounts.\n"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "minimum": 1,
+              "maximum": 500
+            }
           }
         ],
         "responses": {
@@ -16510,21 +19897,42 @@
                         "additionalProperties": false
                       }
                     },
-                    "meta": {
+                    "pagination": {
                       "type": "object",
                       "properties": {
-                        "count": {
+                        "currentPage": {
                           "type": "number"
+                        },
+                        "pageSize": {
+                          "type": "number"
+                        },
+                        "totalCount": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        },
+                        "hasNextPage": {
+                          "type": "boolean"
+                        },
+                        "hasPreviousPage": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
-                        "count"
+                        "currentPage",
+                        "pageSize",
+                        "totalCount",
+                        "totalPages",
+                        "hasNextPage",
+                        "hasPreviousPage"
                       ],
                       "additionalProperties": false
                     }
                   },
                   "required": [
-                    "data"
+                    "data",
+                    "pagination"
                   ],
                   "additionalProperties": false
                 }
@@ -16541,7 +19949,7 @@
             "description": "Insufficient role"
           },
           "404": {
-            "description": "Workspace not found"
+            "description": "Workspace not found, or entityId is not in the workspace"
           },
           "500": {
             "description": "Internal server error"
@@ -16735,8 +20143,8 @@
                   "source": {
                     "type": "string",
                     "enum": [
-                      "manual",
                       "ai",
+                      "manual",
                       "duplicate",
                       "transactions_filters",
                       "transactions_reconcile",
