@@ -26,7 +26,10 @@ writeFileSync(
   }),
 );
 writeFileSync(join(fixture, '.yarnrc.yml'), 'nodeLinker: node-modules\n');
-execFileSync('yarn', ['install', '--mode', 'skip-build'], { cwd: fixture, stdio: 'inherit' });
+execFileSync('yarn', ['install', '--mode', 'skip-build', '--no-immutable'], {
+  cwd: fixture,
+  stdio: 'inherit',
+});
 const exercise = `const client = new Prosaic({ apiKey: 'package-test', fetch: async () => Response.json({data:{id:'packed'}}) }); const result = await client.me.retrieve(); if (result.data.id !== 'packed') throw new Error('Packed client failed');`;
 writeFileSync(join(fixture, 'esm.mjs'), `import Prosaic from '@prosaic/sdk'; ${exercise}`);
 writeFileSync(

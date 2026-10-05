@@ -18,6 +18,13 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `clients.listBankAccounts` | `GET /api/public/v1/clients/{clientId}/bank-accounts` |
 | `clients.listTransactions` | `GET /api/public/v1/clients/{clientId}/transactions` |
 | `clients.list` | `GET /api/public/v1/clients` |
+| `contacts.archive` | `POST /api/public/v1/entities/{entityId}/contacts/{contactId}/archive` |
+| `contacts.create` | `POST /api/public/v1/entities/{entityId}/contacts` |
+| `contacts.del` | `DELETE /api/public/v1/entities/{entityId}/contacts/{contactId}` |
+| `contacts.list` | `GET /api/public/v1/contacts` |
+| `contacts.restore` | `POST /api/public/v1/entities/{entityId}/contacts/{contactId}/restore` |
+| `contacts.retrieve` | `GET /api/public/v1/entities/{entityId}/contacts/{contactId}` |
+| `contacts.update` | `PATCH /api/public/v1/entities/{entityId}/contacts/{contactId}` |
 | `dimensions.list` | `GET /api/public/v1/entities/{entityId}/dimensions` |
 | `entities.create` | `POST /api/public/v1/entities` |
 | `entities.list` | `GET /api/public/v1/entities` |

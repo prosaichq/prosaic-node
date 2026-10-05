@@ -6,7 +6,7 @@ Build accounting integrations with Prosaic in TypeScript or JavaScript. Read tra
 
 **Node.js 22+ · TypeScript types included · ESM and CommonJS · No runtime dependencies**
 
-> **Alpha — `0.1.0-alpha.1`.** The package is not published to npm yet. Install an archive using the steps below. Contacts endpoints and newer rules pagination are not supported in this version; see [compatibility](#alpha-compatibility).
+> **Alpha — `0.1.0-alpha.2`.** The package is not published to npm yet. Install an archive using the steps below.
 
 ## Installation
 
@@ -224,7 +224,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 66 operations across 22 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 73 operations across 23 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
 | Area                      | Resources                                                  |
 | ------------------------- | ---------------------------------------------------------- |
@@ -232,17 +232,16 @@ This alpha includes 66 operations across 22 resource groups, generated from the 
 | Accounts and dimensions   | `charts`, `entityAccounts`, `globalAccounts`, `dimensions` |
 | Transactions and journals | `transactions`, `journals`, `changeSets`                   |
 | Financial reporting       | `ledger`, `generalLedger`, `reports`, `gstReturns`         |
-| Invoices and assets       | `invoices`, `fixedAssets`, `fixedAssetTypes`, `files`      |
+| Contacts and invoices     | `contacts`, `invoices`                                     |
+| Assets and files          | `fixedAssets`, `fixedAssetTypes`, `files`                  |
 | Automation and extensions | `rules`, `scheduledTasks`, `extensions`                    |
 
 Use the [API resource reference](docs/api-reference.md) to find a method, and the [developer documentation](https://developer.prosaic.works/) for the wider API.
 
 ### Alpha compatibility
 
-The SDK targets the **7 September 2026** API snapshot. The developer documentation may describe newer API capabilities.
+The SDK targets the **5 October 2026** API snapshot. The developer documentation may describe newer API capabilities.
 
-- **Contacts:** newer contacts endpoints are not included in this alpha.
-- **Rules pagination:** `rules.list()` has no pagination contract in this snapshot. Against the newer paginated endpoint, awaiting it returns only the first page; automatic iteration fails when more pages exist. Do not rely on it to enumerate every rule.
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 
 ## Contributing

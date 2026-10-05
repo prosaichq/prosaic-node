@@ -1,6 +1,6 @@
 {
   "name": "@prosaic/sdk",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "The TypeScript SDK for the Prosaic public API",
   "homepage": "https://github.com/prosaichq/prosaic-node#readme",
   "bugs": {
