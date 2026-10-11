@@ -6,6 +6,7 @@
 - Added `contacts` with `list`, `create`, `retrieve`, `update`, `del`, `archive` and `restore`.
 - `rules.list()` now follows the paginated rules endpoint, so automatic iteration reads every page.
 - Updated request and response types for clients, rules, invoices and fixed assets to match the current API.
+- `transactions.list()` accepts `includePreConversion: 'true'`. The API now hides transactions dated before an entity's conversion date by default, and moves an earlier `dateFrom` up to it; the flag returns them.
 
 ## 0.1.0-alpha.1 (unreleased)
 

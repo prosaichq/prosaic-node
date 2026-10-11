@@ -15783,7 +15783,7 @@
     "/api/public/v1/entities/{entityId}/transactions": {
       "get": {
         "summary": "List bank transactions",
-        "description": "Returns paginated bank transactions for the specified entity with optional date range filtering. Requires API key authentication and entity access.",
+        "description": "Returns paginated bank transactions for the specified entity with optional date range filtering. By default, transactions dated before the entity's conversion date are hidden, matching the app, and a dateFrom earlier than the conversion date is moved up to it. Pass `includePreConversion=true` to see them. Requires API key authentication and entity access.",
         "tags": [
           "Transactions"
         ],
@@ -15844,6 +15844,19 @@
               "type": "string",
               "format": "date",
               "example": "2024-12-31"
+            }
+          },
+          {
+            "name": "includePreConversion",
+            "in": "query",
+            "required": false,
+            "description": "Include transactions dated before the entity's conversion date (default false)",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
             }
           },
           {

@@ -38,7 +38,7 @@ writeFileSync(
 );
 for (const file of ['esm.mjs', 'cjs.cjs'])
   execFileSync(process.execPath, [file], { cwd: fixture, stdio: 'inherit' });
-const typed = `import { Prosaic, type JournalsCreateParams } from '@prosaic/sdk'; const client = new Prosaic('test'); const p: JournalsCreateParams = { date:'2026-04-01', narration:'test', lines:[] }; void client.journals.create('e', p); void client.me.retrieve().then(result => result.data.id satisfies string); // @ts-expect-error missing required narration and date\nvoid client.journals.create('e', { lines: [] });`;
+const typed = `import { Prosaic, type JournalsCreateParams } from '@prosaic/sdk'; const client = new Prosaic('test'); const p: JournalsCreateParams = { date:'2026-04-01', narration:'test', lines:[] }; void client.journals.create('e', p); void client.me.retrieve().then(result => result.data.id satisfies string); void client.transactions.list('e', { dateFrom: '2025-01-01', includePreConversion: 'true' }); // @ts-expect-error missing required narration and date\nvoid client.journals.create('e', { lines: [] });`;
 writeFileSync(join(fixture, 'esm.mts'), typed);
 writeFileSync(join(fixture, 'cjs.cts'), typed);
 execFileSync(
