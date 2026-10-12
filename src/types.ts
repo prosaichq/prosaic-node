@@ -1093,7 +1093,7 @@ export interface paths {
         };
         /**
          * List bank transactions
-         * @description Returns paginated bank transactions for the specified entity with optional date range filtering. Requires API key authentication and entity access.
+         * @description Returns paginated bank transactions for the specified entity with optional date range filtering. By default, transactions dated before the entity's conversion date are hidden, matching the app, and a dateFrom earlier than the conversion date is moved up to it. Pass `includePreConversion=true` to see them. Requires API key authentication and entity access.
          */
         get: operations["transactions.list"];
         put?: never;
@@ -7438,6 +7438,8 @@ export interface operations {
                 dateFrom?: string;
                 /** @description End date for filtering transactions (ISO 8601 format) */
                 dateTo?: string;
+                /** @description Include transactions dated before the entity's conversion date (default false) */
+                includePreConversion?: "true" | "false";
                 /** @description Filter by journal ID to get transactions reconciled to a specific journal */
                 journalId?: string;
             };

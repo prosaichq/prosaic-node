@@ -810,7 +810,7 @@ export class TransactionsResource {
   constructor(private readonly transport: Transport) {}
   /**
    * List bank transactions
-   * Returns paginated bank transactions for the specified entity with optional date range filtering. Requires API key authentication and entity access.
+   * Returns paginated bank transactions for the specified entity with optional date range filtering. By default, transactions dated before the entity's conversion date are hidden, matching the app, and a dateFrom earlier than the conversion date is moved up to it. Pass `includePreConversion=true` to see them. Requires API key authentication and entity access.
    */
   list(entityId: string, params: TransactionsListParams = {}, options: RequestOptions = {}): APIListPromise<TransactionsListResponse> {
     return new APIListPromise(this.transport.request<TransactionsListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/transactions`, { query: params }, options), (page) => this.transport.request<TransactionsListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/transactions`, { query: { ...params, page } }, options));
