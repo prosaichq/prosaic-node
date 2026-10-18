@@ -312,6 +312,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/v1/entities/{entityId}/bank-accounts/{bankAccountId}/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import transactions into a CSV bank account
+         * @description Adds transactions to one of the entity's CSV bank accounts — the kind
+         *     fed by imported files (`sourceType: csv` on the bank account). Bank
+         *     feeds (`akahu`, `basiq`) can't take imported transactions; create a
+         *     separate CSV account with `POST /entities/{entityId}/bank-accounts/import`
+         *     instead.
+         *
+         *     Rows the account already holds (same date, amount and description)
+         *     are skipped, so importing an overlapping statement is safe. Amounts
+         *     are from the account holder's side: money in positive, money out
+         *     negative. Zero amounts are rejected.
+         */
+        post: operations["bankAccounts.importTransactions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/bank-accounts/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a CSV bank account and import transactions into it
+         * @description Creates a CSV bank account for the entity — one fed by imported files —
+         *     with its account in the entity's chart so its lines can be reconciled,
+         *     then imports the transactions into it. All or nothing.
+         *
+         *     Use this when the entity has no account for the statement, or when its
+         *     matching account is a bank feed, which can't take imported
+         *     transactions. The new account sits beside the feed account, so both
+         *     will need reconciling; prefer importing into an existing CSV account
+         *     with `POST /entities/{entityId}/bank-accounts/{bankAccountId}/import`.
+         *
+         *     The account belongs to the caller. Amounts are from the account
+         *     holder's side: money in positive, money out negative; never 0.
+         */
+        post: operations["bankAccounts.createWithTransactions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/v1/entities/{entityId}/change-sets": {
         parameters: {
             query?: never;
@@ -552,6 +612,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/v1/entities/{entityId}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List files
+         * @description Returns the entity's files, newest first: those filed under it or attached to it,
+         *     excluding deleted files. Use a file's `id` in `fileIds` when creating a journal
+         *     (`POST /api/public/v1/entities/{entityId}/journals`) or attaching files to one.
+         *     Requires API key authentication and entity access.
+         */
+        get: operations["files.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/v1/entities/{entityId}/files/upload": {
         parameters: {
             query?: never;
@@ -784,6 +867,11 @@ export interface paths {
          * @description Creates a complete, finalised invoice for the specified entity. The
          *     entity is taken from the URL; `status` cannot be supplied. Finalised
          *     invoices are not automatically delivered to the recipient.
+         *
+         *     Where the workspace records invoices as receivables (accrual
+         *     accounting), finalising posts the invoice to the ledger, which needs a
+         *     `contactId`. Without one the request is refused with 409
+         *     `INVOICE_NOT_EDITABLE` and nothing is created.
          */
         post: operations["invoices.create"];
         delete?: never;
@@ -2299,6 +2387,7 @@ export interface operations {
                             accountNumber: string | null;
                             logoUrl: string | null;
                             type: string;
+                            sourceType: string | null;
                             entityAccount: {
                                 id: string;
                                 code: string;
@@ -2461,6 +2550,7 @@ export interface operations {
                                 accountNumber: string | null;
                                 logoUrl: string | null;
                                 type: string;
+                                sourceType: string | null;
                                 entityAccount: {
                                     id: string;
                                     code: string;
@@ -2967,6 +3057,172 @@ export interface operations {
                 content?: never;
             };
             /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bankAccounts.importTransactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                bankAccountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    filename: string;
+                    transactions: {
+                        date: string;
+                        description: string;
+                        amount: number;
+                        transactionType?: string;
+                        payee?: string;
+                        code?: string;
+                        reference?: string;
+                        particulars?: string;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            bankAccountId: string;
+                            bankAccountName: string;
+                            importId: string | null;
+                            transactionsImported: number;
+                            transactionsSkipped: number;
+                            message: string;
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /**
+             * @description Invalid body (`VALIDATION_ERROR`, `INVALID_ROW_DATE`,
+             *     `ZERO_AMOUNT_TRANSACTION`), a bank feed account
+             *     (`BANK_ACCOUNT_NOT_CSV`), or an account missing its owner or bank
+             *     (`BANK_ACCOUNT_NOT_IMPORTABLE`)
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or missing API key or token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The entity or bank account wasn't found, or isn't accessible (`BANK_ACCOUNT_NOT_FOUND`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bankAccounts.createWithTransactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    filename: string;
+                    transactions: {
+                        date: string;
+                        description: string;
+                        amount: number;
+                        transactionType?: string;
+                        payee?: string;
+                        code?: string;
+                        reference?: string;
+                        particulars?: string;
+                    }[];
+                    name: string;
+                    institution: string;
+                    accountNumber?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            bankAccountId: string;
+                            bankAccountName: string;
+                            institution: string | null;
+                            accountNumber: string | null;
+                            importId: string | null;
+                            transactionsImported: number;
+                            message: string;
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid body (`VALIDATION_ERROR`, `INVALID_ROW_DATE`, `ZERO_AMOUNT_TRANSACTION`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or missing API key or token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or not accessible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error */
             500: {
                 headers: {
                     [name: string]: unknown;
@@ -4418,6 +4674,65 @@ export interface operations {
             };
         };
     };
+    "files.list": {
+        parameters: {
+            query?: {
+                /** @description Part of the file name, matched in any case */
+                search?: string;
+                /** @description Most files to return */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            name: string;
+                            contentType: string;
+                            size: number;
+                            createdAt: string;
+                        }[];
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid query parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid or missing API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or not accessible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "files.upload": {
         parameters: {
             query?: never;
@@ -5431,7 +5746,7 @@ export interface operations {
                             name: string;
                             description: string;
                             /** @enum {string} */
-                            status: "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment" | "completed";
+                            status: "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment";
                             dateFrom: string;
                             dateTo: string;
                             dueDate: string;
@@ -5535,7 +5850,7 @@ export interface operations {
                             name: string;
                             description: string;
                             /** @enum {string} */
-                            status: "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment" | "completed";
+                            status: "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment";
                             dateFrom: string;
                             dateTo: string;
                             dueDate: string;
@@ -5636,6 +5951,7 @@ export interface operations {
                             subtotal: number;
                             taxTotal: number;
                             total: number;
+                            amountDue: number | null;
                             notes: string | null;
                             /** Format: date-time */
                             createdAt: string;
@@ -5751,6 +6067,7 @@ export interface operations {
                             subtotal: number;
                             taxTotal: number;
                             total: number;
+                            amountDue: number | null;
                             notes: string | null;
                             /** Format: date-time */
                             createdAt: string;
@@ -5788,6 +6105,13 @@ export interface operations {
             };
             /** @description Entity or workspace not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The invoice can't be finalised, for example it has no contact where the workspace uses accrual accounting. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7413,6 +7737,21 @@ export interface operations {
                     };
                 };
             };
+            /**
+             * @description The receipt can't be unmatched because some of its credit was refunded
+             *     (`PAYMENT_REFUNDED`). Unmatch the refund first.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error?: string;
+                        code?: string;
+                    };
+                };
+            };
             /** @description Internal server error */
             500: {
                 headers: {
@@ -7442,6 +7781,13 @@ export interface operations {
                 includePreConversion?: "true" | "false";
                 /** @description Filter by journal ID to get transactions reconciled to a specific journal */
                 journalId?: string;
+                /** @description Filter by reconciliation status */
+                reconciliationStatus?: "reconciled" | "unreconciled";
+                /**
+                 * @description `full` (default) returns each transaction with its bank account, linked GL account, user, merchant, category and suggestions in full.
+                 *     `compact` returns what coding needs: the transaction's own fields, the bank account's id and name, merchant and category names, the reconciliation status, and each suggestion's source, confidence, rule name and lines as account code, account name, tax code, proportion, debit and credit.
+                 */
+                view?: "full" | "compact";
             };
             header?: never;
             path: {
@@ -7458,7 +7804,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: {
+                        data: ({
                             entityId: string | null;
                             /** @enum {string} */
                             reconciliationStatus: "reconciled" | "unreconciled";
@@ -7473,6 +7819,7 @@ export interface operations {
                                 accountNumber: string | null;
                                 logoUrl: string | null;
                                 type: string;
+                                sourceType: string | null;
                                 entityAccount: {
                                     id: string;
                                     code: string;
@@ -7552,7 +7899,45 @@ export interface operations {
                             particulars: string | null;
                             code: string | null;
                             reference: string | null;
-                        }[];
+                        } | {
+                            bankAccount: {
+                                id: string;
+                                name: string;
+                            };
+                            merchant: string | null;
+                            category: string | null;
+                            /** @enum {string} */
+                            reconciliationStatus: "reconciled" | "unreconciled";
+                            journalId: string | null;
+                            suggestions: {
+                                id: string;
+                                sourceType: string;
+                                /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
+                                confidence: string;
+                                ruleName: string | null;
+                                lines: {
+                                    accountCode: string;
+                                    accountName: string;
+                                    taxCode: string;
+                                    /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
+                                    proportion: string | null;
+                                    /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
+                                    debit: string;
+                                    /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
+                                    credit: string;
+                                }[];
+                            }[];
+                            id: string;
+                            /** Format: date-time */
+                            date: string;
+                            /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
+                            amount: string;
+                            description: string;
+                            type: string;
+                            particulars: string | null;
+                            code: string | null;
+                            reference: string | null;
+                        })[];
                         pagination: {
                             currentPage: number;
                             pageSize: number;
@@ -7649,6 +8034,7 @@ export interface operations {
                             entityName: string;
                             generatedAt: string;
                             currency: string;
+                            timezone: string;
                             /** @enum {string} */
                             reportType: "trial-balance";
                             asOfDate: string;
@@ -7703,6 +8089,7 @@ export interface operations {
                             entityName: string;
                             generatedAt: string;
                             currency: string;
+                            timezone: string;
                             /** @enum {string} */
                             reportType: "trial-balance-comparison";
                             asOfDate: string;
@@ -7845,6 +8232,11 @@ export interface operations {
                             defaultTaxAccountId: string | null;
                             /** Format: date-time */
                             createdAt: string;
+                            isGstRegistered: boolean | null;
+                            gstPeriodMonths: number | null;
+                            gstBasis: string | null;
+                            financialYearStartMonth: number;
+                            currency: string;
                             bankAccounts: {
                                 id: string;
                                 entityId: string | null;
@@ -7855,6 +8247,7 @@ export interface operations {
                                 accountNumber: string | null;
                                 logoUrl: string | null;
                                 type: string;
+                                sourceType: string | null;
                                 entityAccount: {
                                     id: string;
                                     code: string;
@@ -7940,7 +8333,7 @@ export interface operations {
                     gstNumber?: string;
                     irdNumber?: string;
                     /** @enum {string} */
-                    gstPeriod?: "1" | "2" | "3" | "6" | "12";
+                    gstPeriod?: "2" | "1" | "3" | "6" | "12";
                     gstFilingStartDate?: string;
                     nzbn?: string;
                     industryCode?: string;
@@ -7994,6 +8387,11 @@ export interface operations {
                             defaultTaxAccountId: string | null;
                             /** Format: date-time */
                             createdAt: string;
+                            isGstRegistered: boolean | null;
+                            gstPeriodMonths: number | null;
+                            gstBasis: string | null;
+                            financialYearStartMonth: number;
+                            currency: string;
                             bankAccounts: {
                                 id: string;
                                 entityId: string | null;
@@ -8004,6 +8402,7 @@ export interface operations {
                                 accountNumber: string | null;
                                 logoUrl: string | null;
                                 type: string;
+                                sourceType: string | null;
                                 entityAccount: {
                                     id: string;
                                     code: string;
@@ -8273,7 +8672,7 @@ export interface operations {
                             name: string;
                             description: string;
                             /** @enum {string} */
-                            status: "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment" | "completed";
+                            status: "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment";
                             dateFrom: string;
                             dateTo: string;
                             dueDate: string;
@@ -8391,6 +8790,7 @@ export interface operations {
                             subtotal: number;
                             taxTotal: number;
                             total: number;
+                            amountDue: number | null;
                             notes: string | null;
                             /** Format: date-time */
                             createdAt: string;
@@ -8482,6 +8882,7 @@ export interface operations {
                                 name: string;
                                 /** @enum {string} */
                                 role: "client" | "standard_user" | "admin" | "accountant" | "advisor" | "workspace_owner";
+                                subscriptionState: string;
                             }[];
                             hasConnectedBankAccounts: boolean;
                         };
@@ -8730,7 +9131,7 @@ export interface operations {
                         /** @enum {string} */
                         field: "description" | "type" | "date" | "amount" | "category" | "merchant";
                         /** @enum {string} */
-                        operator: "endsWith" | "startsWith" | "is" | "equals" | "contains" | "gt" | "gte" | "lt" | "lte" | "between";
+                        operator: "endsWith" | "startsWith" | "is" | "equals" | "gte" | "contains" | "gt" | "lt" | "lte" | "between";
                         value: string;
                         secondValue?: string | null;
                     }[];
@@ -8995,7 +9396,7 @@ export interface operations {
                         /** @enum {string} */
                         field: "description" | "type" | "date" | "amount" | "category" | "merchant";
                         /** @enum {string} */
-                        operator: "endsWith" | "startsWith" | "is" | "equals" | "contains" | "gt" | "gte" | "lt" | "lte" | "between";
+                        operator: "endsWith" | "startsWith" | "is" | "equals" | "gte" | "contains" | "gt" | "lt" | "lte" | "between";
                         value: string;
                         secondValue?: string | null;
                     }[];
@@ -9620,6 +10021,30 @@ export interface operations {
                     updates: {
                         id: string;
                         invoiceId?: string;
+                        invoiceAllocations?: {
+                            invoiceId: string;
+                            amount: number;
+                        }[];
+                        refundCredit?: {
+                            contactId: string;
+                        };
+                        creditHolding?: {
+                            accountCode: string;
+                            taxCode: string;
+                        };
+                        fixedAssetDisposal?: {
+                            fixedAssetId: string;
+                            reverseLaterDepreciation?: boolean;
+                            saleTaxCode?: string;
+                            accountCodes?: {
+                                loss?: string;
+                                gain?: string;
+                                private_loss?: string;
+                                private_gain?: string;
+                                depreciation_recovery?: string;
+                                capital_gain?: string;
+                            };
+                        };
                         narration?: string;
                         /** @enum {string} */
                         taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
