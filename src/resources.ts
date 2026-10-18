@@ -32,6 +32,10 @@ export type EntitiesListResponse = operations["entities.list"]['responses'][200]
 export type EntitiesListParams = NonNullable<operations["entities.list"]['parameters']['query']>;
 export type EntitiesCreateResponse = operations["entities.create"]['responses'][201]['content']['application/json'];
 export type EntitiesCreateParams = operations["entities.create"]['requestBody']['content']['application/json'];
+export type BankAccountsCreateWithTransactionsResponse = operations["bankAccounts.createWithTransactions"]['responses'][201]['content']['application/json'];
+export type BankAccountsCreateWithTransactionsParams = operations["bankAccounts.createWithTransactions"]['requestBody']['content']['application/json'];
+export type BankAccountsImportTransactionsResponse = operations["bankAccounts.importTransactions"]['responses'][200]['content']['application/json'];
+export type BankAccountsImportTransactionsParams = operations["bankAccounts.importTransactions"]['requestBody']['content']['application/json'];
 export type ChangeSetsCreateResponse = operations["changeSets.create"]['responses'][201]['content']['application/json'];
 export type ChangeSetsCreateParams = operations["changeSets.create"]['requestBody']['content']['application/json'];
 export type EntityAccountsListResponse = operations["entityAccounts.list"]['responses'][200]['content']['application/json'];
@@ -54,6 +58,8 @@ export type ContactsArchiveParams = operations["contacts.archive"]['requestBody'
 export type ContactsRestoreResponse = operations["contacts.restore"]['responses'][200]['content']['application/json'];
 export type ContactsRestoreParams = operations["contacts.restore"]['requestBody']['content']['application/json'];
 export type DimensionsListResponse = operations["dimensions.list"]['responses'][200]['content']['application/json'];
+export type FilesListResponse = operations["files.list"]['responses'][200]['content']['application/json'];
+export type FilesListParams = NonNullable<operations["files.list"]['parameters']['query']>;
 export type FilesUploadResponse = operations["files.upload"]['responses'][201]['content']['application/json'];
 export type FixedAssetTypesListResponse = operations["fixedAssetTypes.list"]['responses'][200]['content']['application/json'];
 export type FixedAssetTypesCreateResponse = operations["fixedAssetTypes.create"]['responses'][201]['content']['application/json'];
@@ -408,6 +414,47 @@ export class EntitiesResource {
   }
 }
 
+export class BankAccountsResource {
+  constructor(private readonly transport: Transport) {}
+  /**
+   * Create a CSV bank account and import transactions into it
+   * Creates a CSV bank account for the entity — one fed by imported files —
+   * with its account in the entity's chart so its lines can be reconciled,
+   * then imports the transactions into it. All or nothing.
+   *
+   * Use this when the entity has no account for the statement, or when its
+   * matching account is a bank feed, which can't take imported
+   * transactions. The new account sits beside the feed account, so both
+   * will need reconciling; prefer importing into an existing CSV account
+   * with `POST /entities/{entityId}/bank-accounts/{bankAccountId}/import`.
+   *
+   * The account belongs to the caller. Amounts are from the account
+   * holder's side: money in positive, money out negative; never 0.
+   *
+   */
+  createWithTransactions(entityId: string, params: BankAccountsCreateWithTransactionsParams, options: RequestOptions = {}): APIPromise<BankAccountsCreateWithTransactionsResponse> {
+    return new APIPromise(this.transport.request<BankAccountsCreateWithTransactionsResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bank-accounts/import`, { body: params }, options));
+  }
+
+  /**
+   * Import transactions into a CSV bank account
+   * Adds transactions to one of the entity's CSV bank accounts — the kind
+   * fed by imported files (`sourceType: csv` on the bank account). Bank
+   * feeds (`akahu`, `basiq`) can't take imported transactions; create a
+   * separate CSV account with `POST /entities/{entityId}/bank-accounts/import`
+   * instead.
+   *
+   * Rows the account already holds (same date, amount and description)
+   * are skipped, so importing an overlapping statement is safe. Amounts
+   * are from the account holder's side: money in positive, money out
+   * negative. Zero amounts are rejected.
+   *
+   */
+  importTransactions(entityId: string, bankAccountId: string, params: BankAccountsImportTransactionsParams, options: RequestOptions = {}): APIPromise<BankAccountsImportTransactionsResponse> {
+    return new APIPromise(this.transport.request<BankAccountsImportTransactionsResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bank-accounts/${pathParam(bankAccountId)}/import`, { body: params }, options));
+  }
+}
+
 export class ChangeSetsResource {
   constructor(private readonly transport: Transport) {}
   /**
@@ -494,6 +541,18 @@ export class DimensionsResource {
 
 export class FilesResource {
   constructor(private readonly transport: Transport) {}
+  /**
+   * List files
+   * Returns the entity's files, newest first: those filed under it or attached to it,
+   * excluding deleted files. Use a file's `id` in `fileIds` when creating a journal
+   * (`POST /api/public/v1/entities/{entityId}/journals`) or attaching files to one.
+   * Requires API key authentication and entity access.
+   *
+   */
+  list(entityId: string, params: FilesListParams = {}, options: RequestOptions = {}): APIListPromise<FilesListResponse> {
+    return new APIListPromise(this.transport.request<FilesListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/files`, { query: params }, options));
+  }
+
   /**
    * Upload a file
    * Uploads a file for an entity. Files must be validated against size (20MB) and type restrictions. Returns a fileId that can be used when creating or attaching to journals. Requires API key authentication and entity access.
@@ -662,6 +721,11 @@ export class InvoicesResource {
    * Creates a complete, finalised invoice for the specified entity. The
    * entity is taken from the URL; `status` cannot be supplied. Finalised
    * invoices are not automatically delivered to the recipient.
+   *
+   * Where the workspace records invoices as receivables (accrual
+   * accounting), finalising posts the invoice to the ledger, which needs a
+   * `contactId`. Without one the request is refused with 409
+   * `INVOICE_NOT_EDITABLE` and nothing is created.
    *
    */
   create(entityId: string, params: InvoicesCreateParams, options: RequestOptions = {}): APIPromise<InvoicesCreateResponse> {
@@ -1120,6 +1184,7 @@ export class Resources {
   readonly clients: ClientsResource;
   readonly contacts: ContactsResource;
   readonly entities: EntitiesResource;
+  readonly bankAccounts: BankAccountsResource;
   readonly changeSets: ChangeSetsResource;
   readonly entityAccounts: EntityAccountsResource;
   readonly dimensions: DimensionsResource;
@@ -1144,6 +1209,7 @@ export class Resources {
     this.clients = new ClientsResource(transport);
     this.contacts = new ContactsResource(transport);
     this.entities = new EntitiesResource(transport);
+    this.bankAccounts = new BankAccountsResource(transport);
     this.changeSets = new ChangeSetsResource(transport);
     this.entityAccounts = new EntityAccountsResource(transport);
     this.dimensions = new DimensionsResource(transport);

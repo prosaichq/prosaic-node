@@ -1775,6 +1775,10 @@
                           "type": {
                             "type": "string"
                           },
+                          "sourceType": {
+                            "type": "string",
+                            "nullable": true
+                          },
                           "entityAccount": {
                             "type": "object",
                             "properties": {
@@ -1851,6 +1855,7 @@
                           "accountNumber",
                           "logoUrl",
                           "type",
+                          "sourceType",
                           "entityAccount"
                         ],
                         "additionalProperties": false
@@ -2189,6 +2194,10 @@
                               "type": {
                                 "type": "string"
                               },
+                              "sourceType": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "entityAccount": {
                                 "type": "object",
                                 "properties": {
@@ -2265,6 +2274,7 @@
                               "accountNumber",
                               "logoUrl",
                               "type",
+                              "sourceType",
                               "entityAccount"
                             ],
                             "additionalProperties": false
@@ -3705,6 +3715,351 @@
         "operationId": "contacts.list",
         "x-sdk-resource": "contacts",
         "x-sdk-method": "list"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/bank-accounts/{bankAccountId}/import": {
+      "post": {
+        "summary": "Import transactions into a CSV bank account",
+        "description": "Adds transactions to one of the entity's CSV bank accounts — the kind\nfed by imported files (`sourceType: csv` on the bank account). Bank\nfeeds (`akahu`, `basiq`) can't take imported transactions; create a\nseparate CSV account with `POST /entities/{entityId}/bank-accounts/import`\ninstead.\n\nRows the account already holds (same date, amount and description)\nare skipped, so importing an overlapping statement is safe. Amounts\nare from the account holder's side: money in positive, money out\nnegative. Zero amounts are rejected.\n",
+        "tags": [
+          "Bank Accounts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "bankAccountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string"
+                  },
+                  "transactions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "date": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "number"
+                        },
+                        "transactionType": {
+                          "type": "string"
+                        },
+                        "payee": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "particulars": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "date",
+                        "description",
+                        "amount"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "filename",
+                  "transactions"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "bankAccountId": {
+                          "type": "string"
+                        },
+                        "bankAccountName": {
+                          "type": "string"
+                        },
+                        "importId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "transactionsImported": {
+                          "type": "number"
+                        },
+                        "transactionsSkipped": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "bankAccountId",
+                        "bankAccountName",
+                        "importId",
+                        "transactionsImported",
+                        "transactionsSkipped",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body (`VALIDATION_ERROR`, `INVALID_ROW_DATE`,\n`ZERO_AMOUNT_TRANSACTION`), a bank feed account\n(`BANK_ACCOUNT_NOT_CSV`), or an account missing its owner or bank\n(`BANK_ACCOUNT_NOT_IMPORTABLE`)\n"
+          },
+          "401": {
+            "description": "Invalid or missing API key or token"
+          },
+          "404": {
+            "description": "The entity or bank account wasn't found, or isn't accessible (`BANK_ACCOUNT_NOT_FOUND`)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "bankAccounts.importTransactions",
+        "x-sdk-resource": "bankAccounts",
+        "x-sdk-method": "importTransactions"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/bank-accounts/import": {
+      "post": {
+        "summary": "Create a CSV bank account and import transactions into it",
+        "description": "Creates a CSV bank account for the entity — one fed by imported files —\nwith its account in the entity's chart so its lines can be reconciled,\nthen imports the transactions into it. All or nothing.\n\nUse this when the entity has no account for the statement, or when its\nmatching account is a bank feed, which can't take imported\ntransactions. The new account sits beside the feed account, so both\nwill need reconciling; prefer importing into an existing CSV account\nwith `POST /entities/{entityId}/bank-accounts/{bankAccountId}/import`.\n\nThe account belongs to the caller. Amounts are from the account\nholder's side: money in positive, money out negative; never 0.\n",
+        "tags": [
+          "Bank Accounts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filename": {
+                    "type": "string"
+                  },
+                  "transactions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "date": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "number"
+                        },
+                        "transactionType": {
+                          "type": "string"
+                        },
+                        "payee": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "reference": {
+                          "type": "string"
+                        },
+                        "particulars": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "date",
+                        "description",
+                        "amount"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "institution": {
+                    "type": "string"
+                  },
+                  "accountNumber": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "filename",
+                  "transactions",
+                  "name",
+                  "institution"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "bankAccountId": {
+                          "type": "string"
+                        },
+                        "bankAccountName": {
+                          "type": "string"
+                        },
+                        "institution": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "accountNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "importId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "transactionsImported": {
+                          "type": "number"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "bankAccountId",
+                        "bankAccountName",
+                        "institution",
+                        "accountNumber",
+                        "importId",
+                        "transactionsImported",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body (`VALIDATION_ERROR`, `INVALID_ROW_DATE`, `ZERO_AMOUNT_TRANSACTION`)"
+          },
+          "401": {
+            "description": "Invalid or missing API key or token"
+          },
+          "404": {
+            "description": "Entity not found or not accessible"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "bankAccounts.createWithTransactions",
+        "x-sdk-resource": "bankAccounts",
+        "x-sdk-method": "createWithTransactions"
       }
     },
     "/api/public/v1/entities/{entityId}/change-sets": {
@@ -7447,6 +7802,124 @@
         "x-sdk-method": "list"
       }
     },
+    "/api/public/v1/entities/{entityId}/files": {
+      "get": {
+        "summary": "List files",
+        "description": "Returns the entity's files, newest first: those filed under it or attached to it,\nexcluding deleted files. Use a file's `id` in `fileIds` when creating a journal\n(`POST /api/public/v1/entities/{entityId}/journals`) or attaching files to one.\nRequires API key authentication and entity access.\n",
+        "tags": [
+          "Files"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Part of the file name, matched in any case",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Most files to return",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "contentType": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "contentType",
+                          "size",
+                          "createdAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters"
+          },
+          "401": {
+            "description": "Invalid or missing API key"
+          },
+          "404": {
+            "description": "Entity not found or not accessible"
+          }
+        },
+        "operationId": "files.list",
+        "x-sdk-resource": "files",
+        "x-sdk-method": "list"
+      }
+    },
     "/api/public/v1/entities/{entityId}/files/upload": {
       "post": {
         "summary": "Upload a file",
@@ -10263,14 +10736,14 @@
                         "status": {
                           "type": "string",
                           "enum": [
+                            "completed",
                             "draft",
                             "finalised",
                             "filed",
                             "filed_externally",
                             "accepted",
                             "rejected",
-                            "awaiting_payment",
-                            "completed"
+                            "awaiting_payment"
                           ]
                         },
                         "dateFrom": {
@@ -10542,14 +11015,14 @@
                           "status": {
                             "type": "string",
                             "enum": [
+                              "completed",
                               "draft",
                               "finalised",
                               "filed",
                               "filed_externally",
                               "accepted",
                               "rejected",
-                              "awaiting_payment",
-                              "completed"
+                              "awaiting_payment"
                             ]
                           },
                           "dateFrom": {
@@ -10795,6 +11268,10 @@
                         "total": {
                           "type": "number"
                         },
+                        "amountDue": {
+                          "type": "number",
+                          "nullable": true
+                        },
                         "notes": {
                           "type": "string",
                           "nullable": true
@@ -10879,6 +11356,7 @@
                         "subtotal",
                         "taxTotal",
                         "total",
+                        "amountDue",
                         "notes",
                         "createdAt",
                         "updatedAt",
@@ -10916,7 +11394,7 @@
     "/api/public/v1/entities/{entityId}/invoices": {
       "post": {
         "summary": "Create a finalised invoice",
-        "description": "Creates a complete, finalised invoice for the specified entity. The\nentity is taken from the URL; `status` cannot be supplied. Finalised\ninvoices are not automatically delivered to the recipient.\n",
+        "description": "Creates a complete, finalised invoice for the specified entity. The\nentity is taken from the URL; `status` cannot be supplied. Finalised\ninvoices are not automatically delivered to the recipient.\n\nWhere the workspace records invoices as receivables (accrual\naccounting), finalising posts the invoice to the ledger, which needs a\n`contactId`. Without one the request is refused with 409\n`INVOICE_NOT_EDITABLE` and nothing is created.\n",
         "tags": [
           "Invoices"
         ],
@@ -11107,6 +11585,10 @@
                         "total": {
                           "type": "number"
                         },
+                        "amountDue": {
+                          "type": "number",
+                          "nullable": true
+                        },
                         "notes": {
                           "type": "string",
                           "nullable": true
@@ -11191,6 +11673,7 @@
                         "subtotal",
                         "taxTotal",
                         "total",
+                        "amountDue",
                         "notes",
                         "createdAt",
                         "updatedAt",
@@ -11215,6 +11698,9 @@
           },
           "404": {
             "description": "Entity or workspace not found."
+          },
+          "409": {
+            "description": "The invoice can't be finalised, for example it has no contact where the workspace uses accrual accounting."
           },
           "500": {
             "description": "Invoice creation failed."
@@ -15756,6 +16242,24 @@
               }
             }
           },
+          "409": {
+            "description": "The receipt can't be unmatched because some of its credit was refunded\n(`PAYMENT_REFUNDED`). Unmatch the refund first.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -15869,6 +16373,33 @@
               "format": "uuid",
               "example": "123e4567-e89b-12d3-a456-426614174000"
             }
+          },
+          {
+            "name": "reconciliationStatus",
+            "in": "query",
+            "required": false,
+            "description": "Filter by reconciliation status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "reconciled",
+                "unreconciled"
+              ]
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "`full` (default) returns each transaction with its bank account, linked GL account, user, merchant, category and suggestions in full.\n`compact` returns what coding needs: the transaction's own fields, the bank account's id and name, merchant and category names, the reconciliation status, and each suggestion's source, confidence, rule name and lines as account code, account name, tax code, proportion, debit and credit.\n",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "full",
+                "compact"
+              ],
+              "default": "full"
+            }
           }
         ],
         "responses": {
@@ -15882,396 +16413,560 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "entityId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "reconciliationStatus": {
-                            "type": "string",
-                            "enum": [
-                              "reconciled",
-                              "unreconciled"
-                            ]
-                          },
-                          "journalId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "bankAccount": {
+                        "anyOf": [
+                          {
                             "type": "object",
                             "properties": {
-                              "id": {
-                                "type": "string"
-                              },
                               "entityId": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "externalId": {
-                                "type": "string"
+                              "reconciliationStatus": {
+                                "type": "string",
+                                "enum": [
+                                  "reconciled",
+                                  "unreconciled"
+                                ]
                               },
-                              "name": {
-                                "type": "string"
-                              },
-                              "alias": {
+                              "journalId": {
                                 "type": "string",
                                 "nullable": true
                               },
-                              "institution": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "accountNumber": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "logoUrl": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "type": {
-                                "type": "string"
-                              },
-                              "entityAccount": {
+                              "bankAccount": {
                                 "type": "object",
                                 "properties": {
                                   "id": {
                                     "type": "string"
                                   },
-                                  "code": {
+                                  "entityId": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "externalId": {
                                     "type": "string"
                                   },
                                   "name": {
                                     "type": "string"
                                   },
+                                  "alias": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "institution": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "accountNumber": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "logoUrl": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
                                   "type": {
                                     "type": "string"
                                   },
-                                  "subtype": {
-                                    "type": "string"
-                                  },
-                                  "taxCode": {
-                                    "type": "string"
-                                  },
-                                  "description": {
+                                  "sourceType": {
                                     "type": "string",
                                     "nullable": true
                                   },
-                                  "mappedCode": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "isSystem": {
-                                    "type": "boolean"
-                                  },
-                                  "parentId": {
-                                    "type": "string",
-                                    "nullable": true
-                                  },
-                                  "isExcluded": {
-                                    "type": "boolean"
-                                  },
-                                  "isIncluded": {
-                                    "type": "boolean"
-                                  },
-                                  "source": {
-                                    "type": "string",
-                                    "enum": [
-                                      "template",
-                                      "overridden",
-                                      "custom"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "code",
-                                  "name",
-                                  "type",
-                                  "subtype",
-                                  "taxCode",
-                                  "description",
-                                  "mappedCode",
-                                  "isSystem"
-                                ],
-                                "additionalProperties": false,
-                                "nullable": true
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "entityId",
-                              "externalId",
-                              "name",
-                              "alias",
-                              "institution",
-                              "accountNumber",
-                              "logoUrl",
-                              "type",
-                              "entityAccount"
-                            ],
-                            "additionalProperties": false
-                          },
-                          "merchant": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string"
-                              },
-                              "provider": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "identifier": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "provider",
-                              "identifier"
-                            ],
-                            "additionalProperties": false,
-                            "nullable": true
-                          },
-                          "category": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string"
-                              },
-                              "identifier": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "identifier"
-                            ],
-                            "additionalProperties": false,
-                            "nullable": true
-                          },
-                          "user": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "email": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "tradingName": {
-                                "type": "string",
-                                "nullable": true
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "email",
-                              "name",
-                              "tradingName",
-                              "createdAt"
-                            ],
-                            "additionalProperties": false
-                          },
-                          "suggestions": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "sourceType": {
-                                  "type": "string"
-                                },
-                                "confidence": {
-                                  "type": "string",
-                                  "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
-                                },
-                                "status": {
-                                  "type": "string"
-                                },
-                                "ruleId": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "ruleName": {
-                                  "type": "string",
-                                  "nullable": true
-                                },
-                                "lines": {
-                                  "type": "array",
-                                  "items": {
+                                  "entityAccount": {
                                     "type": "object",
                                     "properties": {
                                       "id": {
                                         "type": "string"
                                       },
-                                      "proportion": {
-                                        "type": "string",
-                                        "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic.",
-                                        "nullable": true
-                                      },
-                                      "credit": {
-                                        "type": "string",
-                                        "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
-                                      },
-                                      "debit": {
-                                        "type": "string",
-                                        "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
-                                      },
-                                      "entityAccountId": {
+                                      "code": {
                                         "type": "string"
                                       },
-                                      "entityAccount": {
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "type": {
+                                        "type": "string"
+                                      },
+                                      "subtype": {
+                                        "type": "string"
+                                      },
+                                      "taxCode": {
+                                        "type": "string"
+                                      },
+                                      "description": {
+                                        "type": "string",
+                                        "nullable": true
+                                      },
+                                      "mappedCode": {
+                                        "type": "string",
+                                        "nullable": true
+                                      },
+                                      "isSystem": {
+                                        "type": "boolean"
+                                      },
+                                      "parentId": {
+                                        "type": "string",
+                                        "nullable": true
+                                      },
+                                      "isExcluded": {
+                                        "type": "boolean"
+                                      },
+                                      "isIncluded": {
+                                        "type": "boolean"
+                                      },
+                                      "source": {
+                                        "type": "string",
+                                        "enum": [
+                                          "template",
+                                          "overridden",
+                                          "custom"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "code",
+                                      "name",
+                                      "type",
+                                      "subtype",
+                                      "taxCode",
+                                      "description",
+                                      "mappedCode",
+                                      "isSystem"
+                                    ],
+                                    "additionalProperties": false,
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "entityId",
+                                  "externalId",
+                                  "name",
+                                  "alias",
+                                  "institution",
+                                  "accountNumber",
+                                  "logoUrl",
+                                  "type",
+                                  "sourceType",
+                                  "entityAccount"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "merchant": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "provider": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "identifier": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "provider",
+                                  "identifier"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "category": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "identifier": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "identifier"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "user": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "tradingName": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "email",
+                                  "name",
+                                  "tradingName",
+                                  "createdAt"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "suggestions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "sourceType": {
+                                      "type": "string"
+                                    },
+                                    "confidence": {
+                                      "type": "string",
+                                      "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                    },
+                                    "status": {
+                                      "type": "string"
+                                    },
+                                    "ruleId": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "ruleName": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "lines": {
+                                      "type": "array",
+                                      "items": {
                                         "type": "object",
                                         "properties": {
                                           "id": {
                                             "type": "string"
                                           },
-                                          "code": {
+                                          "proportion": {
+                                            "type": "string",
+                                            "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic.",
+                                            "nullable": true
+                                          },
+                                          "credit": {
+                                            "type": "string",
+                                            "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                          },
+                                          "debit": {
+                                            "type": "string",
+                                            "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                          },
+                                          "entityAccountId": {
                                             "type": "string"
                                           },
-                                          "name": {
-                                            "type": "string"
+                                          "entityAccount": {
+                                            "type": "object",
+                                            "properties": {
+                                              "id": {
+                                                "type": "string"
+                                              },
+                                              "code": {
+                                                "type": "string"
+                                              },
+                                              "name": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "id",
+                                              "code",
+                                              "name"
+                                            ],
+                                            "additionalProperties": false
+                                          },
+                                          "taxRateId": {
+                                            "type": "string",
+                                            "nullable": true
+                                          },
+                                          "taxRate": {
+                                            "type": "object",
+                                            "properties": {
+                                              "id": {
+                                                "type": "string"
+                                              },
+                                              "code": {
+                                                "type": "string"
+                                              },
+                                              "name": {
+                                                "type": "string"
+                                              },
+                                              "description": {
+                                                "type": "string",
+                                                "nullable": true
+                                              },
+                                              "rate": {
+                                                "type": "string",
+                                                "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                              }
+                                            },
+                                            "required": [
+                                              "id",
+                                              "code",
+                                              "name",
+                                              "description",
+                                              "rate"
+                                            ],
+                                            "additionalProperties": false,
+                                            "nullable": true
                                           }
                                         },
                                         "required": [
                                           "id",
-                                          "code",
-                                          "name"
+                                          "proportion",
+                                          "credit",
+                                          "debit",
+                                          "entityAccountId",
+                                          "entityAccount",
+                                          "taxRateId",
+                                          "taxRate"
                                         ],
                                         "additionalProperties": false
-                                      },
-                                      "taxRateId": {
-                                        "type": "string",
-                                        "nullable": true
-                                      },
-                                      "taxRate": {
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "sourceType",
+                                    "confidence",
+                                    "status",
+                                    "ruleId",
+                                    "ruleName",
+                                    "lines"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "date": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "amount": {
+                                "type": "string",
+                                "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "particulars": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "code": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "reference": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "entityId",
+                              "reconciliationStatus",
+                              "journalId",
+                              "bankAccount",
+                              "merchant",
+                              "category",
+                              "user",
+                              "id",
+                              "date",
+                              "amount",
+                              "description",
+                              "type",
+                              "particulars",
+                              "code",
+                              "reference"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "bankAccount": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "merchant": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "category": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "reconciliationStatus": {
+                                "type": "string",
+                                "enum": [
+                                  "reconciled",
+                                  "unreconciled"
+                                ]
+                              },
+                              "journalId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "suggestions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "sourceType": {
+                                      "type": "string"
+                                    },
+                                    "confidence": {
+                                      "type": "string",
+                                      "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                    },
+                                    "ruleName": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "lines": {
+                                      "type": "array",
+                                      "items": {
                                         "type": "object",
                                         "properties": {
-                                          "id": {
+                                          "accountCode": {
                                             "type": "string"
                                           },
-                                          "code": {
+                                          "accountName": {
                                             "type": "string"
                                           },
-                                          "name": {
+                                          "taxCode": {
                                             "type": "string"
                                           },
-                                          "description": {
+                                          "proportion": {
                                             "type": "string",
+                                            "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic.",
                                             "nullable": true
                                           },
-                                          "rate": {
+                                          "debit": {
+                                            "type": "string",
+                                            "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                          },
+                                          "credit": {
                                             "type": "string",
                                             "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
                                           }
                                         },
                                         "required": [
-                                          "id",
-                                          "code",
-                                          "name",
-                                          "description",
-                                          "rate"
+                                          "accountCode",
+                                          "accountName",
+                                          "taxCode",
+                                          "proportion",
+                                          "debit",
+                                          "credit"
                                         ],
-                                        "additionalProperties": false,
-                                        "nullable": true
+                                        "additionalProperties": false
                                       }
-                                    },
-                                    "required": [
-                                      "id",
-                                      "proportion",
-                                      "credit",
-                                      "debit",
-                                      "entityAccountId",
-                                      "entityAccount",
-                                      "taxRateId",
-                                      "taxRate"
-                                    ],
-                                    "additionalProperties": false
-                                  }
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "sourceType",
+                                    "confidence",
+                                    "ruleName",
+                                    "lines"
+                                  ],
+                                  "additionalProperties": false
                                 }
                               },
-                              "required": [
-                                "id",
-                                "sourceType",
-                                "confidence",
-                                "status",
-                                "ruleId",
-                                "ruleName",
-                                "lines"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          "id": {
-                            "type": "string"
-                          },
-                          "date": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "amount": {
-                            "type": "string",
-                            "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "type": {
-                            "type": "string"
-                          },
-                          "particulars": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "code": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "reference": {
-                            "type": "string",
-                            "nullable": true
+                              "id": {
+                                "type": "string"
+                              },
+                              "date": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "amount": {
+                                "type": "string",
+                                "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "particulars": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "code": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "reference": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "bankAccount",
+                              "merchant",
+                              "category",
+                              "reconciliationStatus",
+                              "journalId",
+                              "suggestions",
+                              "id",
+                              "date",
+                              "amount",
+                              "description",
+                              "type",
+                              "particulars",
+                              "code",
+                              "reference"
+                            ],
+                            "additionalProperties": false
                           }
-                        },
-                        "required": [
-                          "entityId",
-                          "reconciliationStatus",
-                          "journalId",
-                          "bankAccount",
-                          "merchant",
-                          "category",
-                          "user",
-                          "id",
-                          "date",
-                          "amount",
-                          "description",
-                          "type",
-                          "particulars",
-                          "code",
-                          "reference"
-                        ],
-                        "additionalProperties": false
+                        ]
                       }
                     },
                     "pagination": {
@@ -16554,6 +17249,9 @@
                             "currency": {
                               "type": "string"
                             },
+                            "timezone": {
+                              "type": "string"
+                            },
                             "reportType": {
                               "type": "string",
                               "enum": [
@@ -16575,6 +17273,7 @@
                             "entityName",
                             "generatedAt",
                             "currency",
+                            "timezone",
                             "reportType",
                             "asOfDate"
                           ],
@@ -16750,6 +17449,9 @@
                             "currency": {
                               "type": "string"
                             },
+                            "timezone": {
+                              "type": "string"
+                            },
                             "reportType": {
                               "type": "string",
                               "enum": [
@@ -16780,6 +17482,7 @@
                             "entityName",
                             "generatedAt",
                             "currency",
+                            "timezone",
                             "reportType",
                             "asOfDate",
                             "comparisonPeriods",
@@ -17116,6 +17819,24 @@
                             "type": "string",
                             "format": "date-time"
                           },
+                          "isGstRegistered": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "gstPeriodMonths": {
+                            "type": "number",
+                            "nullable": true
+                          },
+                          "gstBasis": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "financialYearStartMonth": {
+                            "type": "number"
+                          },
+                          "currency": {
+                            "type": "string"
+                          },
                           "bankAccounts": {
                             "type": "array",
                             "items": {
@@ -17152,6 +17873,10 @@
                                 },
                                 "type": {
                                   "type": "string"
+                                },
+                                "sourceType": {
+                                  "type": "string",
+                                  "nullable": true
                                 },
                                 "entityAccount": {
                                   "type": "object",
@@ -17229,6 +17954,7 @@
                                 "accountNumber",
                                 "logoUrl",
                                 "type",
+                                "sourceType",
                                 "entityAccount"
                               ],
                               "additionalProperties": false
@@ -17309,6 +18035,11 @@
                           "currentTemplateId",
                           "defaultTaxAccountId",
                           "createdAt",
+                          "isGstRegistered",
+                          "gstPeriodMonths",
+                          "gstBasis",
+                          "financialYearStartMonth",
+                          "currency",
                           "bankAccounts",
                           "clients",
                           "taxRates"
@@ -17431,8 +18162,8 @@
                   "gstPeriod": {
                     "type": "string",
                     "enum": [
-                      "1",
                       "2",
+                      "1",
                       "3",
                       "6",
                       "12"
@@ -17622,6 +18353,24 @@
                           "type": "string",
                           "format": "date-time"
                         },
+                        "isGstRegistered": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "gstPeriodMonths": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "gstBasis": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "financialYearStartMonth": {
+                          "type": "number"
+                        },
+                        "currency": {
+                          "type": "string"
+                        },
                         "bankAccounts": {
                           "type": "array",
                           "items": {
@@ -17658,6 +18407,10 @@
                               },
                               "type": {
                                 "type": "string"
+                              },
+                              "sourceType": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "entityAccount": {
                                 "type": "object",
@@ -17735,6 +18488,7 @@
                               "accountNumber",
                               "logoUrl",
                               "type",
+                              "sourceType",
                               "entityAccount"
                             ],
                             "additionalProperties": false
@@ -17815,6 +18569,11 @@
                         "currentTemplateId",
                         "defaultTaxAccountId",
                         "createdAt",
+                        "isGstRegistered",
+                        "gstPeriodMonths",
+                        "gstBasis",
+                        "financialYearStartMonth",
+                        "currency",
                         "bankAccounts",
                         "clients",
                         "taxRates"
@@ -18301,14 +19060,14 @@
                           "status": {
                             "type": "string",
                             "enum": [
+                              "completed",
                               "draft",
                               "finalised",
                               "filed",
                               "filed_externally",
                               "accepted",
                               "rejected",
-                              "awaiting_payment",
-                              "completed"
+                              "awaiting_payment"
                             ]
                           },
                           "dateFrom": {
@@ -18614,6 +19373,10 @@
                           "total": {
                             "type": "number"
                           },
+                          "amountDue": {
+                            "type": "number",
+                            "nullable": true
+                          },
                           "notes": {
                             "type": "string",
                             "nullable": true
@@ -18698,6 +19461,7 @@
                           "subtotal",
                           "taxTotal",
                           "total",
+                          "amountDue",
                           "notes",
                           "createdAt",
                           "updatedAt",
@@ -18826,12 +19590,16 @@
                                   "advisor",
                                   "workspace_owner"
                                 ]
+                              },
+                              "subscriptionState": {
+                                "type": "string"
                               }
                             },
                             "required": [
                               "id",
                               "name",
-                              "role"
+                              "role",
+                              "subscriptionState"
                             ],
                             "additionalProperties": false
                           }
@@ -19256,9 +20024,9 @@
                             "startsWith",
                             "is",
                             "equals",
+                            "gte",
                             "contains",
                             "gt",
-                            "gte",
                             "lt",
                             "lte",
                             "between"
@@ -20016,9 +20784,9 @@
                             "startsWith",
                             "is",
                             "equals",
+                            "gte",
                             "contains",
                             "gt",
-                            "gte",
                             "lt",
                             "lte",
                             "between"
@@ -21296,6 +22064,95 @@
                         },
                         "invoiceId": {
                           "type": "string"
+                        },
+                        "invoiceAllocations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "invoiceId": {
+                                "type": "string"
+                              },
+                              "amount": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "invoiceId",
+                              "amount"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "refundCredit": {
+                          "type": "object",
+                          "properties": {
+                            "contactId": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "contactId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "creditHolding": {
+                          "type": "object",
+                          "properties": {
+                            "accountCode": {
+                              "type": "string"
+                            },
+                            "taxCode": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "accountCode",
+                            "taxCode"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "fixedAssetDisposal": {
+                          "type": "object",
+                          "properties": {
+                            "fixedAssetId": {
+                              "type": "string"
+                            },
+                            "reverseLaterDepreciation": {
+                              "type": "boolean"
+                            },
+                            "saleTaxCode": {
+                              "type": "string"
+                            },
+                            "accountCodes": {
+                              "type": "object",
+                              "properties": {
+                                "loss": {
+                                  "type": "string"
+                                },
+                                "gain": {
+                                  "type": "string"
+                                },
+                                "private_loss": {
+                                  "type": "string"
+                                },
+                                "private_gain": {
+                                  "type": "string"
+                                },
+                                "depreciation_recovery": {
+                                  "type": "string"
+                                },
+                                "capital_gain": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "required": [
+                            "fixedAssetId"
+                          ],
+                          "additionalProperties": false
                         },
                         "narration": {
                           "type": "string"

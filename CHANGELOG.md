@@ -2,7 +2,12 @@
 
 ## 0.1.0-alpha.2 (unreleased)
 
-- Regenerated from the 5 October 2026 API snapshot: 73 operations across 23 resource groups.
+- Regenerated from the 19 October 2026 API snapshot: 76 operations across 24 resource groups.
+- Added `files.list()`, which lists an entity's saved files, newest first, optionally narrowed by part of the name.
+- Added `bankAccounts` with `importTransactions()`, which imports statement lines into an existing CSV bank account and skips lines it already holds, and `createWithTransactions()`, which creates a CSV bank account and imports into it in one step.
+- `transactions.list()` accepts `reconciliationStatus` (`'reconciled'` or `'unreconciled'`) and `view: 'compact'`, a smaller response shaped for coding transactions.
+- New response fields: entity GST registration, GST period and basis, financial year start month and currency; bank account `sourceType`; invoice `amountDue`; workspace `subscriptionState` on `me.retrieve()`; and the trial balance's reporting `timezone`.
+- `transactions.reconcileBulk()` accepts `creditHolding` and `fixedAssetDisposal` on an update, and `transactions.reverse()` documents its `409` conflict response.
 - Added `contacts` with `list`, `create`, `retrieve`, `update`, `del`, `archive` and `restore`.
 - `rules.list()` now follows the paginated rules endpoint, so automatic iteration reads every page.
 - Updated request and response types for clients, rules, invoices and fixed assets to match the current API.

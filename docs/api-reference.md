@@ -4,6 +4,8 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 
 | SDK method | HTTP endpoint |
 | --- | --- |
+| `bankAccounts.createWithTransactions` | `POST /api/public/v1/entities/{entityId}/bank-accounts/import` |
+| `bankAccounts.importTransactions` | `POST /api/public/v1/entities/{entityId}/bank-accounts/{bankAccountId}/import` |
 | `changeSets.create` | `POST /api/public/v1/entities/{entityId}/change-sets` |
 | `charts.createAccount` | `POST /api/public/v1/charts/{chartId}/accounts` |
 | `charts.create` | `POST /api/public/v1/charts` |
@@ -35,6 +37,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `entityAccounts.restore` | `POST /api/public/v1/entities/{entityId}/charts/excluded/{templateAccountId}/restore` |
 | `entityAccounts.update` | `POST /api/public/v1/entities/{entityId}/charts/{accountId}/update` |
 | `extensions.request` | `POST /api/public/v1/extensions/{extensionId}/http` |
+| `files.list` | `GET /api/public/v1/entities/{entityId}/files` |
 | `files.upload` | `POST /api/public/v1/entities/{entityId}/files/upload` |
 | `fixedAssetTypes.create` | `POST /api/public/v1/entities/{entityId}/fixed-asset-types` |
 | `fixedAssetTypes.list` | `GET /api/public/v1/entities/{entityId}/fixed-asset-types` |
