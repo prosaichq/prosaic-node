@@ -154,12 +154,17 @@ export class ChartsResource {
 
   /**
    * Create a chart of accounts template
-   * Creates a new chart of accounts template in the workspace. Every system global
-   * account (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present
-   * in `accounts` with `isIncluded: true` — otherwise the request fails with
-   * `SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set
-   * `includeSystemAccounts: true` to have any omitted system accounts added
-   * automatically from their global definitions. Requires API key authentication.
+   * Creates a chart of accounts template with confirmed system-role mappings. Explicitly
+   * map GST, ACCOUNTS_RECEIVABLE, RETAINED_EARNINGS, CURRENT_YEAR_EARNINGS,
+   * HISTORICAL_ADJUSTMENT and ROUNDING to one included account of each role's fixed broad
+   * type. Codes and names remain editable and do not determine roles. Missing, duplicate or
+   * wrong-type mappings fail with SYSTEM_ACCOUNT_VALIDATION. The legacy
+   * includeSystemAccounts flag is accepted but never inserts omitted preset accounts.
+   * Requires API key authentication and a workspace staff role.
+   *
+   * GST, accounts payable, historical adjustment, rounding and transfers use Liability
+   * accounts. Receivables use Asset accounts; both earnings roles use Equity accounts.
+   * Accounts payable, transfers and inter-entity parent roles are optional for this release.
    *
    * **Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.
    * Passing a name (e.g. `"15% GST on Income"`) is stored verbatim and resolves to null wherever the
@@ -178,6 +183,8 @@ export class ChartsResource {
   /**
    * Get chart of accounts template accounts
    * Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
+   *
+   * Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
    *
    * **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
    *
@@ -244,12 +251,19 @@ export class ChartsResource {
    * entities). When `accounts` is omitted, only the provided template metadata (`name`,
    * `description`) is updated and accounts are left untouched. Omit a metadata field to preserve
    * its existing value, or send `description: null` to clear the description. A full replacement
-   * list must still contain every
-   * system account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with
-   * `isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing
-   * all missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system
-   * accounts automatically. For surgical single-account changes use the
-   * `/charts/{chartId}/accounts` endpoints instead. Requires API key authentication.
+   * list must explicitly map each required systemRole to one included account of its fixed
+   * broad type: GST, ACCOUNTS_RECEIVABLE, RETAINED_EARNINGS, CURRENT_YEAR_EARNINGS,
+   * HISTORICAL_ADJUSTMENT and ROUNDING. Codes and names do not determine roles. Send the
+   * existing account id when changing its code to retain its identity. Omit a systemRole
+   * to preserve its current value, or send null to clear an optional role. Missing, duplicate
+   * or wrong-type required mappings fail with SYSTEM_ACCOUNT_VALIDATION. The legacy
+   * includeSystemAccounts flag is accepted but never adds or carries over omitted accounts.
+   * For surgical single-account changes use the /charts/{chartId}/accounts endpoints.
+   * Requires API key authentication and a workspace staff role.
+   *
+   * GST, accounts payable, historical adjustment, rounding and transfers use Liability
+   * accounts. Receivables use Asset accounts; both earnings roles use Equity accounts.
+   * Accounts payable, transfers and inter-entity parent roles are optional for this release.
    *
    * **Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.
    * Passing a name (e.g. `"15% GST on Income"`) is stored verbatim and resolves to null wherever the
@@ -497,7 +511,7 @@ export class EntityAccountsResource {
 
   /**
    * Delete or hide an entity account
-   * Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.
+   * Deletes an unused custom account or hides an unused template-based account by creating an exclusion. Root accounts can be deleted when they have no children, postings or operational links. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
    */
   del(entityId: string, accountId: string, options: RequestOptions = {}): APIPromise<EntityAccountsDelResponse> {
     return new APIPromise(this.transport.request<EntityAccountsDelResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/delete`, {}, options));
@@ -513,7 +527,10 @@ export class EntityAccountsResource {
 
   /**
    * Update an entity account
-   * Updates an entity account's editable fields. Parent accounts can only update taxCode and mappedCode. Bank account-linked accounts have additional restrictions.
+   * Updates account metadata, including root, template-based and system-role accounts. Codes are unique within the entity and do not need to follow a parent's code.
+   * Actual bank-linked accounts retain their name, description and tax restrictions. System roles and operational links keep their broad account type fixed.
+   * To change an ordinary account's report placement, send reportAssignment with the group and optional category plus the assignment pair last read (or null if unassigned). A stale pair returns 409. A broad type change requires confirmTypeChange=true; the group determines the type.
+   *
    */
   update(entityId: string, accountId: string, params: EntityAccountsUpdateParams = {}, options: RequestOptions = {}): APIPromise<EntityAccountsUpdateResponse> {
     return new APIPromise(this.transport.request<EntityAccountsUpdateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/update`, { body: params }, options));
