@@ -2,6 +2,9 @@
 
 ## 0.1.0-alpha.2 (unreleased)
 
+- Chart accounts expose nullable `systemRole`. Chart creation and full account-list replacement require explicit mappings for GST, accounts receivable, retained earnings, current year earnings, historical adjustment and rounding. Codes and names do not determine these roles; `includeSystemAccounts` no longer inserts omitted accounts. Supply existing account IDs when renaming codes. Metadata-only chart updates remain supported.
+- Entity accounts expose nullable `systemRole`; their update input supports report-group assignment with an expected previous assignment and explicit type-change confirmation. Balance-sheet account rows identify calculated earnings through optional `earningsType`.
+
 - Regenerated from the 19 October 2026 API snapshot: 76 operations across 24 resource groups.
 - Added `files.list()`, which lists an entity's saved files, newest first, optionally narrowed by part of the name.
 - Added `bankAccounts` with `importTransactions()`, which imports statement lines into an existing CSV bank account and skips lines it already holds, and `createWithTransactions()`, which creates a CSV bank account and imports into it in one step.

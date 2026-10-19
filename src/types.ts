@@ -102,6 +102,8 @@ export interface paths {
          * Get chart of accounts template accounts
          * @description Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
          *
+         *     Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
+         *
          *     **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
          *
          *     To fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.
@@ -133,12 +135,19 @@ export interface paths {
          *     entities). When `accounts` is omitted, only the provided template metadata (`name`,
          *     `description`) is updated and accounts are left untouched. Omit a metadata field to preserve
          *     its existing value, or send `description: null` to clear the description. A full replacement
-         *     list must still contain every
-         *     system account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with
-         *     `isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing
-         *     all missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system
-         *     accounts automatically. For surgical single-account changes use the
-         *     `/charts/{chartId}/accounts` endpoints instead. Requires API key authentication.
+         *     list must explicitly map each required systemRole to one included account of its fixed
+         *     broad type: GST, ACCOUNTS_RECEIVABLE, RETAINED_EARNINGS, CURRENT_YEAR_EARNINGS,
+         *     HISTORICAL_ADJUSTMENT and ROUNDING. Codes and names do not determine roles. Send the
+         *     existing account id when changing its code to retain its identity. Omit a systemRole
+         *     to preserve its current value, or send null to clear an optional role. Missing, duplicate
+         *     or wrong-type required mappings fail with SYSTEM_ACCOUNT_VALIDATION. The legacy
+         *     includeSystemAccounts flag is accepted but never adds or carries over omitted accounts.
+         *     For surgical single-account changes use the /charts/{chartId}/accounts endpoints.
+         *     Requires API key authentication and a workspace staff role.
+         *
+         *     GST, accounts payable, historical adjustment, rounding and transfers use Liability
+         *     accounts. Receivables use Asset accounts; both earnings roles use Equity accounts.
+         *     Accounts payable, transfers and inter-entity parent roles are optional for this release.
          *
          *     **Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.
          *     Passing a name (e.g. `"15% GST on Income"`) is stored verbatim and resolves to null wherever the
@@ -173,12 +182,17 @@ export interface paths {
         put?: never;
         /**
          * Create a chart of accounts template
-         * @description Creates a new chart of accounts template in the workspace. Every system global
-         *     account (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present
-         *     in `accounts` with `isIncluded: true` — otherwise the request fails with
-         *     `SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set
-         *     `includeSystemAccounts: true` to have any omitted system accounts added
-         *     automatically from their global definitions. Requires API key authentication.
+         * @description Creates a chart of accounts template with confirmed system-role mappings. Explicitly
+         *     map GST, ACCOUNTS_RECEIVABLE, RETAINED_EARNINGS, CURRENT_YEAR_EARNINGS,
+         *     HISTORICAL_ADJUSTMENT and ROUNDING to one included account of each role's fixed broad
+         *     type. Codes and names remain editable and do not determine roles. Missing, duplicate or
+         *     wrong-type mappings fail with SYSTEM_ACCOUNT_VALIDATION. The legacy
+         *     includeSystemAccounts flag is accepted but never inserts omitted preset accounts.
+         *     Requires API key authentication and a workspace staff role.
+         *
+         *     GST, accounts payable, historical adjustment, rounding and transfers use Liability
+         *     accounts. Receivables use Asset accounts; both earnings roles use Equity accounts.
+         *     Accounts payable, transfers and inter-entity parent roles are optional for this release.
          *
          *     **Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.
          *     Passing a name (e.g. `"15% GST on Income"`) is stored verbatim and resolves to null wherever the
@@ -2071,6 +2085,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -2136,7 +2151,11 @@ export interface operations {
                     accounts?: {
                         code: string;
                         isIncluded: boolean;
+                        id?: string;
+                        systemRole?: string | null;
                         name?: string;
+                        type?: string;
+                        subtype?: string | null;
                         description?: string | null;
                         /** @enum {string|null} */
                         taxCode?: "NZ_GST_15_INC" | "NZ_GST_15_EXP" | "NZ_GST_0_NONE" | "NZ_GST_0_ZERO" | "AU_GST_10_INC" | "AU_GST_10_EXP" | "AU_GST_0_NONE" | "AU_GST_0_INPUT" | "AU_GST_0_EXPORT" | null;
@@ -2297,6 +2316,8 @@ export interface operations {
                         name: string;
                         type: string;
                         isIncluded: boolean;
+                        id?: string;
+                        systemRole?: string | null;
                         subtype?: string | null;
                         /** @enum {string|null} */
                         taxCode?: "NZ_GST_15_INC" | "NZ_GST_15_EXP" | "NZ_GST_0_NONE" | "NZ_GST_0_ZERO" | "AU_GST_10_INC" | "AU_GST_10_EXP" | "AU_GST_0_NONE" | "AU_GST_0_INPUT" | "AU_GST_0_EXPORT" | null;
@@ -2335,13 +2356,13 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        /** @example Missing required system accounts: 8500 (GST), 8950 (Rounding). All system accounts must be included in the template with isIncluded: true. */
+                        /** @example Choose accounts for: GST, Rounding. */
                         error: string;
                         /** @example SYSTEM_ACCOUNT_VALIDATION */
                         code: string;
                         details?: {
                             missingAccounts?: {
-                                /** @example 8500 */
+                                /** @example GST */
                                 code?: string;
                                 /** @example GST */
                                 name?: string;
@@ -2398,6 +2419,7 @@ export interface operations {
                                 description: string | null;
                                 mappedCode: string | null;
                                 isSystem: boolean;
+                                systemRole?: string | null;
                                 parentId?: string | null;
                                 isExcluded?: boolean;
                                 isIncluded?: boolean;
@@ -2561,6 +2583,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -3452,6 +3475,15 @@ export interface operations {
                     taxCode?: string;
                     mappedCode?: string | null;
                     code?: string;
+                    confirmTypeChange?: boolean;
+                    reportAssignment?: {
+                        groupKey: string;
+                        categoryKey: string | null;
+                        expected: {
+                            groupKey: string;
+                            categoryKey: string | null;
+                        } | null;
+                    };
                 };
             };
         };
@@ -3473,6 +3505,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -3585,6 +3618,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -3687,6 +3721,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -6767,6 +6802,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6794,6 +6831,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6821,6 +6860,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6888,6 +6929,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6927,6 +6970,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6966,6 +7011,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7830,6 +7877,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8258,6 +8306,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8413,6 +8462,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
