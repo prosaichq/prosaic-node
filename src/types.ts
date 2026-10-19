@@ -417,7 +417,7 @@ export interface paths {
         put?: never;
         /**
          * Delete or hide an entity account
-         * @description Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.
+         * @description Deletes an unused custom account or hides an unused template-based account by creating an exclusion. Root accounts can be deleted when they have no children, postings or operational links. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
          */
         post: operations["entityAccounts.del"];
         delete?: never;
@@ -457,7 +457,9 @@ export interface paths {
         put?: never;
         /**
          * Update an entity account
-         * @description Updates an entity account's editable fields. Parent accounts can only update taxCode and mappedCode. Bank account-linked accounts have additional restrictions.
+         * @description Updates account metadata, including root, template-based and system-role accounts. Codes are unique within the entity and do not need to follow a parent's code.
+         *     Actual bank-linked accounts retain their name, description and tax restrictions. System roles and operational links keep their broad account type fixed.
+         *     To change an ordinary account's report placement, send reportAssignment with the group and optional category plus the assignment pair last read (or null if unassigned). A stale pair returns 409. A broad type change requires confirmTypeChange=true; the group determines the type.
          */
         post: operations["entityAccounts.update"];
         delete?: never;
@@ -3397,7 +3399,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Cannot delete parent accounts or accounts with journal entries */
+            /** @description The account has children, journal entries or an operational link that prevents deletion. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3527,6 +3529,13 @@ export interface operations {
             };
             /** @description Account not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The report assignment changed since it was read; reload before retrying. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

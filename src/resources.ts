@@ -511,7 +511,7 @@ export class EntityAccountsResource {
 
   /**
    * Delete or hide an entity account
-   * Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.
+   * Deletes an unused custom account or hides an unused template-based account by creating an exclusion. Root accounts can be deleted when they have no children, postings or operational links. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
    */
   del(entityId: string, accountId: string, options: RequestOptions = {}): APIPromise<EntityAccountsDelResponse> {
     return new APIPromise(this.transport.request<EntityAccountsDelResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/delete`, {}, options));
@@ -527,7 +527,10 @@ export class EntityAccountsResource {
 
   /**
    * Update an entity account
-   * Updates an entity account's editable fields. Parent accounts can only update taxCode and mappedCode. Bank account-linked accounts have additional restrictions.
+   * Updates account metadata, including root, template-based and system-role accounts. Codes are unique within the entity and do not need to follow a parent's code.
+   * Actual bank-linked accounts retain their name, description and tax restrictions. System roles and operational links keep their broad account type fixed.
+   * To change an ordinary account's report placement, send reportAssignment with the group and optional category plus the assignment pair last read (or null if unassigned). A stale pair returns 409. A broad type change requires confirmTypeChange=true; the group determines the type.
+   *
    */
   update(entityId: string, accountId: string, params: EntityAccountsUpdateParams = {}, options: RequestOptions = {}): APIPromise<EntityAccountsUpdateResponse> {
     return new APIPromise(this.transport.request<EntityAccountsUpdateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/update`, { body: params }, options));
