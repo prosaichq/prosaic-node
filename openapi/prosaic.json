@@ -11259,6 +11259,10 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "bankAccountName": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "subtotal": {
                           "type": "number"
                         },
@@ -11353,6 +11357,7 @@
                         "recipientEmail",
                         "recipientAddress",
                         "bankAccountId",
+                        "bankAccountName",
                         "subtotal",
                         "taxTotal",
                         "total",
@@ -11484,6 +11489,14 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "bankAccountName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "invoiceTemplateId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "invoiceNumber": {
                     "type": "string"
                   },
@@ -11573,6 +11586,10 @@
                           "nullable": true
                         },
                         "bankAccountId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "bankAccountName": {
                           "type": "string",
                           "nullable": true
                         },
@@ -11670,6 +11687,7 @@
                         "recipientEmail",
                         "recipientAddress",
                         "bankAccountId",
+                        "bankAccountName",
                         "subtotal",
                         "taxTotal",
                         "total",
@@ -19364,6 +19382,10 @@
                             "type": "string",
                             "nullable": true
                           },
+                          "bankAccountName": {
+                            "type": "string",
+                            "nullable": true
+                          },
                           "subtotal": {
                             "type": "number"
                           },
@@ -19458,6 +19480,7 @@
                           "recipientEmail",
                           "recipientAddress",
                           "bankAccountId",
+                          "bankAccountName",
                           "subtotal",
                           "taxTotal",
                           "total",

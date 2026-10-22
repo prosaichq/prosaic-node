@@ -240,7 +240,7 @@ Use the [API resource reference](docs/api-reference.md) to find a method, and th
 
 ### Alpha compatibility
 
-The SDK targets the **19 October 2026** API snapshot. The developer documentation may describe newer API capabilities.
+The SDK targets the **21 October 2026** API snapshot. The developer documentation may describe newer API capabilities.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 

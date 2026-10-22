@@ -5948,6 +5948,7 @@ export interface operations {
                             recipientEmail: string | null;
                             recipientAddress: string | null;
                             bankAccountId: string | null;
+                            bankAccountName: string | null;
                             subtotal: number;
                             taxTotal: number;
                             total: number;
@@ -6031,6 +6032,8 @@ export interface operations {
                     notes?: string | null;
                     contactId?: string | null;
                     dueDate?: string | null;
+                    bankAccountName?: string | null;
+                    invoiceTemplateId?: string | null;
                     invoiceNumber?: string;
                     recipientEmail?: string | null;
                     recipientAddress?: string | null;
@@ -6064,6 +6067,7 @@ export interface operations {
                             recipientEmail: string | null;
                             recipientAddress: string | null;
                             bankAccountId: string | null;
+                            bankAccountName: string | null;
                             subtotal: number;
                             taxTotal: number;
                             total: number;
@@ -8787,6 +8791,7 @@ export interface operations {
                             recipientEmail: string | null;
                             recipientAddress: string | null;
                             bankAccountId: string | null;
+                            bankAccountName: string | null;
                             subtotal: number;
                             taxTotal: number;
                             total: number;
