@@ -215,7 +215,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 - `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the response is unpaginated.
 - Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
-- Chart accounts expose nullable `systemRole`. Chart creation and full account-list replacement require six confirmed role mappings, each on an included account of the correct broad type. Codes and names remain editable. See the [system-account example](examples/system-accounts.ts) for a complete creation request. Use existing account IDs when renaming chart account codes. Metadata-only updates do not replace mappings. `includeSystemAccounts` is accepted for compatibility but does not add omitted accounts. These requirements are checked by the API; the TypeScript shape alone cannot prove a full mapping is complete. Use this contract with the corresponding role-aware API deployment.
+- Chart accounts expose nullable `systemRole` for reading the inherited account purpose. Chart creation and replacement use global account defaults. Set `includeSystemAccounts: true` to add or carry over omitted system accounts; explicit exclusions still fail validation. Metadata-only updates leave accounts unchanged. See the [system-account example](examples/system-accounts.ts).
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
 - `files.upload(entityId, file)` accepts a `File` or `Blob`. Use a named `File`, or pass a `filename` request option for a `Blob`.
 - Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.

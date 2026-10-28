@@ -12,19 +12,10 @@ function json(body: unknown, status = 200, headers: HeadersInit = {}): Response 
 }
 
 describe('HTTP transport', () => {
-  it('carries chart role choices and persisted account IDs without rewriting codes or response envelopes', async () => {
+  it('preserves automatic system-account inclusion and exposes inherited roles on reads', async () => {
     const params: ChartsUpdateParams = {
-      accounts: [
-        {
-          id: 'account-tax',
-          code: '220',
-          name: 'Tax control',
-          type: 'Liability',
-          subtype: 'Current Liability',
-          systemRole: 'GST',
-          isIncluded: true,
-        },
-      ],
+      includeSystemAccounts: true,
+      accounts: [{ code: '8500', description: 'Tax control', isIncluded: true }],
     };
     const client = new Prosaic('test-key', {
       fetch: async (input, init) => {
