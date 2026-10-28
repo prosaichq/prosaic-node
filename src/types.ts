@@ -6041,6 +6041,7 @@ export interface operations {
                     contactId?: string | null;
                     dueDate?: string | null;
                     bankAccountName?: string | null;
+                    invoiceTemplateId?: string | null;
                     invoiceNumber?: string;
                     recipientEmail?: string | null;
                     recipientAddress?: string | null;
@@ -10071,17 +10072,6 @@ export interface operations {
                                 depreciation_recovery?: string;
                                 capital_gain?: string;
                             };
-                        };
-                        fixedAssetPurchase?: {
-                            name: string;
-                            entityFixedAssetTypeId: string;
-                            startDate: string;
-                            depreciationMethod: string;
-                            assetNumber?: string;
-                            businessUsePercentage?: number;
-                            taxCode?: string;
-                            depreciationRate?: number;
-                            usefulLifeYears?: number;
                         };
                         narration?: string;
                         /** @enum {string} */

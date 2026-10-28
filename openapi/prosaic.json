@@ -11517,6 +11517,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "invoiceTemplateId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "invoiceNumber": {
                     "type": "string"
                   },
@@ -22248,45 +22252,6 @@
                           },
                           "required": [
                             "fixedAssetId"
-                          ],
-                          "additionalProperties": false
-                        },
-                        "fixedAssetPurchase": {
-                          "type": "object",
-                          "properties": {
-                            "name": {
-                              "type": "string"
-                            },
-                            "entityFixedAssetTypeId": {
-                              "type": "string"
-                            },
-                            "startDate": {
-                              "type": "string"
-                            },
-                            "depreciationMethod": {
-                              "type": "string"
-                            },
-                            "assetNumber": {
-                              "type": "string"
-                            },
-                            "businessUsePercentage": {
-                              "type": "number"
-                            },
-                            "taxCode": {
-                              "type": "string"
-                            },
-                            "depreciationRate": {
-                              "type": "number"
-                            },
-                            "usefulLifeYears": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "name",
-                            "entityFixedAssetTypeId",
-                            "startDate",
-                            "depreciationMethod"
                           ],
                           "additionalProperties": false
                         },
