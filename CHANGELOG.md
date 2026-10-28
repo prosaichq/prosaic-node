@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.1.0-alpha.2 (unreleased)
+## 0.1.0-alpha.2
 
+- First npm release, as `prosaic-node`. Install it with `npm install prosaic-node@next`. Earlier archives were named `@prosaic/sdk`; import from `prosaic-node` instead.
+- The package includes only the consumer agent skill, `skills/prosaic-sdk`.
 - Regenerated from the 21 October 2026 API snapshot: 76 operations across 24 resource groups.
 - Added `files.list()`, which lists an entity's saved files, newest first, optionally narrowed by part of the name.
 - Added `bankAccounts` with `importTransactions()`, which imports statement lines into an existing CSV bank account and skips lines it already holds, and `createWithTransactions()`, which creates a CSV bank account and imports into it in one step.
@@ -15,7 +17,7 @@
 - `invoices.create()` accepts `invoiceTemplateId`, the template to print with; null uses the contact's or entity's default.
 - `transactions.list()` accepts `includePreConversion: 'true'`. The API now hides transactions dated before an entity's conversion date by default, and moves an earlier `dateFrom` up to it; the flag returns them.
 
-## 0.1.0-alpha.1 (unreleased)
+## 0.1.0-alpha.1 (not published to npm)
 
 - Typed resource methods for the 66 public API v1 operations in the 7 September 2026 snapshot, with a reproducible contract. See README.md for known compatibility gaps with newer server versions.
 - API-key and OAuth bearer access, workspace selection, S256 PKCE, callback validation, refresh rotation, and token revocation.

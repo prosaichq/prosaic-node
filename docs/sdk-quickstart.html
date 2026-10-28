@@ -209,7 +209,7 @@
       <header>
         <div class="masthead">
           <div class="brand">prosaic</div>
-          <div class="badge">Private alpha · 0.1.0-alpha.1</div>
+          <div class="badge">Alpha · 0.1.0-alpha.2</div>
         </div>
         <p class="eyebrow">TYPESCRIPT SDK / QUICKSTART</p>
         <h1>Your first Prosaic integration.</h1>
@@ -220,20 +220,16 @@
       </header>
 
       <div class="prerequisites">
-        <strong>You’ll need:</strong> Node.js 22+, a Node project, <code>prosaic-sdk.tgz</code> from
-        Prosaic and an API key from your workspace administrator. Keep keys on your server, outside
-        source control.
+        <strong>You’ll need:</strong> Node.js 22+, a Node project and an API key from your workspace
+        administrator. Keep keys on your server, outside source control.
       </div>
 
       <section class="step">
         <div>
           <h2><span class="number">01</span> Install</h2>
-          <p class="caption">
-            Save the supplied archive in your project. The alpha is not on npm. Set your API key in
-            your terminal.
-          </p>
+          <p class="caption">Install the alpha from npm and set your API key in your terminal.</p>
         </div>
-        <pre data-language="sh"><code>yarn add ./prosaic-sdk.tgz
+        <pre data-language="sh"><code>yarn add prosaic-node@next
 yarn add --dev tsx
 export PROSAIC_API_KEY='YOUR_API_KEY'</code></pre>
       </section>
@@ -250,7 +246,7 @@ export PROSAIC_API_KEY='YOUR_API_KEY'</code></pre>
             >
           </p>
         </div>
-        <pre data-language="ts"><code>import Prosaic from '@prosaic/sdk';
+        <pre data-language="ts"><code>import Prosaic from 'prosaic-node';
 
 const apiKey = process.env.PROSAIC_API_KEY;
 if (!apiKey) throw new Error('Set PROSAIC_API_KEY');
@@ -313,7 +309,7 @@ for await (const txn of prosaic.transactions.list(
         <section>
           <h3>Handle errors</h3>
           <p>
-            Catch <code>APIError</code> from <code>@prosaic/sdk</code>; inspect <code>status</code>,
+            Catch <code>APIError</code> from <code>prosaic-node</code>; inspect <code>status</code>,
             <code>code</code> and <code>requestId</code>. Check your key for 401 and permissions for
             403. Reads retry transient failures; writes are never automatically retried.
           </p>

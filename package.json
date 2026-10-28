@@ -1,5 +1,5 @@
 {
-  "name": "@prosaic/sdk",
+  "name": "prosaic-node",
   "version": "0.1.0-alpha.2",
   "description": "The TypeScript SDK for the Prosaic public API",
   "homepage": "https://github.com/prosaichq/prosaic-node#readme",
@@ -13,7 +13,7 @@
   },
   "files": [
     "dist",
-    "skills",
+    "skills/prosaic-sdk/**",
     "README.md",
     "LICENSE"
   ],

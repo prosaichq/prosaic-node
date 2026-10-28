@@ -6,33 +6,15 @@ Build accounting integrations with Prosaic in TypeScript or JavaScript. Read tra
 
 **Node.js 22+ · TypeScript types included · ESM and CommonJS · No runtime dependencies**
 
-> **Alpha — `0.1.0-alpha.2`.** The package is not published to npm yet. Install an archive using the steps below.
+> **Alpha — `0.1.0-alpha.2`.** Alpha releases are published under the `next` tag.
 
 ## Installation
 
-If you received `prosaic-sdk.tgz` from Prosaic, install it from your application directory:
-
 ```sh
-yarn add ./prosaic-sdk.tgz
+npm install prosaic-node@next
+# or
+yarn add prosaic-node@next
 ```
-
-Otherwise, build the archive from this repository:
-
-```sh
-git clone https://github.com/prosaichq/prosaic-node.git
-cd prosaic-node
-corepack enable
-yarn install --immutable
-yarn pack --out prosaic-sdk.tgz
-```
-
-Then, from your application directory:
-
-```sh
-yarn add /absolute/path/prosaic-node/prosaic-sdk.tgz
-```
-
-The repository is `prosaic-node`; the package you import is **`@prosaic/sdk`**.
 
 ## Your first API request
 
@@ -41,7 +23,7 @@ Use an API key for your own server-side integration. See the [developer document
 Save this as `quickstart.mts`:
 
 ```ts
-import Prosaic from '@prosaic/sdk';
+import Prosaic from 'prosaic-node';
 
 const apiKey = process.env.PROSAIC_API_KEY;
 if (!apiKey) throw new Error('Set PROSAIC_API_KEY before running this example.');
@@ -65,7 +47,7 @@ yarn add --dev tsx
 yarn tsx quickstart.mts
 ```
 
-The client connects to `https://app.prosaic.works` by default. CommonJS applications can use `const { Prosaic } = require('@prosaic/sdk')` inside their existing async code.
+The client connects to `https://app.prosaic.works` by default. CommonJS applications can use `const { Prosaic } = require('prosaic-node')` inside their existing async code.
 
 ## Examples
 
@@ -98,7 +80,7 @@ Awaiting `prosaic.transactions.list(...)` directly returns one page, including i
 This creates a **draft** with `autoPost: false`. Use account codes from `entityAccounts.list(entityId)` and a tax rate ID appropriate to your entity. Replace all placeholders before running it against a test entity.
 
 ```ts
-import type { JournalsCreateParams } from '@prosaic/sdk';
+import type { JournalsCreateParams } from 'prosaic-node';
 
 const params: JournalsCreateParams = {
   date: '2026-04-01',
@@ -148,7 +130,7 @@ Workspace selection does not grant permissions or override a token pinned to a d
 Use OAuth when users authorise your application to access Prosaic on their behalf. Register an OAuth application first, then begin an authorisation-code flow with PKCE:
 
 ```ts
-import { OAuth } from '@prosaic/sdk';
+import { OAuth } from 'prosaic-node';
 
 const clientId = process.env.PROSAIC_CLIENT_ID;
 if (!clientId) throw new Error('Set PROSAIC_CLIENT_ID before starting OAuth.');
@@ -177,7 +159,7 @@ The default scopes are `openid profile email offline_access`. Create one token p
 Catch `APIError` for HTTP errors and use its status, code and request ID to diagnose a failed request:
 
 ```ts
-import { APIError } from '@prosaic/sdk';
+import { APIError } from 'prosaic-node';
 
 try {
   const { data: payload, requestId } = await prosaic.me.retrieve().withResponse();
