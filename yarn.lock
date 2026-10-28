@@ -494,20 +494,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@prosaic/sdk@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@prosaic/sdk@workspace:."
-  dependencies:
-    "@types/node": "npm:^24.0.0"
-    openapi-typescript: "npm:^7.0.0"
-    oxfmt: "npm:^0.63.0"
-    oxlint: "npm:^1.81.0"
-    tsx: "npm:^4.0.0"
-    typescript: "npm:5.9.3"
-    vitest: "npm:4.1.11"
-  languageName: unknown
-  linkType: soft
-
 "@redocly/ajv@npm:8.11.2":
   version: 8.11.2
   resolution: "@redocly/ajv@npm:8.11.2"
@@ -1545,6 +1531,20 @@ __metadata:
   checksum: 10c0/b89c2d862604f35fec795477b0c7e376feab3ba0d4f4d291c4e959567442697cf451ac557d0623c1cc38af45a78128b983410f397a10c5d3a67f76c33de4754b
   languageName: node
   linkType: hard
+
+"prosaic-node@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "prosaic-node@workspace:."
+  dependencies:
+    "@types/node": "npm:^24.0.0"
+    openapi-typescript: "npm:^7.0.0"
+    oxfmt: "npm:^0.63.0"
+    oxlint: "npm:^1.81.0"
+    tsx: "npm:^4.0.0"
+    typescript: "npm:5.9.3"
+    vitest: "npm:4.1.11"
+  languageName: unknown
+  linkType: soft
 
 "require-from-string@npm:^2.0.2":
   version: 2.0.2

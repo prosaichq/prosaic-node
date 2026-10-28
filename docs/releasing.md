@@ -1,12 +1,33 @@
 # Releasing
 
-The current version is `0.1.0-alpha.2` and has not been published to npm. The public source repository is [prosaichq/prosaic-node](https://github.com/prosaichq/prosaic-node). The intended package is `@prosaic/sdk`; confirm ownership of that registry scope before a first release. Regenerate from the current server API before publishing.
+The SDK is published to npm as [`prosaic-node`](https://www.npmjs.com/package/prosaic-node) from [prosaichq/prosaic-node](https://github.com/prosaichq/prosaic-node). Releases run through the **Publish to npm** workflow, which authenticates with npm trusted publishing. No npm token is stored in this repository or its secrets. Prereleases go to the `next` dist-tag; use `latest` only for a stable version.
+
+## Prepare a release
 
 1. Export the current server contract and review its diff. Run `yarn generate`; document breaking changes and new methods in CHANGELOG.md. Public method names, request/response types and supported Node versions are compatibility commitments.
-2. Run `yarn test`, `yarn typecheck`, `yarn generate:check`, `yarn lint`, `yarn format:check`, and the live tests for changed behavior.
-3. Update package.json's version and the SDK user-agent version together. Run `yarn pack --out prosaic-sdk.tgz` and inspect `tar -tzf prosaic-sdk.tgz`. Only dist, skills, README, CHANGELOG, LICENSE and package metadata should be included; no environment files, fixture state, tests, or private server files.
-4. Install the tarball in a fresh consumer and exercise both ESM and CommonJS, including TypeScript module resolution. The `test:package` command automates this without publishing.
-5. After publication is authorized and npm credentials/scope are configured, publish with `yarn npm publish --access public --tag next` for prereleases. Use `latest` only for a stable version. Do not publish an alpha under `latest`.
-6. Verify the exact registry version and install it into a fresh consumer. Create the matching source tag/release under the authorized repository workflow. Record the released version and server-contract revision.
+2. Update package.json's version and the user-agent version in `src/transport.ts` together.
+3. Run `yarn test`, `yarn typecheck`, `yarn generate:check`, `yarn lint`, `yarn format:check`, `yarn test:package`, and the live tests for changed behavior. `test:package` packs the SDK, rejects anything other than dist, the consumer skill, README, CHANGELOG, LICENSE and package metadata, and installs the archive in fresh ESM, CommonJS and TypeScript consumers.
+4. Merge, tag the merge commit `v<version>` and push the tag.
 
-Registry publication is not required for local end-to-end testing. Configure npm trusted publishing/provenance once the repository and registry identities are known; never store an npm token in this repository. A published version cannot be reused: fix defects in a new version, and deprecate or roll back the distribution tag when appropriate.
+## Publish
+
+1. In GitHub Actions, run **Publish to npm** with the tag. Select **dry run** to check and pack without publishing.
+2. The workflow checks the tag against package.json and the user-agent version, repeats the release checks, packs the archive and lists its contents. Publishing waits for a maintainer's approval in the `npm-publish` environment, then publishes that archive. npm attaches provenance automatically.
+3. Install the exact registry version into a fresh consumer and check ESM and CommonJS. Record the released version and server-contract revision.
+
+A published version cannot be reused: fix defects in a new version, and deprecate or move the dist-tag when appropriate. If a publish fails or times out, check the registry for that exact version before retrying.
+
+## Registry setup
+
+A package owner completes these steps once:
+
+1. npm only accepts a trusted publisher for an existing package, so publish the first version manually from a checkout of its tag, after running the release checks:
+
+   ```sh
+   yarn pack --out prosaic-node.tgz
+   npm publish prosaic-node.tgz --access public --tag next
+   ```
+
+2. In the repository settings, create the `npm-publish` environment with required reviewers.
+3. On npmjs.com, add a trusted publisher to the package: GitHub Actions, organization `prosaichq`, repository `prosaic-node`, workflow `publish.yml`, environment `npm-publish`. npm removes a trusted publisher that is not used within two days, so add it shortly before the first workflow release.
+4. After the first workflow release succeeds, set the package's publishing access to require two-factor authentication and disallow tokens.
