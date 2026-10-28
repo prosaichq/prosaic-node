@@ -405,7 +405,7 @@ export interface paths {
         put?: never;
         /**
          * Delete or hide an entity account
-         * @description Deletes an unused custom account or hides an unused template-based account by creating an exclusion. Root accounts can be deleted when they have no children, postings or operational links. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
+         * @description Deletes a custom child account or hides a template-based child account by creating an exclusion. Parent accounts cannot be deleted. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
          */
         post: operations["entityAccounts.del"];
         delete?: never;
@@ -445,7 +445,7 @@ export interface paths {
         put?: never;
         /**
          * Update an entity account
-         * @description Updates an entity account's metadata. System roles and operational links remain unchanged. Bank account-linked accounts retain their name, description and tax restrictions.
+         * @description Updates an entity account's editable fields. Parent accounts can only update taxCode and mappedCode. Bank account-linked accounts have additional restrictions.
          */
         post: operations["entityAccounts.update"];
         delete?: never;
@@ -3379,7 +3379,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description The account has children, journal entries or an operational link that prevents deletion. */
+            /** @description The account is a parent, has children or journal entries, or has an operational link that prevents deletion. */
             400: {
                 headers: {
                     [name: string]: unknown;

@@ -499,7 +499,7 @@ export class EntityAccountsResource {
 
   /**
    * Delete or hide an entity account
-   * Deletes an unused custom account or hides an unused template-based account by creating an exclusion. Root accounts can be deleted when they have no children, postings or operational links. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
+   * Deletes a custom child account or hides a template-based child account by creating an exclusion. Parent accounts cannot be deleted. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
    */
   del(entityId: string, accountId: string, options: RequestOptions = {}): APIPromise<EntityAccountsDelResponse> {
     return new APIPromise(this.transport.request<EntityAccountsDelResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/delete`, {}, options));
@@ -515,7 +515,7 @@ export class EntityAccountsResource {
 
   /**
    * Update an entity account
-   * Updates an entity account's metadata. System roles and operational links remain unchanged. Bank account-linked accounts retain their name, description and tax restrictions.
+   * Updates an entity account's editable fields. Parent accounts can only update taxCode and mappedCode. Bank account-linked accounts have additional restrictions.
    */
   update(entityId: string, accountId: string, params: EntityAccountsUpdateParams = {}, options: RequestOptions = {}): APIPromise<EntityAccountsUpdateResponse> {
     return new APIPromise(this.transport.request<EntityAccountsUpdateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/update`, { body: params }, options));
