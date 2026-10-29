@@ -179,6 +179,8 @@ export class ChartsResource {
    * Get chart of accounts template accounts
    * Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
    *
+   * Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
+   *
    * **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
    *
    * To fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.
@@ -497,7 +499,7 @@ export class EntityAccountsResource {
 
   /**
    * Delete or hide an entity account
-   * Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.
+   * Deletes a custom child account or hides a template-based child account by creating an exclusion. Parent accounts cannot be deleted. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
    */
   del(entityId: string, accountId: string, options: RequestOptions = {}): APIPromise<EntityAccountsDelResponse> {
     return new APIPromise(this.transport.request<EntityAccountsDelResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/delete`, {}, options));

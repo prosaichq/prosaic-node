@@ -2,6 +2,11 @@
 
 ## 0.1.0-alpha.2 (unreleased)
 
+- Document correctable system-account errors: `SYSTEM_ACCOUNT_VALIDATION`, `SYSTEM_ACCOUNT_CONFLICT`, and `DELETE_RESTRICTED` return HTTP 400.
+
+- Chart accounts expose nullable `systemRole`. Creation and full replacement retain global account defaults and support `includeSystemAccounts: true` for omitted system accounts. Manual role mappings and custom root account codes are not supported.
+- Entity accounts expose nullable `systemRole`. Metadata updates preserve role assignments and account types. Balance-sheet account rows identify calculated earnings through optional `earningsType`.
+
 - Regenerated from the 21 October 2026 API snapshot: 76 operations across 24 resource groups.
 - Added `files.list()`, which lists an entity's saved files, newest first, optionally narrowed by part of the name.
 - Added `bankAccounts` with `importTransactions()`, which imports statement lines into an existing CSV bank account and skips lines it already holds, and `createWithTransactions()`, which creates a CSV bank account and imports into it in one step.
