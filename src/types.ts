@@ -3379,7 +3379,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description The account is a parent, has children or journal entries, or has an operational link that prevents deletion. */
+            /** @description The account is a parent, has children or journal entries, or has an operational link that prevents deletion (DELETE_RESTRICTED). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3535,7 +3535,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Parent account must be restored first */
+            /** @description Parent account must be restored first, or restoring would conflict with an assigned system role (SYSTEM_ACCOUNT_CONFLICT). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -6101,7 +6101,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Invalid request or invoice input. */
+            /** @description Invalid request or invoice input, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -6534,7 +6534,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - validation failed, invalid account codes, or unbalanced journal */
+            /** @description Bad request - validation failed, invalid account codes, an unbalanced journal, or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -7055,7 +7055,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - invalid query parameters */
+            /** @description Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -7615,7 +7615,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - validation error */
+            /** @description Bad request - validation error or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8198,7 +8198,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - invalid query parameters */
+            /** @description Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8470,7 +8470,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation failed */
+            /** @description Validation failed, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
