@@ -32,6 +32,8 @@ export type EntitiesListResponse = operations["entities.list"]['responses'][200]
 export type EntitiesListParams = NonNullable<operations["entities.list"]['parameters']['query']>;
 export type EntitiesCreateResponse = operations["entities.create"]['responses'][201]['content']['application/json'];
 export type EntitiesCreateParams = operations["entities.create"]['requestBody']['content']['application/json'];
+export type BankAccountsLinkResponse = operations["bankAccounts.link"]['responses'][200]['content']['application/json'];
+export type BankAccountsLinkParams = operations["bankAccounts.link"]['requestBody']['content']['application/json'];
 export type BankAccountsCreateWithTransactionsResponse = operations["bankAccounts.createWithTransactions"]['responses'][201]['content']['application/json'];
 export type BankAccountsCreateWithTransactionsParams = operations["bankAccounts.createWithTransactions"]['requestBody']['content']['application/json'];
 export type BankAccountsImportTransactionsResponse = operations["bankAccounts.importTransactions"]['responses'][200]['content']['application/json'];
@@ -417,6 +419,22 @@ export class EntitiesResource {
 export class BankAccountsResource {
   constructor(private readonly transport: Transport) {}
   /**
+   * Link bank accounts to an entity
+   * Links existing bank accounts to the entity, creating each one's general
+   * ledger account in the entity's chart of accounts. Linking only ever adds:
+   * accounts already on the entity are left as they are, and no account is
+   * unlinked.
+   *
+   * Each account must belong to a client of the entity — find them with
+   * `GET /api/public/v1/clients/{clientId}/bank-accounts` — and must not be
+   * linked to a different entity.
+   *
+   */
+  link(entityId: string, params: BankAccountsLinkParams, options: RequestOptions = {}): APIPromise<BankAccountsLinkResponse> {
+    return new APIPromise(this.transport.request<BankAccountsLinkResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bank-accounts`, { body: params }, options));
+  }
+
+  /**
    * Create a CSV bank account and import transactions into it
    * Creates a CSV bank account for the entity — one fed by imported files —
    * with its account in the entity's chart so its lines can be reconciled,
@@ -440,7 +458,7 @@ export class BankAccountsResource {
    * Import transactions into a CSV bank account
    * Adds transactions to one of the entity's CSV bank accounts — the kind
    * fed by imported files (`sourceType: csv` on the bank account). Bank
-   * feeds (`akahu`, `basiq`) can't take imported transactions; create a
+   * feeds (`akahu`, `siss`) can't take imported transactions; create a
    * separate CSV account with `POST /entities/{entityId}/bank-accounts/import`
    * instead.
    *

@@ -224,7 +224,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 76 operations across 24 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 77 operations across 24 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
 | Area                      | Resources                                                  |
 | ------------------------- | ---------------------------------------------------------- |
@@ -240,7 +240,7 @@ Use the [API resource reference](docs/api-reference.md) to find a method, and th
 
 ### Alpha compatibility
 
-The SDK targets the **21 October 2026** API snapshot. The developer documentation may describe newer API capabilities.
+The SDK targets the **30 October 2026** API snapshot. The developer documentation may describe newer API capabilities.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 
