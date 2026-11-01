@@ -325,7 +325,7 @@ export interface paths {
          * Import transactions into a CSV bank account
          * @description Adds transactions to one of the entity's CSV bank accounts — the kind
          *     fed by imported files (`sourceType: csv` on the bank account). Bank
-         *     feeds (`akahu`, `basiq`) can't take imported transactions; create a
+         *     feeds (`akahu`, `siss`) can't take imported transactions; create a
          *     separate CSV account with `POST /entities/{entityId}/bank-accounts/import`
          *     instead.
          *
@@ -366,6 +366,33 @@ export interface paths {
          *     holder's side: money in positive, money out negative; never 0.
          */
         post: operations["bankAccounts.createWithTransactions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/bank-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Link bank accounts to an entity
+         * @description Links existing bank accounts to the entity, creating each one's general
+         *     ledger account in the entity's chart of accounts. Linking only ever adds:
+         *     accounts already on the entity are left as they are, and no account is
+         *     unlinked.
+         *
+         *     Each account must belong to a client of the entity — find them with
+         *     `GET /api/public/v1/clients/{clientId}/bank-accounts` — and must not be
+         *     linked to a different entity.
+         */
+        post: operations["bankAccounts.link"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3088,6 +3115,7 @@ export interface operations {
                         code?: string;
                         reference?: string;
                         particulars?: string;
+                        bankTransactionId?: string;
                     }[];
                 };
             };
@@ -3171,6 +3199,7 @@ export interface operations {
                         code?: string;
                         reference?: string;
                         particulars?: string;
+                        bankTransactionId?: string;
                     }[];
                     name: string;
                     institution: string;
@@ -3217,6 +3246,101 @@ export interface operations {
             };
             /** @description Entity not found or not accessible */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bankAccounts.link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    bankAccountIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string | null;
+                            externalId: string;
+                            name: string;
+                            alias: string | null;
+                            institution: string | null;
+                            accountNumber: string | null;
+                            logoUrl: string | null;
+                            type: string;
+                            sourceType: string | null;
+                            entityAccount: {
+                                id: string;
+                                code: string;
+                                name: string;
+                                type: string;
+                                subtype: string;
+                                taxCode: string;
+                                description: string | null;
+                                mappedCode: string | null;
+                                isSystem: boolean;
+                                parentId?: string | null;
+                                isExcluded?: boolean;
+                                isIncluded?: boolean;
+                                /** @enum {string} */
+                                source?: "template" | "overridden" | "custom";
+                            } | null;
+                        }[];
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Validation failed (`VALIDATION_ERROR`), an ID does not exist (`INVALID_BANK_ACCOUNT_IDS`), or an account does not belong to a client of the entity (`BANK_ACCOUNTS_CLIENT_MISMATCH`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized - Invalid or missing API key/token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or not accessible */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description An account is already linked to a different entity (`BANK_ACCOUNT_ASSIGNED_TO_DIFFERENT_ENTITY`) */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5746,7 +5870,7 @@ export interface operations {
                             name: string;
                             description: string;
                             /** @enum {string} */
-                            status: "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment";
+                            status: "rejected" | "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "awaiting_payment";
                             dateFrom: string;
                             dateTo: string;
                             dueDate: string;
@@ -5850,7 +5974,7 @@ export interface operations {
                             name: string;
                             description: string;
                             /** @enum {string} */
-                            status: "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment";
+                            status: "rejected" | "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "awaiting_payment";
                             dateFrom: string;
                             dateTo: string;
                             dueDate: string;
@@ -6033,7 +6157,6 @@ export interface operations {
                     contactId?: string | null;
                     dueDate?: string | null;
                     bankAccountName?: string | null;
-                    invoiceTemplateId?: string | null;
                     invoiceNumber?: string;
                     recipientEmail?: string | null;
                     recipientAddress?: string | null;
@@ -7512,8 +7635,8 @@ export interface operations {
                             key: string;
                             label: string;
                             isArchived: boolean;
-                            dimensionId: string;
-                            dimensionName: string;
+                            dimensionId?: string;
+                            dimensionName?: string;
                         }[];
                     };
                 };
@@ -8676,7 +8799,7 @@ export interface operations {
                             name: string;
                             description: string;
                             /** @enum {string} */
-                            status: "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "rejected" | "awaiting_payment";
+                            status: "rejected" | "completed" | "draft" | "finalised" | "filed" | "filed_externally" | "accepted" | "awaiting_payment";
                             dateFrom: string;
                             dateTo: string;
                             dueDate: string;
@@ -10030,6 +10153,10 @@ export interface operations {
                             invoiceId: string;
                             amount: number;
                         }[];
+                        billAllocations?: {
+                            billId: string;
+                            amount: number;
+                        }[];
                         refundCredit?: {
                             contactId: string;
                         };
@@ -10049,6 +10176,17 @@ export interface operations {
                                 depreciation_recovery?: string;
                                 capital_gain?: string;
                             };
+                        };
+                        fixedAssetPurchase?: {
+                            name: string;
+                            entityFixedAssetTypeId: string;
+                            startDate: string;
+                            depreciationMethod: string;
+                            assetNumber?: string;
+                            businessUsePercentage?: number;
+                            taxCode?: string;
+                            depreciationRate?: number;
+                            usefulLifeYears?: number;
                         };
                         narration?: string;
                         /** @enum {string} */

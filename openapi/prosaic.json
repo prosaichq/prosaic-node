@@ -3,7 +3,7 @@
   "info": {
     "title": "Prosaic Public API",
     "version": "1.0.0",
-    "description": "Prosaic is AI accounting software designed for accountants and bookkeepers. Our public API is in open beta.\n\nWant to get started developing with us? Get in touch at developer@prosaic.works.\n\nLearn more about Prosaic or start free a free trial at https://www.prosaic.works.\n\nBy using the Prosaic API, you agree to our [Developer API Terms](https://www.prosaic.works/developer-api-terms).\n\n## Authentication\n\nEvery request must be authenticated. Prosaic supports two methods, and both send their credential as a bearer token:\n\n```\nAuthorization: Bearer <api-key-or-access-token>\n```\n\n- **API key** — the quickest way to get started. Ideal for scripts, server-side jobs, and your own integrations.\n- **OAuth 2.1** — for applications acting on behalf of other Prosaic users. Requires a registered OAuth app.\n\nAlways send credentials over HTTPS, and never embed them in client-side code.\n\n### API key\n\n1. In Prosaic, go to **Settings → Users**.\n2. Find the user the key should act as (often yourself), open its **Actions** menu (⋯), and choose **Manage API keys** (workspace owners and admins only).\n3. Click **Create API key**, set a name and expiry, then **copy the key** — it begins with `prsk_` and is shown only once.\n\n`GET /api/public/v1/me` returns the authenticated user and is the simplest way to confirm your credential works:\n\n```bash\ncurl https://app.prosaic.works/api/public/v1/me \\\n  -H \"Authorization: Bearer prsk_your_api_key\"\n```\n\nA key acts as its user and can reach every workspace that user belongs to. If the user is in multiple workspaces, target one with the optional `x-workspace-id` header; otherwise the user's active workspace is used.\n\n### OAuth 2.1\n\nUse OAuth when your application accesses Prosaic on behalf of other users. Prosaic uses the **Authorization Code flow with PKCE** — an `S256` code challenge is required.\n\n**Register your app first.** OAuth apps are registered by the Prosaic team: email **hello@prosaic.works** with your application name, redirect URI(s), and the scopes you need. You'll receive a `client_id` (plus a `client_secret` for confidential web apps; native and single-page apps are public clients that use PKCE without a secret).\n\n**Scopes:** `openid` (required), `profile`, `email`, and `offline_access` (request it to receive a refresh token).\n\n**Endpoints** (also published at `https://app.prosaic.works/.well-known/oauth-authorization-server`):\n\n- Authorize — `https://app.prosaic.works/api/auth/oauth2/authorize`\n- Token — `https://app.prosaic.works/api/auth/oauth2/token`\n- Token verification (JWKS) — `https://app.prosaic.works/api/auth/jwks`\n\n**1. Redirect the user to the authorization endpoint**, including your PKCE challenge and a random `state`:\n\n```\nhttps://app.prosaic.works/api/auth/oauth2/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&scope=openid%20profile%20email%20offline_access&code_challenge=YOUR_CODE_CHALLENGE&code_challenge_method=S256&state=RANDOM_STATE\n```\n\nAfter the user signs in and approves, Prosaic redirects back to your `redirect_uri` with a `code`.\n\n**2. Exchange the code for tokens**, sending the matching `code_verifier`. Confidential web apps also authenticate with their `client_secret` (HTTP Basic, or a `client_secret` form field):\n\n```bash\ncurl -X POST https://app.prosaic.works/api/auth/oauth2/token \\\n  -H \"Content-Type: application/x-www-form-urlencoded\" \\\n  -d grant_type=authorization_code \\\n  -d code=AUTHORIZATION_CODE \\\n  -d redirect_uri=YOUR_REDIRECT_URI \\\n  -d client_id=YOUR_CLIENT_ID \\\n  -d code_verifier=YOUR_CODE_VERIFIER\n```\n\nA successful response returns your tokens:\n\n```json\n{\n  \"access_token\": \"...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 86400,\n  \"refresh_token\": \"...\",\n  \"scope\": \"openid profile email offline_access\"\n}\n```\n\n**3. Call the API** using the access token (valid for 24 hours):\n\n```bash\ncurl https://app.prosaic.works/api/public/v1/me \\\n  -H \"Authorization: Bearer ACCESS_TOKEN\"\n```\n\n**4. Refresh** when the access token expires, using the refresh token (valid for 30 days, returned only with `offline_access`):\n\n```bash\ncurl -X POST https://app.prosaic.works/api/auth/oauth2/token \\\n  -H \"Content-Type: application/x-www-form-urlencoded\" \\\n  -d grant_type=refresh_token \\\n  -d refresh_token=YOUR_REFRESH_TOKEN \\\n  -d client_id=YOUR_CLIENT_ID\n```\n\n## Date formats\n\nDate query parameters (for example `startDate`, `endDate`, `asOfDate`) must use **YYYY-MM-DD** calendar dates. An optional ISO 8601 time suffix is accepted (for example `2024-04-01T00:00:00.000Z`). Regional formats such as **DD-MM-YYYY** are rejected and return a `400` validation error.\n\nSee the `IsoDateString` schema in components for the exact pattern.\n\n## Common Workflows\n\nWhen working with the Prosaic API, you'll typically follow this lookup order to retrieve reference data needed for transactions and journals:\n\n1. **GET /api/public/v1/entities** — Retrieve entities, which include:\n   - `taxRates[]` — Available tax rates (GST codes like GST15, EXEMPT, ZERO) for use in the `taxCode` field when reconciling transactions or creating chart accounts\n   - `bankAccounts[]` — Linked bank accounts for each entity\n\n2. **GET /api/public/v1/entities/{entityId}/charts** — Retrieve the chart of accounts (account codes) for a specific entity\n\n3. Use the `taxRates[].code` values (from step 1) as the `taxCode` field when reconciling transactions or creating child accounts\n\n4. Use the `charts[].code` values (from step 2) as the `code` field in reconciliation assignment lines or when creating journals",
+    "description": "Prosaic is AI accounting software designed for accountants and bookkeepers.\n\nWant to get started developing with us? Get in touch at developer@prosaic.works.\n\nLearn more about Prosaic or start free a free trial at https://www.prosaic.works.\n\nBy using the Prosaic API, you agree to our [Developer API Terms](https://www.prosaic.works/developer-api-terms).\n\n## Authentication\n\nEvery request must be authenticated. Prosaic supports two methods, and both send their credential as a bearer token:\n\n```\nAuthorization: Bearer <api-key-or-access-token>\n```\n\n- **API key** — the quickest way to get started. Ideal for scripts, server-side jobs, and your own integrations.\n- **OAuth 2.1** — for applications acting on behalf of other Prosaic users. Requires a registered OAuth app.\n\nAlways send credentials over HTTPS, and never embed them in client-side code.\n\n### API key\n\n1. In Prosaic, go to **Settings → Users**.\n2. Find the user the key should act as (often yourself), open its **Actions** menu (⋯), and choose **Manage API keys** (workspace owners and admins only).\n3. Click **Create API key**, set a name and expiry, then **copy the key** — it begins with `prsk_` and is shown only once.\n\n`GET /api/public/v1/me` returns the authenticated user and is the simplest way to confirm your credential works:\n\n```bash\ncurl https://app.prosaic.works/api/public/v1/me \\\n  -H \"Authorization: Bearer prsk_your_api_key\"\n```\n\nA key acts as its user and can reach every workspace that user belongs to. If the user is in multiple workspaces, target one with the optional `x-workspace-id` header; otherwise the user's active workspace is used.\n\n### OAuth 2.1\n\nUse OAuth when your application accesses Prosaic on behalf of other users. Prosaic uses the **Authorization Code flow with PKCE** — an `S256` code challenge is required.\n\n**Register your app first.** A workspace admin or owner registers it in Prosaic under **Settings → Developer** with its name, redirect URI(s) and type; if that page isn't in your workspace yet, email **hello@prosaic.works**. You'll receive a `client_id` (plus a `client_secret` for confidential web apps; native and single-page apps are public clients that use PKCE without a secret). Until Prosaic reviews it, an app can connect to five workspaces besides your own; request a review from the same page.\n\n**Scopes:** `openid` (required), `profile`, `email`, and `offline_access` (request it to receive a refresh token).\n\n**Endpoints** (also published at `https://app.prosaic.works/.well-known/oauth-authorization-server`):\n\n- Authorize — `https://app.prosaic.works/api/auth/oauth2/authorize`\n- Token — `https://app.prosaic.works/api/auth/oauth2/token`\n- Token verification (JWKS) — `https://app.prosaic.works/api/auth/jwks`\n\n**1. Redirect the user to the authorization endpoint**, including your PKCE challenge and a random `state`:\n\n```\nhttps://app.prosaic.works/api/auth/oauth2/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_REDIRECT_URI&scope=openid%20profile%20email%20offline_access&code_challenge=YOUR_CODE_CHALLENGE&code_challenge_method=S256&state=RANDOM_STATE\n```\n\nAfter the user signs in and approves, Prosaic redirects back to your `redirect_uri` with a `code`.\n\n**2. Exchange the code for tokens**, sending the matching `code_verifier`. Confidential web apps also authenticate with their `client_secret` (HTTP Basic, or a `client_secret` form field):\n\n```bash\ncurl -X POST https://app.prosaic.works/api/auth/oauth2/token \\\n  -H \"Content-Type: application/x-www-form-urlencoded\" \\\n  -d grant_type=authorization_code \\\n  -d code=AUTHORIZATION_CODE \\\n  -d redirect_uri=YOUR_REDIRECT_URI \\\n  -d client_id=YOUR_CLIENT_ID \\\n  -d code_verifier=YOUR_CODE_VERIFIER\n```\n\nA successful response returns your tokens:\n\n```json\n{\n  \"access_token\": \"...\",\n  \"token_type\": \"Bearer\",\n  \"expires_in\": 86400,\n  \"refresh_token\": \"...\",\n  \"scope\": \"openid profile email offline_access\"\n}\n```\n\n**3. Call the API** using the access token (valid for 24 hours):\n\n```bash\ncurl https://app.prosaic.works/api/public/v1/me \\\n  -H \"Authorization: Bearer ACCESS_TOKEN\"\n```\n\n**4. Refresh** when the access token expires, using the refresh token (valid for 30 days, returned only with `offline_access`):\n\n```bash\ncurl -X POST https://app.prosaic.works/api/auth/oauth2/token \\\n  -H \"Content-Type: application/x-www-form-urlencoded\" \\\n  -d grant_type=refresh_token \\\n  -d refresh_token=YOUR_REFRESH_TOKEN \\\n  -d client_id=YOUR_CLIENT_ID\n```\n\n## Date formats\n\nDate query parameters (for example `startDate`, `endDate`, `asOfDate`) must use **YYYY-MM-DD** calendar dates. An optional ISO 8601 time suffix is accepted (for example `2024-04-01T00:00:00.000Z`). Regional formats such as **DD-MM-YYYY** are rejected and return a `400` validation error.\n\nSee the `IsoDateString` schema in components for the exact pattern.\n\n## Common Workflows\n\nWhen working with the Prosaic API, you'll typically follow this lookup order to retrieve reference data needed for transactions and journals:\n\n1. **GET /api/public/v1/entities** — Retrieve entities, which include:\n   - `taxRates[]` — Available tax rates (GST codes like GST15, EXEMPT, ZERO) for use in the `taxCode` field when reconciling transactions or creating chart accounts\n   - `bankAccounts[]` — Linked bank accounts for each entity\n\n2. **GET /api/public/v1/entities/{entityId}/charts** — Retrieve the chart of accounts (account codes) for a specific entity\n\n3. Use the `taxRates[].code` values (from step 1) as the `taxCode` field when reconciling transactions or creating child accounts\n\n4. Use the `charts[].code` values (from step 2) as the `code` field in reconciliation assignment lines or when creating journals",
     "contact": {
       "name": "Prosaic Support",
       "url": "https://www.prosaic.works",
@@ -3720,7 +3720,7 @@
     "/api/public/v1/entities/{entityId}/bank-accounts/{bankAccountId}/import": {
       "post": {
         "summary": "Import transactions into a CSV bank account",
-        "description": "Adds transactions to one of the entity's CSV bank accounts — the kind\nfed by imported files (`sourceType: csv` on the bank account). Bank\nfeeds (`akahu`, `basiq`) can't take imported transactions; create a\nseparate CSV account with `POST /entities/{entityId}/bank-accounts/import`\ninstead.\n\nRows the account already holds (same date, amount and description)\nare skipped, so importing an overlapping statement is safe. Amounts\nare from the account holder's side: money in positive, money out\nnegative. Zero amounts are rejected.\n",
+        "description": "Adds transactions to one of the entity's CSV bank accounts — the kind\nfed by imported files (`sourceType: csv` on the bank account). Bank\nfeeds (`akahu`, `siss`) can't take imported transactions; create a\nseparate CSV account with `POST /entities/{entityId}/bank-accounts/import`\ninstead.\n\nRows the account already holds (same date, amount and description)\nare skipped, so importing an overlapping statement is safe. Amounts\nare from the account holder's side: money in positive, money out\nnegative. Zero amounts are rejected.\n",
         "tags": [
           "Bank Accounts"
         ],
@@ -3784,6 +3784,9 @@
                           "type": "string"
                         },
                         "particulars": {
+                          "type": "string"
+                        },
+                        "bankTransactionId": {
                           "type": "string"
                         }
                       },
@@ -3945,6 +3948,9 @@
                         },
                         "particulars": {
                           "type": "string"
+                        },
+                        "bankTransactionId": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -4060,6 +4066,226 @@
         "operationId": "bankAccounts.createWithTransactions",
         "x-sdk-resource": "bankAccounts",
         "x-sdk-method": "createWithTransactions"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/bank-accounts": {
+      "post": {
+        "summary": "Link bank accounts to an entity",
+        "description": "Links existing bank accounts to the entity, creating each one's general\nledger account in the entity's chart of accounts. Linking only ever adds:\naccounts already on the entity are left as they are, and no account is\nunlinked.\n\nEach account must belong to a client of the entity — find them with\n`GET /api/public/v1/clients/{clientId}/bank-accounts` — and must not be\nlinked to a different entity.\n",
+        "tags": [
+          "Bank Accounts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "bankAccountIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "bankAccountIds"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "externalId": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "alias": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "institution": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "accountNumber": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "logoUrl": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "sourceType": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "entityAccount": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "subtype": {
+                                "type": "string"
+                              },
+                              "taxCode": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "mappedCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isSystem": {
+                                "type": "boolean"
+                              },
+                              "parentId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isExcluded": {
+                                "type": "boolean"
+                              },
+                              "isIncluded": {
+                                "type": "boolean"
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "template",
+                                  "overridden",
+                                  "custom"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "code",
+                              "name",
+                              "type",
+                              "subtype",
+                              "taxCode",
+                              "description",
+                              "mappedCode",
+                              "isSystem"
+                            ],
+                            "additionalProperties": false,
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "entityId",
+                          "externalId",
+                          "name",
+                          "alias",
+                          "institution",
+                          "accountNumber",
+                          "logoUrl",
+                          "type",
+                          "sourceType",
+                          "entityAccount"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed (`VALIDATION_ERROR`), an ID does not exist (`INVALID_BANK_ACCOUNT_IDS`), or an account does not belong to a client of the entity (`BANK_ACCOUNTS_CLIENT_MISMATCH`)"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key/token"
+          },
+          "404": {
+            "description": "Entity not found or not accessible"
+          },
+          "409": {
+            "description": "An account is already linked to a different entity (`BANK_ACCOUNT_ASSIGNED_TO_DIFFERENT_ENTITY`)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "bankAccounts.link",
+        "x-sdk-resource": "bankAccounts",
+        "x-sdk-method": "link"
       }
     },
     "/api/public/v1/entities/{entityId}/change-sets": {
@@ -10736,13 +10962,13 @@
                         "status": {
                           "type": "string",
                           "enum": [
+                            "rejected",
                             "completed",
                             "draft",
                             "finalised",
                             "filed",
                             "filed_externally",
                             "accepted",
-                            "rejected",
                             "awaiting_payment"
                           ]
                         },
@@ -11015,13 +11241,13 @@
                           "status": {
                             "type": "string",
                             "enum": [
+                              "rejected",
                               "completed",
                               "draft",
                               "finalised",
                               "filed",
                               "filed_externally",
                               "accepted",
-                              "rejected",
                               "awaiting_payment"
                             ]
                           },
@@ -11490,10 +11716,6 @@
                     "nullable": true
                   },
                   "bankAccountName": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "invoiceTemplateId": {
                     "type": "string",
                     "nullable": true
                   },
@@ -15791,9 +16013,7 @@
                         "required": [
                           "key",
                           "label",
-                          "isArchived",
-                          "dimensionId",
-                          "dimensionName"
+                          "isArchived"
                         ],
                         "additionalProperties": false
                       }
@@ -19078,13 +19298,13 @@
                           "status": {
                             "type": "string",
                             "enum": [
+                              "rejected",
                               "completed",
                               "draft",
                               "finalised",
                               "filed",
                               "filed_externally",
                               "accepted",
-                              "rejected",
                               "awaiting_payment"
                             ]
                           },
@@ -22107,6 +22327,25 @@
                             "additionalProperties": false
                           }
                         },
+                        "billAllocations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "billId": {
+                                "type": "string"
+                              },
+                              "amount": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "billId",
+                              "amount"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
                         "refundCredit": {
                           "type": "object",
                           "properties": {
@@ -22174,6 +22413,45 @@
                           },
                           "required": [
                             "fixedAssetId"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "fixedAssetPurchase": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "entityFixedAssetTypeId": {
+                              "type": "string"
+                            },
+                            "startDate": {
+                              "type": "string"
+                            },
+                            "depreciationMethod": {
+                              "type": "string"
+                            },
+                            "assetNumber": {
+                              "type": "string"
+                            },
+                            "businessUsePercentage": {
+                              "type": "number"
+                            },
+                            "taxCode": {
+                              "type": "string"
+                            },
+                            "depreciationRate": {
+                              "type": "number"
+                            },
+                            "usefulLifeYears": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "entityFixedAssetTypeId",
+                            "startDate",
+                            "depreciationMethod"
                           ],
                           "additionalProperties": false
                         },
