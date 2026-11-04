@@ -215,6 +215,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 - `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the response is unpaginated.
 - Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
+- Chart accounts expose nullable `systemRole` for reading the inherited account purpose. Chart creation and replacement use global account defaults. Set `includeSystemAccounts: true` to add or carry over omitted system accounts; explicit exclusions still fail validation. Metadata-only updates leave accounts unchanged. See the [system-account example](examples/system-accounts.ts).
 - `reportCategories.list(entityId)` returns the complete taxonomy for the authorised entity's country. Headings are structure only (`isAssignable: false`). A group's `allowGroupOnly` permission does not remove category requirements for bank or asset-account functions. See the [discovery example](examples/report-categories.ts).
 - Chart accounts expose saved `reportGroup` and nullable `reportCategory` summaries. A non-null group with a null category is a group-only assignment; a null group means unassigned. Use these fields for current reporting. `subtype` preserves legacy compatibility values and can differ from current report placement.
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.

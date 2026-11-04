@@ -1,3 +1,4 @@
+import Prosaic, { type ChartsUpdateParams } from './index.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Transport } from './transport.js';
 import { AuthenticationError, APIError, ConnectionError, TimeoutError } from './errors.js';
@@ -11,6 +12,39 @@ function json(body: unknown, status = 200, headers: HeadersInit = {}): Response 
 }
 
 describe('HTTP transport', () => {
+  it('preserves automatic system-account inclusion and exposes inherited roles on reads', async () => {
+    const params: ChartsUpdateParams = {
+      includeSystemAccounts: true,
+      accounts: [{ code: '8500', description: 'Tax control', isIncluded: true }],
+    };
+    const client = new Prosaic('test-key', {
+      fetch: async (input, init) => {
+        const path = new URL(String(input)).pathname;
+        expect(new Headers(init?.headers).get('authorization')).toBe('Bearer test-key');
+        if (path.endsWith('/update')) {
+          expect(path).toBe('/api/public/v1/charts/chart%2Fid/update');
+          expect(init?.method).toBe('POST');
+          expect(JSON.parse(String(init?.body))).toEqual(params);
+          return json({
+            data: { id: 'chart/id', name: 'Firm chart', description: null, entitiesUpdated: 0 },
+          });
+        }
+        expect(path).toBe('/api/public/v1/charts/chart%2Fid');
+        expect(init?.method).toBe('GET');
+        return json({
+          data: [
+            { id: 'account-tax', code: '220', systemRole: 'GST' },
+            { id: 'ordinary', code: '8500', systemRole: null },
+          ],
+        });
+      },
+    });
+    const updated = await client.charts.update('chart/id', params);
+    expect(updated.data.id).toBe('chart/id');
+    const result = await client.charts.listAccounts('chart/id');
+    expect(result.data[0]?.systemRole).toBe('GST');
+    expect(result.data[1]?.systemRole).toBeNull();
+  });
   it('sends bearer auth, workspace overrides and comma-separated query filters while preserving the envelope', async () => {
     const fetcher = vi.fn<typeof fetch>(async (input, init) => {
       const url = new URL(String(input));

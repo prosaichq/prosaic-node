@@ -2,6 +2,11 @@
 
 ## 0.1.0-alpha.2 (unreleased)
 
+- Document correctable system-account errors: `SYSTEM_ACCOUNT_VALIDATION`, `SYSTEM_ACCOUNT_CONFLICT`, and `DELETE_RESTRICTED` return HTTP 400.
+
+- Chart accounts expose nullable `systemRole`. Creation and full replacement retain global account defaults and support `includeSystemAccounts: true` for omitted system accounts. Manual role mappings and custom root account codes are not supported.
+- Entity accounts expose nullable `systemRole`. Metadata updates preserve role assignments and account types. Balance-sheet account rows identify calculated earnings through optional `earningsType`.
+
 - Regenerated from the 4 November 2026 API snapshot: 78 operations across 25 resource groups.
 - Added `reportCategories.list(entityId)` for country-specific report groups, category defaults and exact allowed placements. Headings are returned as structure and cannot be assigned.
 - Account responses include nullable `reportGroup` and `reportCategory` summaries, including template accounts and accounts nested on bank accounts. Use these fields for reporting; `subtype` remains legacy compatibility data and its existing values are preserved.
