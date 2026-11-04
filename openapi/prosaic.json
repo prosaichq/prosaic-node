@@ -981,7 +981,7 @@
     "/api/public/v1/charts/{chartId}": {
       "get": {
         "summary": "Get chart of accounts template accounts",
-        "description": "Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.\n\n**Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.\n\nTo fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.\n\n**Tax codes**: The `taxCode` field is returned as the human-readable tax *name* (e.g. `\"15% GST on Income\"`, or `\"No GST\"` when unset), not the machine code. When creating or updating a template you must pass the machine *code* instead (`NZ_GST_15_INC`, `NZ_GST_15_EXP`, `NZ_GST_0_NONE`, `NZ_GST_0_ZERO`), so convert the name back to its code before writing.\n",
+        "description": "Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.\n\nEach included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.\n\n**Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.\n\nTo fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.\n\n**Tax codes**: The `taxCode` field is returned as the human-readable tax *name* (e.g. `\"15% GST on Income\"`, or `\"No GST\"` when unset), not the machine code. When creating or updating a template you must pass the machine *code* instead (`NZ_GST_15_INC`, `NZ_GST_15_EXP`, `NZ_GST_0_NONE`, `NZ_GST_0_ZERO`), so convert the name back to its code before writing.\n",
         "tags": [
           "Charts"
         ],
@@ -1061,6 +1061,60 @@
                           "subtype": {
                             "type": "string"
                           },
+                          "reportGroup": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "accountType": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "key",
+                              "name",
+                              "status",
+                              "accountType"
+                            ],
+                            "additionalProperties": false,
+                            "nullable": true
+                          },
+                          "reportCategory": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "key",
+                              "name",
+                              "status"
+                            ],
+                            "additionalProperties": false,
+                            "nullable": true
+                          },
                           "taxCode": {
                             "type": "string"
                           },
@@ -1074,6 +1128,10 @@
                           },
                           "isSystem": {
                             "type": "boolean"
+                          },
+                          "systemRole": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "parentId": {
                             "type": "string",
@@ -1100,6 +1158,8 @@
                           "name",
                           "type",
                           "subtype",
+                          "reportGroup",
+                          "reportCategory",
                           "taxCode",
                           "description",
                           "mappedCode",
@@ -1797,6 +1857,60 @@
                               "subtype": {
                                 "type": "string"
                               },
+                              "reportGroup": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "accountType": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status",
+                                  "accountType"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "reportCategory": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
                               "taxCode": {
                                 "type": "string"
                               },
@@ -1810,6 +1924,10 @@
                               },
                               "isSystem": {
                                 "type": "boolean"
+                              },
+                              "systemRole": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "parentId": {
                                 "type": "string",
@@ -1836,6 +1954,8 @@
                               "name",
                               "type",
                               "subtype",
+                              "reportGroup",
+                              "reportCategory",
                               "taxCode",
                               "description",
                               "mappedCode",
@@ -2216,6 +2336,60 @@
                                   "subtype": {
                                     "type": "string"
                                   },
+                                  "reportGroup": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string"
+                                      },
+                                      "accountType": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "key",
+                                      "name",
+                                      "status",
+                                      "accountType"
+                                    ],
+                                    "additionalProperties": false,
+                                    "nullable": true
+                                  },
+                                  "reportCategory": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "key",
+                                      "name",
+                                      "status"
+                                    ],
+                                    "additionalProperties": false,
+                                    "nullable": true
+                                  },
                                   "taxCode": {
                                     "type": "string"
                                   },
@@ -2229,6 +2403,10 @@
                                   },
                                   "isSystem": {
                                     "type": "boolean"
+                                  },
+                                  "systemRole": {
+                                    "type": "string",
+                                    "nullable": true
                                   },
                                   "parentId": {
                                     "type": "string",
@@ -2255,6 +2433,8 @@
                                   "name",
                                   "type",
                                   "subtype",
+                                  "reportGroup",
+                                  "reportCategory",
                                   "taxCode",
                                   "description",
                                   "mappedCode",
@@ -4182,6 +4362,60 @@
                               "subtype": {
                                 "type": "string"
                               },
+                              "reportGroup": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "accountType": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status",
+                                  "accountType"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "reportCategory": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
                               "taxCode": {
                                 "type": "string"
                               },
@@ -4195,6 +4429,10 @@
                               },
                               "isSystem": {
                                 "type": "boolean"
+                              },
+                              "systemRole": {
+                                "type": "string",
+                                "nullable": true
                               },
                               "parentId": {
                                 "type": "string",
@@ -4221,6 +4459,8 @@
                               "name",
                               "type",
                               "subtype",
+                              "reportGroup",
+                              "reportCategory",
                               "taxCode",
                               "description",
                               "mappedCode",
@@ -4560,7 +4800,7 @@
     "/api/public/v1/entities/{entityId}/charts/{accountId}/delete": {
       "post": {
         "summary": "Delete or hide an entity account",
-        "description": "Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.",
+        "description": "Deletes a custom child account or hides a template-based child account by creating an exclusion. Parent accounts cannot be deleted. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.",
         "tags": [
           "Charts"
         ],
@@ -4629,7 +4869,7 @@
             }
           },
           "400": {
-            "description": "Cannot delete parent accounts or accounts with journal entries"
+            "description": "The account is a parent, has children or journal entries, or has an operational link that prevents deletion (DELETE_RESTRICTED)."
           },
           "404": {
             "description": "Account not found"
@@ -4809,6 +5049,60 @@
                         "subtype": {
                           "type": "string"
                         },
+                        "reportGroup": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "accountType": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "key",
+                            "name",
+                            "status",
+                            "accountType"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "reportCategory": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "key",
+                            "name",
+                            "status"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
                         "taxCode": {
                           "type": "string"
                         },
@@ -4822,6 +5116,10 @@
                         },
                         "isSystem": {
                           "type": "boolean"
+                        },
+                        "systemRole": {
+                          "type": "string",
+                          "nullable": true
                         },
                         "parentId": {
                           "type": "string",
@@ -4848,6 +5146,8 @@
                         "name",
                         "type",
                         "subtype",
+                        "reportGroup",
+                        "reportCategory",
                         "taxCode",
                         "description",
                         "mappedCode",
@@ -4960,7 +5260,7 @@
             }
           },
           "400": {
-            "description": "Parent account must be restored first"
+            "description": "Parent account must be restored first, or restoring would conflict with an assigned system role (SYSTEM_ACCOUNT_CONFLICT)."
           },
           "404": {
             "description": "Template account no longer exists (chart template may have been updated)"
@@ -5062,6 +5362,60 @@
                           "subtype": {
                             "type": "string"
                           },
+                          "reportGroup": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "accountType": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "key",
+                              "name",
+                              "status",
+                              "accountType"
+                            ],
+                            "additionalProperties": false,
+                            "nullable": true
+                          },
+                          "reportCategory": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "key",
+                              "name",
+                              "status"
+                            ],
+                            "additionalProperties": false,
+                            "nullable": true
+                          },
                           "taxCode": {
                             "type": "string"
                           },
@@ -5075,6 +5429,10 @@
                           },
                           "isSystem": {
                             "type": "boolean"
+                          },
+                          "systemRole": {
+                            "type": "string",
+                            "nullable": true
                           },
                           "parentId": {
                             "type": "string",
@@ -5101,6 +5459,8 @@
                           "name",
                           "type",
                           "subtype",
+                          "reportGroup",
+                          "reportCategory",
                           "taxCode",
                           "description",
                           "mappedCode",
@@ -5295,6 +5655,60 @@
                         "subtype": {
                           "type": "string"
                         },
+                        "reportGroup": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "accountType": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "key",
+                            "name",
+                            "status",
+                            "accountType"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "reportCategory": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "key",
+                            "name",
+                            "status"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
                         "taxCode": {
                           "type": "string"
                         },
@@ -5308,6 +5722,10 @@
                         },
                         "isSystem": {
                           "type": "boolean"
+                        },
+                        "systemRole": {
+                          "type": "string",
+                          "nullable": true
                         },
                         "parentId": {
                           "type": "string",
@@ -5334,6 +5752,8 @@
                         "name",
                         "type",
                         "subtype",
+                        "reportGroup",
+                        "reportCategory",
                         "taxCode",
                         "description",
                         "mappedCode",
@@ -11931,7 +12351,7 @@
             }
           },
           "400": {
-            "description": "Invalid request or invoice input."
+            "description": "Invalid request or invoice input, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION)."
           },
           "401": {
             "description": "Unauthorized."
@@ -13054,7 +13474,7 @@
             }
           },
           "400": {
-            "description": "Bad request - validation failed, invalid account codes, or unbalanced journal",
+            "description": "Bad request - validation failed, invalid account codes, an unbalanced journal, or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION).",
             "content": {
               "application/json": {
                 "schema": {
@@ -13517,6 +13937,199 @@
         "x-sdk-method": "list"
       }
     },
+    "/api/public/v1/entities/{entityId}/report-categories": {
+      "get": {
+        "summary": "List report groups and categories for an entity",
+        "description": "Returns the complete stored taxonomy for the authorised entity's country. Parent IDs and sort order describe the group tree. Headings are structure only; isAssignable=false prevents their selection. An ordinary group may allow a null category, but bank and asset-account functions can still require one. Category placements are exact, not inherited.\nExamples: Operating expenses (exp.operating) is assignable with no category; Retained earnings (equ.retainedearnings) also permits a null category. Expenses (exp) is a heading and cannot be assigned. This endpoint does not change accounts. No country parameter or pagination is required.\n",
+        "tags": [
+          "Charts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "country": {
+                          "type": "string"
+                        },
+                        "groups": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "accountType": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "parentId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "sortOrder": {
+                                "type": "number"
+                              },
+                              "isHeading": {
+                                "type": "boolean"
+                              },
+                              "isAssignable": {
+                                "type": "boolean"
+                              },
+                              "allowGroupOnly": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "key",
+                              "name",
+                              "status",
+                              "accountType",
+                              "description",
+                              "parentId",
+                              "sortOrder",
+                              "isHeading",
+                              "isAssignable",
+                              "allowGroupOnly"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "categories": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "codingGuidance": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "defaultGroupId": {
+                                "type": "string"
+                              },
+                              "allowedGroupIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "key",
+                              "name",
+                              "status",
+                              "description",
+                              "codingGuidance",
+                              "defaultGroupId",
+                              "allowedGroupIds"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "country",
+                        "groups",
+                        "categories"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid entity ID"
+          },
+          "401": {
+            "description": "Missing or invalid bearer authentication"
+          },
+          "403": {
+            "description": "Bearer token is pinned to another entity"
+          },
+          "404": {
+            "description": "Entity not found or access denied"
+          },
+          "500": {
+            "description": "Unexpected failure loading the taxonomy"
+          },
+          "503": {
+            "description": "Permission service temporarily unavailable"
+          }
+        },
+        "operationId": "reportCategories.list",
+        "x-sdk-resource": "reportCategories",
+        "x-sdk-method": "list"
+      }
+    },
     "/api/public/v1/entities/{entityId}/reports/balance-sheet": {
       "get": {
         "summary": "Get balance sheet report",
@@ -13694,6 +14307,13 @@
                                             "accountSubtype": {
                                               "type": "string"
                                             },
+                                            "earningsType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "retained",
+                                                "current-year"
+                                              ]
+                                            },
                                             "balance": {
                                               "type": "string",
                                               "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
@@ -13797,6 +14417,13 @@
                                             "accountSubtype": {
                                               "type": "string"
                                             },
+                                            "earningsType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "retained",
+                                                "current-year"
+                                              ]
+                                            },
                                             "balance": {
                                               "type": "string",
                                               "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
@@ -13899,6 +14526,13 @@
                                             },
                                             "accountSubtype": {
                                               "type": "string"
+                                            },
+                                            "earningsType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "retained",
+                                                "current-year"
+                                              ]
                                             },
                                             "balance": {
                                               "type": "string",
@@ -14149,6 +14783,13 @@
                                             "accountSubtype": {
                                               "type": "string"
                                             },
+                                            "earningsType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "retained",
+                                                "current-year"
+                                              ]
+                                            },
                                             "balance": {
                                               "type": "string",
                                               "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
@@ -14288,6 +14929,13 @@
                                             "accountSubtype": {
                                               "type": "string"
                                             },
+                                            "earningsType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "retained",
+                                                "current-year"
+                                              ]
+                                            },
                                             "balance": {
                                               "type": "string",
                                               "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
@@ -14426,6 +15074,13 @@
                                             },
                                             "accountSubtype": {
                                               "type": "string"
+                                            },
+                                            "earningsType": {
+                                              "type": "string",
+                                              "enum": [
+                                                "retained",
+                                                "current-year"
+                                              ]
                                             },
                                             "balance": {
                                               "type": "string",
@@ -14641,7 +15296,7 @@
             }
           },
           "400": {
-            "description": "Bad request - invalid query parameters"
+            "description": "Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION)."
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key"
@@ -16197,7 +16852,7 @@
             }
           },
           "400": {
-            "description": "Bad request - validation error",
+            "description": "Bad request - validation error or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION).",
             "content": {
               "application/json": {
                 "schema": {
@@ -16727,6 +17382,60 @@
                                       "subtype": {
                                         "type": "string"
                                       },
+                                      "reportGroup": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string"
+                                          },
+                                          "key": {
+                                            "type": "string"
+                                          },
+                                          "name": {
+                                            "type": "string"
+                                          },
+                                          "status": {
+                                            "type": "string"
+                                          },
+                                          "accountType": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "key",
+                                          "name",
+                                          "status",
+                                          "accountType"
+                                        ],
+                                        "additionalProperties": false,
+                                        "nullable": true
+                                      },
+                                      "reportCategory": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string"
+                                          },
+                                          "key": {
+                                            "type": "string"
+                                          },
+                                          "name": {
+                                            "type": "string"
+                                          },
+                                          "status": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "key",
+                                          "name",
+                                          "status"
+                                        ],
+                                        "additionalProperties": false,
+                                        "nullable": true
+                                      },
                                       "taxCode": {
                                         "type": "string"
                                       },
@@ -16740,6 +17449,10 @@
                                       },
                                       "isSystem": {
                                         "type": "boolean"
+                                      },
+                                      "systemRole": {
+                                        "type": "string",
+                                        "nullable": true
                                       },
                                       "parentId": {
                                         "type": "string",
@@ -16766,6 +17479,8 @@
                                       "name",
                                       "type",
                                       "subtype",
+                                      "reportGroup",
+                                      "reportCategory",
                                       "taxCode",
                                       "description",
                                       "mappedCode",
@@ -17582,6 +18297,17 @@
                                     "accountSubtype": {
                                       "type": "string"
                                     },
+                                    "reportGroupKey": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "reportGroupName": {
+                                      "type": "string"
+                                    },
+                                    "reportCategoryKey": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
                                     "debitBalance": {
                                       "type": "string",
                                       "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
@@ -17851,6 +18577,17 @@
                                     "accountSubtype": {
                                       "type": "string"
                                     },
+                                    "reportGroupKey": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "reportGroupName": {
+                                      "type": "string"
+                                    },
+                                    "reportCategoryKey": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
                                     "debitBalance": {
                                       "type": "string",
                                       "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
@@ -17974,7 +18711,7 @@
             }
           },
           "400": {
-            "description": "Bad request - invalid query parameters"
+            "description": "Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION)."
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key"
@@ -18134,6 +18871,60 @@
                                     "subtype": {
                                       "type": "string"
                                     },
+                                    "reportGroup": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "status": {
+                                          "type": "string"
+                                        },
+                                        "accountType": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "key",
+                                        "name",
+                                        "status",
+                                        "accountType"
+                                      ],
+                                      "additionalProperties": false,
+                                      "nullable": true
+                                    },
+                                    "reportCategory": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "status": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "key",
+                                        "name",
+                                        "status"
+                                      ],
+                                      "additionalProperties": false,
+                                      "nullable": true
+                                    },
                                     "taxCode": {
                                       "type": "string"
                                     },
@@ -18147,6 +18938,10 @@
                                     },
                                     "isSystem": {
                                       "type": "boolean"
+                                    },
+                                    "systemRole": {
+                                      "type": "string",
+                                      "nullable": true
                                     },
                                     "parentId": {
                                       "type": "string",
@@ -18173,6 +18968,8 @@
                                     "name",
                                     "type",
                                     "subtype",
+                                    "reportGroup",
+                                    "reportCategory",
                                     "taxCode",
                                     "description",
                                     "mappedCode",
@@ -18668,6 +19465,60 @@
                                   "subtype": {
                                     "type": "string"
                                   },
+                                  "reportGroup": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string"
+                                      },
+                                      "accountType": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "key",
+                                      "name",
+                                      "status",
+                                      "accountType"
+                                    ],
+                                    "additionalProperties": false,
+                                    "nullable": true
+                                  },
+                                  "reportCategory": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "key",
+                                      "name",
+                                      "status"
+                                    ],
+                                    "additionalProperties": false,
+                                    "nullable": true
+                                  },
                                   "taxCode": {
                                     "type": "string"
                                   },
@@ -18681,6 +19532,10 @@
                                   },
                                   "isSystem": {
                                     "type": "boolean"
+                                  },
+                                  "systemRole": {
+                                    "type": "string",
+                                    "nullable": true
                                   },
                                   "parentId": {
                                     "type": "string",
@@ -18707,6 +19562,8 @@
                                   "name",
                                   "type",
                                   "subtype",
+                                  "reportGroup",
+                                  "reportCategory",
                                   "taxCode",
                                   "description",
                                   "mappedCode",
@@ -18840,7 +19697,7 @@
             }
           },
           "400": {
-            "description": "Validation failed",
+            "description": "Validation failed, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION).",
             "content": {
               "application/json": {
                 "schema": {

@@ -90,6 +90,7 @@ export type JournalsAttachFilesParams = operations["journals.attachFiles"]['requ
 export type JournalsVoidResponse = operations["journals.void"]['responses'][200]['content']['application/json'];
 export type LedgerListResponse = operations["ledger.list"]['responses'][200]['content']['application/json'];
 export type LedgerListParams = NonNullable<operations["ledger.list"]['parameters']['query']>;
+export type ReportCategoriesListResponse = operations["reportCategories.list"]['responses'][200]['content']['application/json'];
 export type ReportsBalanceSheetResponse = operations["reports.balanceSheet"]['responses'][200]['content']['application/json'];
 export type ReportsBalanceSheetParams = NonNullable<operations["reports.balanceSheet"]['parameters']['query']>;
 export type ReportsCurrentAccountsResponse = operations["reports.currentAccounts"]['responses'][200]['content']['application/json'];
@@ -180,6 +181,8 @@ export class ChartsResource {
   /**
    * Get chart of accounts template accounts
    * Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
+   *
+   * Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
    *
    * **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
    *
@@ -515,7 +518,7 @@ export class EntityAccountsResource {
 
   /**
    * Delete or hide an entity account
-   * Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.
+   * Deletes a custom child account or hides a template-based child account by creating an exclusion. Parent accounts cannot be deleted. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
    */
   del(entityId: string, accountId: string, options: RequestOptions = {}): APIPromise<EntityAccountsDelResponse> {
     return new APIPromise(this.transport.request<EntityAccountsDelResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/delete`, {}, options));
@@ -833,6 +836,19 @@ export class LedgerResource {
    */
   list(entityId: string, params: LedgerListParams = {}, options: RequestOptions = {}): APIListPromise<LedgerListResponse> {
     return new APIListPromise(this.transport.request<LedgerListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/ledger`, { query: params }, options), (page) => this.transport.request<LedgerListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/ledger`, { query: { ...params, page } }, options));
+  }
+}
+
+export class ReportCategoriesResource {
+  constructor(private readonly transport: Transport) {}
+  /**
+   * List report groups and categories for an entity
+   * Returns the complete stored taxonomy for the authorised entity's country. Parent IDs and sort order describe the group tree. Headings are structure only; isAssignable=false prevents their selection. An ordinary group may allow a null category, but bank and asset-account functions can still require one. Category placements are exact, not inherited.
+   * Examples: Operating expenses (exp.operating) is assignable with no category; Retained earnings (equ.retainedearnings) also permits a null category. Expenses (exp) is a heading and cannot be assigned. This endpoint does not change accounts. No country parameter or pagination is required.
+   *
+   */
+  list(entityId: string, options: RequestOptions = {}): APIPromise<ReportCategoriesListResponse> {
+    return new APIPromise(this.transport.request<ReportCategoriesListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/report-categories`, {}, options));
   }
 }
 
@@ -1214,6 +1230,7 @@ export class Resources {
   readonly invoices: InvoicesResource;
   readonly journals: JournalsResource;
   readonly ledger: LedgerResource;
+  readonly reportCategories: ReportCategoriesResource;
   readonly reports: ReportsResource;
   readonly transactions: TransactionsResource;
   readonly extensions: ExtensionsResource;
@@ -1239,6 +1256,7 @@ export class Resources {
     this.invoices = new InvoicesResource(transport);
     this.journals = new JournalsResource(transport);
     this.ledger = new LedgerResource(transport);
+    this.reportCategories = new ReportCategoriesResource(transport);
     this.reports = new ReportsResource(transport);
     this.transactions = new TransactionsResource(transport);
     this.extensions = new ExtensionsResource(transport);

@@ -102,6 +102,8 @@ export interface paths {
          * Get chart of accounts template accounts
          * @description Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
          *
+         *     Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
+         *
          *     **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
          *
          *     To fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.
@@ -430,7 +432,7 @@ export interface paths {
         put?: never;
         /**
          * Delete or hide an entity account
-         * @description Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.
+         * @description Deletes a custom child account or hides a template-based child account by creating an exclusion. Parent accounts cannot be deleted. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
          */
         post: operations["entityAccounts.del"];
         delete?: never;
@@ -1004,6 +1006,27 @@ export interface paths {
          * @description **Deprecated.** This was the original general ledger endpoint and has been replaced by the general ledger report endpoints. New integrations should use `GET /api/public/v1/entities/{entityId}/general-ledger/transaction` (flat entry list) or `GET /api/public/v1/entities/{entityId}/general-ledger/account` (grouped by account) instead. Returns paginated journal lines (ledger entries) for an entity with optional date range and account filtering. Only includes posted journals, excluding reversal entries.
          */
         get: operations["ledger.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/report-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List report groups and categories for an entity
+         * @description Returns the complete stored taxonomy for the authorised entity's country. Parent IDs and sort order describe the group tree. Headings are structure only; isAssignable=false prevents their selection. An ordinary group may allow a null category, but bank and asset-account functions can still require one. Category placements are exact, not inherited.
+         *     Examples: Operating expenses (exp.operating) is assignable with no category; Retained earnings (equ.retainedearnings) also permits a null category. Expenses (exp) is a heading and cannot be assigned. This endpoint does not change accounts. No country parameter or pagination is required.
+         */
+        get: operations["reportCategories.list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2094,10 +2117,24 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -2421,10 +2458,24 @@ export interface operations {
                                 name: string;
                                 type: string;
                                 subtype: string;
+                                reportGroup: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                    accountType: string;
+                                } | null;
+                                reportCategory: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                } | null;
                                 taxCode: string;
                                 description: string | null;
                                 mappedCode: string | null;
                                 isSystem: boolean;
+                                systemRole?: string | null;
                                 parentId?: string | null;
                                 isExcluded?: boolean;
                                 isIncluded?: boolean;
@@ -2584,10 +2635,24 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -3301,10 +3366,24 @@ export interface operations {
                                 name: string;
                                 type: string;
                                 subtype: string;
+                                reportGroup: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                    accountType: string;
+                                } | null;
+                                reportCategory: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                } | null;
                                 taxCode: string;
                                 description: string | null;
                                 mappedCode: string | null;
                                 isSystem: boolean;
+                                systemRole?: string | null;
                                 parentId?: string | null;
                                 isExcluded?: boolean;
                                 isIncluded?: boolean;
@@ -3498,7 +3577,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Cannot delete parent accounts or accounts with journal entries */
+            /** @description The account is a parent, has children or journal entries, or has an operational link that prevents deletion (DELETE_RESTRICTED). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3593,10 +3672,24 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -3653,7 +3746,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Parent account must be restored first */
+            /** @description Parent account must be restored first, or restoring would conflict with an assigned system role (SYSTEM_ACCOUNT_CONFLICT). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3705,10 +3798,24 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -3807,10 +3914,24 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -6216,7 +6337,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Invalid request or invoice input. */
+            /** @description Invalid request or invoice input, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -6649,7 +6770,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - validation failed, invalid account codes, or unbalanced journal */
+            /** @description Bad request - validation failed, invalid account codes, an unbalanced journal, or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -6841,6 +6962,100 @@ export interface operations {
             };
         };
     };
+    "reportCategories.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            country: string;
+                            groups: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                                description: string | null;
+                                parentId: string | null;
+                                sortOrder: number;
+                                isHeading: boolean;
+                                isAssignable: boolean;
+                                allowGroupOnly: boolean;
+                            }[];
+                            categories: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                description: string;
+                                codingGuidance: string | null;
+                                defaultGroupId: string;
+                                allowedGroupIds: string[];
+                            }[];
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid entity ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid bearer authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bearer token is pinned to another entity */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or access denied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected failure loading the taxonomy */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission service temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "reports.balanceSheet": {
         parameters: {
             query?: {
@@ -6894,6 +7109,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6921,6 +7138,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6948,6 +7167,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7015,6 +7236,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7054,6 +7277,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7093,6 +7318,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7158,7 +7385,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - invalid query parameters */
+            /** @description Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -7718,7 +7945,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - validation error */
+            /** @description Bad request - validation error or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -7953,10 +8180,24 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8187,6 +8428,9 @@ export interface operations {
                                 /** @enum {string} */
                                 accountType: "Equity" | "Revenue" | "Expense" | "Asset" | "Liability";
                                 accountSubtype: string;
+                                reportGroupKey?: string | null;
+                                reportGroupName?: string;
+                                reportCategoryKey?: string | null;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                 debitBalance: string;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -8264,6 +8508,9 @@ export interface operations {
                                 /** @enum {string} */
                                 accountType: "Equity" | "Revenue" | "Expense" | "Asset" | "Liability";
                                 accountSubtype: string;
+                                reportGroupKey?: string | null;
+                                reportGroupName?: string;
+                                reportCategoryKey?: string | null;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                 debitBalance: string;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -8300,7 +8547,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - invalid query parameters */
+            /** @description Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8381,10 +8628,24 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8536,10 +8797,24 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8570,7 +8845,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation failed */
+            /** @description Validation failed, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
