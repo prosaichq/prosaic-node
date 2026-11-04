@@ -102,7 +102,7 @@ export interface paths {
          * Get chart of accounts template accounts
          * @description Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
          *
-         *     Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
+         *     Each included account also exposes its nullable confirmed systemRole and saved reportGroup/reportCategory summaries. subtype remains the legacy compatibility value, independent of report placement. Hidden global suggestions have systemRole=null and no saved report assignment.
          *
          *     **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
          *
@@ -510,7 +510,7 @@ export interface paths {
         };
         /**
          * List chart of accounts for an entity
-         * @description Returns chart account codes configured for the specified entity. Supports filtering by system accounts and excluded accounts. Requires API key authentication and entity access.
+         * @description Returns chart account codes configured for the specified entity. Supports filtering by system accounts and excluded accounts. Requires API key authentication and entity access. reportGroup and reportCategory expose the saved reporting classification; subtype remains the legacy compatibility value and may differ from current report placement. Null category with a saved group is valid.
          */
         get: operations["entityAccounts.list"];
         put?: never;
@@ -1834,6 +1834,23 @@ export interface components {
                 };
             } | null;
         };
+        /** @description Saved reporting placement, independent of the legacy subtype; null when unassigned. */
+        ReportGroupSummary: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            status: string;
+            accountType: string;
+        } | null;
+        /** @description Saved account meaning; null is valid for a group-only assignment. */
+        ReportCategorySummary: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            status: string;
+        } | null;
     };
     responses: never;
     parameters: never;
