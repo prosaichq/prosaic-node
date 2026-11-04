@@ -6,6 +6,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | --- | --- |
 | `bankAccounts.createWithTransactions` | `POST /api/public/v1/entities/{entityId}/bank-accounts/import` |
 | `bankAccounts.importTransactions` | `POST /api/public/v1/entities/{entityId}/bank-accounts/{bankAccountId}/import` |
+| `bankAccounts.link` | `POST /api/public/v1/entities/{entityId}/bank-accounts` |
 | `changeSets.create` | `POST /api/public/v1/entities/{entityId}/change-sets` |
 | `charts.createAccount` | `POST /api/public/v1/charts/{chartId}/accounts` |
 | `charts.create` | `POST /api/public/v1/charts` |
@@ -59,6 +60,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `journals.void` | `PATCH /api/public/v1/entities/{entityId}/journals/{journalId}/void` |
 | `ledger.list` | `GET /api/public/v1/entities/{entityId}/ledger` |
 | `me.retrieve` | `GET /api/public/v1/me` |
+| `reportCategories.list` | `GET /api/public/v1/entities/{entityId}/report-categories` |
 | `reports.balanceSheet` | `GET /api/public/v1/entities/{entityId}/reports/balance-sheet` |
 | `reports.currentAccounts` | `GET /api/public/v1/entities/{entityId}/reports/current-accounts` |
 | `reports.depreciationSchedule` | `GET /api/public/v1/entities/{entityId}/reports/depreciation-schedule` |
