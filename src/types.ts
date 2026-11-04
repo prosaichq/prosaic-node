@@ -3310,6 +3310,7 @@ export interface operations {
                                 description: string | null;
                                 mappedCode: string | null;
                                 isSystem: boolean;
+                                systemRole?: string | null;
                                 parentId?: string | null;
                                 isExcluded?: boolean;
                                 isIncluded?: boolean;

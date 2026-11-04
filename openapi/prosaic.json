@@ -4208,6 +4208,10 @@
                               "isSystem": {
                                 "type": "boolean"
                               },
+                              "systemRole": {
+                                "type": "string",
+                                "nullable": true
+                              },
                               "parentId": {
                                 "type": "string",
                                 "nullable": true
