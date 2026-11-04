@@ -102,6 +102,8 @@ export interface paths {
          * Get chart of accounts template accounts
          * @description Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
          *
+         *     Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
+         *
          *     **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
          *
          *     To fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.
@@ -430,7 +432,7 @@ export interface paths {
         put?: never;
         /**
          * Delete or hide an entity account
-         * @description Deletes a custom child account or hides a template-based account by creating an exclusion. Parent accounts cannot be deleted.
+         * @description Deletes a custom child account or hides a template-based child account by creating an exclusion. Parent accounts cannot be deleted. Accounts assigned a system role or linked to bank accounts, fixed assets or inter-entity transfers cannot be deleted.
          */
         post: operations["entityAccounts.del"];
         delete?: never;
@@ -2098,6 +2100,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -2425,6 +2428,7 @@ export interface operations {
                                 description: string | null;
                                 mappedCode: string | null;
                                 isSystem: boolean;
+                                systemRole?: string | null;
                                 parentId?: string | null;
                                 isExcluded?: boolean;
                                 isIncluded?: boolean;
@@ -2588,6 +2592,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -3305,6 +3310,7 @@ export interface operations {
                                 description: string | null;
                                 mappedCode: string | null;
                                 isSystem: boolean;
+                                systemRole?: string | null;
                                 parentId?: string | null;
                                 isExcluded?: boolean;
                                 isIncluded?: boolean;
@@ -3498,7 +3504,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Cannot delete parent accounts or accounts with journal entries */
+            /** @description The account is a parent, has children or journal entries, or has an operational link that prevents deletion (DELETE_RESTRICTED). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3597,6 +3603,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -3653,7 +3660,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Parent account must be restored first */
+            /** @description Parent account must be restored first, or restoring would conflict with an assigned system role (SYSTEM_ACCOUNT_CONFLICT). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3709,6 +3716,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -3811,6 +3819,7 @@ export interface operations {
                             description: string | null;
                             mappedCode: string | null;
                             isSystem: boolean;
+                            systemRole?: string | null;
                             parentId?: string | null;
                             isExcluded?: boolean;
                             isIncluded?: boolean;
@@ -6216,7 +6225,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Invalid request or invoice input. */
+            /** @description Invalid request or invoice input, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -6649,7 +6658,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - validation failed, invalid account codes, or unbalanced journal */
+            /** @description Bad request - validation failed, invalid account codes, an unbalanced journal, or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -6894,6 +6903,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6921,6 +6932,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -6948,6 +6961,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7015,6 +7030,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7054,6 +7071,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7093,6 +7112,8 @@ export interface operations {
                                         /** @enum {string} */
                                         accountType: "Equity" | "Asset" | "Liability";
                                         accountSubtype: string;
+                                        /** @enum {string} */
+                                        earningsType?: "retained" | "current-year";
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                         balance: string;
                                         /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -7158,7 +7179,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - invalid query parameters */
+            /** @description Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -7718,7 +7739,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - validation error */
+            /** @description Bad request - validation error or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -7957,6 +7978,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8300,7 +8322,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - invalid query parameters */
+            /** @description Bad request - invalid query parameters or missing/invalid system account setup (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -8385,6 +8407,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8540,6 +8563,7 @@ export interface operations {
                                     description: string | null;
                                     mappedCode: string | null;
                                     isSystem: boolean;
+                                    systemRole?: string | null;
                                     parentId?: string | null;
                                     isExcluded?: boolean;
                                     isIncluded?: boolean;
@@ -8570,7 +8594,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation failed */
+            /** @description Validation failed, or system account setup is missing or invalid (SYSTEM_ACCOUNT_VALIDATION). */
             400: {
                 headers: {
                     [name: string]: unknown;

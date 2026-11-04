@@ -215,6 +215,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 - `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the response is unpaginated.
 - Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
+- Chart accounts expose nullable `systemRole` for reading the inherited account purpose. Chart creation and replacement use global account defaults. Set `includeSystemAccounts: true` to add or carry over omitted system accounts; explicit exclusions still fail validation. Metadata-only updates leave accounts unchanged. See the [system-account example](examples/system-accounts.ts).
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
 - `files.upload(entityId, file)` accepts a `File` or `Blob`. Use a named `File`, or pass a `filename` request option for a `Blob`.
 - Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.
