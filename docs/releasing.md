@@ -11,8 +11,15 @@ The SDK is published to npm as [`prosaic-node`](https://www.npmjs.com/package/pr
 
 ## Publish
 
-1. In GitHub Actions, run **Publish to npm** with the tag. Select **dry run** to check and pack without publishing.
-2. The workflow checks the tag against package.json and the user-agent version, repeats the release checks, packs the archive and lists its contents. Publishing waits for a maintainer's approval in the `npm-publish` environment, then publishes that archive. npm attaches provenance automatically.
+1. Dispatch **Publish to npm** from the release tag, with the same tag as its input:
+
+   ```sh
+   gh workflow run publish.yml --ref v0.1.0-alpha.3 -f tag=v0.1.0-alpha.3
+   ```
+
+   Replace the example tag with the release tag. Add `-F dry-run=true` to check and pack without publishing. Dispatching from a branch or a different tag is rejected.
+
+2. The workflow builds the immutable commit recorded by GitHub for the dispatch, so npm provenance identifies the source used to pack the archive. It checks the tag against package.json and the user-agent version, repeats the release checks, packs the archive and lists its contents. Publishing waits for a maintainer's approval in the `npm-publish` environment, then publishes that archive. npm attaches provenance automatically.
 3. Install the exact registry version into a fresh consumer and check ESM and CommonJS. Record the released version and server-contract revision.
 
 A published version cannot be reused: fix defects in a new version, and deprecate or move the dist-tag when appropriate. If a publish fails or times out, check the registry for that exact version before retrying.

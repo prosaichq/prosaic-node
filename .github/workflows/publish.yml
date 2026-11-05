@@ -26,7 +26,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       dist-tag: ${{ steps.version.outputs.dist-tag }}
     steps:
-      - name: Validate the tag format
+      - name: Validate the release ref
         env:
           TAG: ${{ inputs.tag }}
         run: |
@@ -34,9 +34,13 @@ jobs:
             echo "::error::Tag must match vX.Y.Z or vX.Y.Z-prerelease"
             exit 1
           fi
+          if [ "$GITHUB_REF" != "refs/tags/$TAG" ]; then
+            echo "::error::Run this workflow from tag $TAG, using --ref $TAG"
+            exit 1
+          fi
       - uses: actions/checkout@v4
         with:
-          ref: refs/tags/${{ inputs.tag }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -101,7 +105,7 @@ jobs:
         env:
           VERSION: ${{ needs.check.outputs.version }}
         run: |
-          for attempt in 1 2 3 4 5 6; do
+          for _ in 1 2 3 4 5 6; do
             if [ "$(npm view "prosaic-node@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
               echo "Published prosaic-node@$VERSION"
               exit 0
