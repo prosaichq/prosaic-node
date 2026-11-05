@@ -216,6 +216,8 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 - `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the response is unpaginated.
 - Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
 - Chart accounts expose nullable `systemRole` for reading the inherited account purpose. Chart creation and replacement use global account defaults. Set `includeSystemAccounts: true` to add or carry over omitted system accounts; explicit exclusions still fail validation. Metadata-only updates leave accounts unchanged. See the [system-account example](examples/system-accounts.ts).
+- `reportCategories.list(entityId)` returns the complete taxonomy for the authorised entity's country. Headings are structure only (`isAssignable: false`). A group's `allowGroupOnly` permission does not remove category requirements for bank or asset-account functions. See the [discovery example](examples/report-categories.ts).
+- Chart accounts expose saved `reportGroup` and nullable `reportCategory` summaries. A non-null group with a null category is a group-only assignment; a null group means unassigned. Use these fields for current reporting. `subtype` preserves legacy compatibility values and can differ from current report placement.
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
 - `files.upload(entityId, file)` accepts a `File` or `Blob`. Use a named `File`, or pass a `filename` request option for a `Blob`.
 - Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.
@@ -225,23 +227,23 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 77 operations across 24 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 78 operations across 25 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
-| Area                      | Resources                                                  |
-| ------------------------- | ---------------------------------------------------------- |
-| Identity and setup        | `me`, `version`, `entities`, `clients`                     |
-| Accounts and dimensions   | `charts`, `entityAccounts`, `globalAccounts`, `dimensions` |
-| Transactions and journals | `transactions`, `bankAccounts`, `journals`, `changeSets`   |
-| Financial reporting       | `ledger`, `generalLedger`, `reports`, `gstReturns`         |
-| Contacts and invoices     | `contacts`, `invoices`                                     |
-| Assets and files          | `fixedAssets`, `fixedAssetTypes`, `files`                  |
-| Automation and extensions | `rules`, `scheduledTasks`, `extensions`                    |
+| Area                      | Resources                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------ |
+| Identity and setup        | `me`, `version`, `entities`, `clients`                                         |
+| Accounts and dimensions   | `charts`, `entityAccounts`, `globalAccounts`, `dimensions`, `reportCategories` |
+| Transactions and journals | `transactions`, `bankAccounts`, `journals`, `changeSets`                       |
+| Financial reporting       | `ledger`, `generalLedger`, `reports`, `gstReturns`                             |
+| Contacts and invoices     | `contacts`, `invoices`                                                         |
+| Assets and files          | `fixedAssets`, `fixedAssetTypes`, `files`                                      |
+| Automation and extensions | `rules`, `scheduledTasks`, `extensions`                                        |
 
 Use the [API resource reference](docs/api-reference.md) to find a method, and the [developer documentation](https://developer.prosaic.works/) for the wider API.
 
 ### Alpha compatibility
 
-The SDK targets the **30 October 2026** API snapshot. The developer documentation may describe newer API capabilities.
+The SDK targets the **4 November 2026** API snapshot. The developer documentation may describe newer API capabilities.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 

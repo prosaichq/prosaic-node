@@ -102,7 +102,7 @@ export interface paths {
          * Get chart of accounts template accounts
          * @description Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.
          *
-         *     Each included account also exposes its nullable confirmed systemRole; hidden global suggestions have systemRole=null.
+         *     Each included account also exposes its nullable confirmed systemRole and saved reportGroup/reportCategory summaries. subtype remains the legacy compatibility value, independent of report placement. Hidden global suggestions have systemRole=null and no saved report assignment.
          *
          *     **Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.
          *
@@ -510,7 +510,7 @@ export interface paths {
         };
         /**
          * List chart of accounts for an entity
-         * @description Returns chart account codes configured for the specified entity. Supports filtering by system accounts and excluded accounts. Requires API key authentication and entity access.
+         * @description Returns chart account codes configured for the specified entity. Supports filtering by system accounts and excluded accounts. Requires API key authentication and entity access. reportGroup and reportCategory expose the saved reporting classification; subtype remains the legacy compatibility value and may differ from current report placement. Null category with a saved group is valid.
          */
         get: operations["entityAccounts.list"];
         put?: never;
@@ -1006,6 +1006,27 @@ export interface paths {
          * @description **Deprecated.** This was the original general ledger endpoint and has been replaced by the general ledger report endpoints. New integrations should use `GET /api/public/v1/entities/{entityId}/general-ledger/transaction` (flat entry list) or `GET /api/public/v1/entities/{entityId}/general-ledger/account` (grouped by account) instead. Returns paginated journal lines (ledger entries) for an entity with optional date range and account filtering. Only includes posted journals, excluding reversal entries.
          */
         get: operations["ledger.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/report-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List report groups and categories for an entity
+         * @description Returns the complete stored taxonomy for the authorised entity's country. Parent IDs and sort order describe the group tree. Headings are structure only; isAssignable=false prevents their selection. An ordinary group may allow a null category, but bank and asset-account functions can still require one. Category placements are exact, not inherited.
+         *     Examples: Operating expenses (exp.operating) is assignable with no category; Retained earnings (equ.retainedearnings) also permits a null category. Expenses (exp) is a heading and cannot be assigned. This endpoint does not change accounts. No country parameter or pagination is required.
+         */
+        get: operations["reportCategories.list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1813,6 +1834,23 @@ export interface components {
                 };
             } | null;
         };
+        /** @description Saved reporting placement, independent of the legacy subtype; null when unassigned. */
+        ReportGroupSummary: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            status: string;
+            accountType: string;
+        } | null;
+        /** @description Saved account meaning; null is valid for a group-only assignment. */
+        ReportCategorySummary: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            status: string;
+        } | null;
     };
     responses: never;
     parameters: never;
@@ -2096,6 +2134,19 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
@@ -2424,6 +2475,19 @@ export interface operations {
                                 name: string;
                                 type: string;
                                 subtype: string;
+                                reportGroup: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                    accountType: string;
+                                } | null;
+                                reportCategory: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                } | null;
                                 taxCode: string;
                                 description: string | null;
                                 mappedCode: string | null;
@@ -2588,6 +2652,19 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;
@@ -3306,6 +3383,19 @@ export interface operations {
                                 name: string;
                                 type: string;
                                 subtype: string;
+                                reportGroup: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                    accountType: string;
+                                } | null;
+                                reportCategory: {
+                                    id: string;
+                                    key: string;
+                                    name: string;
+                                    status: string;
+                                } | null;
                                 taxCode: string;
                                 description: string | null;
                                 mappedCode: string | null;
@@ -3599,6 +3689,19 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
@@ -3712,6 +3815,19 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
@@ -3815,6 +3931,19 @@ export interface operations {
                             name: string;
                             type: string;
                             subtype: string;
+                            reportGroup: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                            } | null;
+                            reportCategory: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                            } | null;
                             taxCode: string;
                             description: string | null;
                             mappedCode: string | null;
@@ -6850,6 +6979,100 @@ export interface operations {
             };
         };
     };
+    "reportCategories.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            country: string;
+                            groups: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                                description: string | null;
+                                parentId: string | null;
+                                sortOrder: number;
+                                isHeading: boolean;
+                                isAssignable: boolean;
+                                allowGroupOnly: boolean;
+                            }[];
+                            categories: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                description: string;
+                                codingGuidance: string | null;
+                                defaultGroupId: string;
+                                allowedGroupIds: string[];
+                            }[];
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid entity ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid bearer authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bearer token is pinned to another entity */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or access denied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected failure loading the taxonomy */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission service temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "reports.balanceSheet": {
         parameters: {
             query?: {
@@ -7974,6 +8197,19 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;
@@ -8209,6 +8445,9 @@ export interface operations {
                                 /** @enum {string} */
                                 accountType: "Equity" | "Revenue" | "Expense" | "Asset" | "Liability";
                                 accountSubtype: string;
+                                reportGroupKey?: string | null;
+                                reportGroupName?: string;
+                                reportCategoryKey?: string | null;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                 debitBalance: string;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -8286,6 +8525,9 @@ export interface operations {
                                 /** @enum {string} */
                                 accountType: "Equity" | "Revenue" | "Expense" | "Asset" | "Liability";
                                 accountSubtype: string;
+                                reportGroupKey?: string | null;
+                                reportGroupName?: string;
+                                reportCategoryKey?: string | null;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                 debitBalance: string;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -8403,6 +8645,19 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;
@@ -8559,6 +8814,19 @@ export interface operations {
                                     name: string;
                                     type: string;
                                     subtype: string;
+                                    reportGroup: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                        accountType: string;
+                                    } | null;
+                                    reportCategory: {
+                                        id: string;
+                                        key: string;
+                                        name: string;
+                                        status: string;
+                                    } | null;
                                     taxCode: string;
                                     description: string | null;
                                     mappedCode: string | null;

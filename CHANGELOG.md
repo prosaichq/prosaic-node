@@ -7,7 +7,9 @@
 - Chart accounts expose nullable `systemRole`. Creation and full replacement retain global account defaults and support `includeSystemAccounts: true` for omitted system accounts. Manual role mappings and custom root account codes are not supported.
 - Entity accounts expose nullable `systemRole`. Metadata updates preserve role assignments and account types. Balance-sheet account rows identify calculated earnings through optional `earningsType`.
 
-- Regenerated from the 30 October 2026 API snapshot: 77 operations across 24 resource groups.
+- Regenerated from the 4 November 2026 API snapshot: 78 operations across 25 resource groups.
+- Added `reportCategories.list(entityId)` for country-specific report groups, category defaults and exact allowed placements. Headings are returned as structure and cannot be assigned.
+- Account responses include nullable `reportGroup` and `reportCategory` summaries, including template accounts and accounts nested on bank accounts. Use these fields for reporting; `subtype` remains legacy compatibility data and its existing values are preserved.
 - Added `bankAccounts.link()`, which links existing client bank accounts to an entity and returns them with their general ledger account. It only adds links; accounts already on the entity are left as they are.
 - Added `files.list()`, which lists an entity's saved files, newest first, optionally narrowed by part of the name.
 - Added `bankAccounts` with `importTransactions()`, which imports statement lines into an existing CSV bank account and skips lines it already holds, and `createWithTransactions()`, which creates a CSV bank account and imports into it in one step.
