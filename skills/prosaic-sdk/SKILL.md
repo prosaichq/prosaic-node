@@ -5,7 +5,7 @@ description: Build a TypeScript integration with the Prosaic SDK using API keys 
 
 # Integrate with Prosaic
 
-Read the installed SDK README and the relevant exported method types. Prefer the typed resource method over inventing HTTP paths. The package is `@prosaic/sdk`; instantiate `new Prosaic(apiKey)` or `new Prosaic({ accessToken })`. `baseUrl` is an origin, not an API path.
+Read the installed SDK README and the relevant exported method types. Prefer the typed resource method over inventing HTTP paths. The package is `prosaic-node`; instantiate `new Prosaic(apiKey)` or `new Prosaic({ accessToken })`. `baseUrl` is an origin, not an API path.
 
 Use an API key for a user's own server-side integration. Use `OAuth` for delegated user access: S256 PKCE, state stored in the initiating user's session, `completeAuthorization` on callback, secure token persistence, and `offline_access` when refresh is needed. Do not use a decoded access or ID token as proof of identity. The SDK does not verify ID tokens. Consume pending login state once and expire it promptly.
 

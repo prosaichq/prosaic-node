@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.1.0-alpha.2 (unreleased)
+## 0.1.0-alpha.2
 
+- First npm release, as `prosaic-node`. Install it with `npm install prosaic-node@next`. Earlier archives were named `@prosaic/sdk`; import from `prosaic-node` instead.
+- The package includes only the consumer agent skill, `skills/prosaic-sdk`.
 - Document correctable system-account errors: `SYSTEM_ACCOUNT_VALIDATION`, `SYSTEM_ACCOUNT_CONFLICT`, and `DELETE_RESTRICTED` return HTTP 400.
 
 - Chart accounts expose nullable `systemRole`. Creation and full replacement retain global account defaults and support `includeSystemAccounts: true` for omitted system accounts. Manual role mappings and custom root account codes are not supported.
@@ -25,7 +27,7 @@
 - `invoices.create()` no longer takes `invoiceTemplateId`, which the API stopped accepting.
 - `transactions.list()` accepts `includePreConversion: 'true'`. The API now hides transactions dated before an entity's conversion date by default, and moves an earlier `dateFrom` up to it; the flag returns them.
 
-## 0.1.0-alpha.1 (unreleased)
+## 0.1.0-alpha.1 (not published to npm)
 
 - Typed resource methods for the 66 public API v1 operations in the 7 September 2026 snapshot, with a reproducible contract. See README.md for known compatibility gaps with newer server versions.
 - API-key and OAuth bearer access, workspace selection, S256 PKCE, callback validation, refresh rotation, and token revocation.
