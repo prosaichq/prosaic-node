@@ -201,6 +201,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 - `reportCategories.list(entityId)` returns the complete taxonomy for the authorised entity's country. Headings are structure only (`isAssignable: false`). A group's `allowGroupOnly` permission does not remove category requirements for bank or asset-account functions. See the [discovery example](examples/report-categories.ts).
 - Chart accounts expose saved `reportGroup` and nullable `reportCategory` summaries. A non-null group with a null category is a group-only assignment; a null group means unassigned. Use these fields for current reporting. `subtype` preserves legacy compatibility values and can differ from current report placement.
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
+- `journals.createBulk()` records up to 100 journals and 1,000 lines in one transaction: all of them or none. `autoPost` is required. Send an `idempotencyKey` to make a retry safe, because the SDK never retries it for you. A rejected set throws an `APIError` whose `details.problems` lists each problem with its journal's position in the request.
 - `files.upload(entityId, file)` accepts a `File` or `Blob`. Use a named `File`, or pass a `filename` request option for a `Blob`.
 - Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.
 - `extensions.request()` requires an extension-scoped token. Ordinary API keys and user OAuth tokens cannot call it. An upstream error is represented by embedded `status`/`ok` fields inside an HTTP 200 response.
@@ -209,7 +210,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 78 operations across 25 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 79 operations across 25 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
 | Area                      | Resources                                                                      |
 | ------------------------- | ------------------------------------------------------------------------------ |
@@ -225,7 +226,7 @@ Use the [API resource reference](docs/api-reference.md) to find a method, and th
 
 ### Alpha compatibility
 
-The SDK targets the **4 November 2026** API snapshot. The developer documentation may describe newer API capabilities.
+The SDK targets the **6 November 2026** API snapshot. The developer documentation may describe newer API capabilities.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 
