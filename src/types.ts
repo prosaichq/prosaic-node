@@ -949,6 +949,44 @@ export interface paths {
         patch: operations["journals.void"];
         trace?: never;
     };
+    "/api/public/v1/entities/{entityId}/journals/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create several manual journals at once
+         * @description Creates up to 100 manual journals, with at most 1,000 lines between them, in one transaction:
+         *     either every journal is recorded or none is. Each journal takes the same fields as
+         *     `POST /api/public/v1/entities/{entityId}/journals`, including dimensions and `fileIds`.
+         *
+         *     `autoPost` is required and applies to the whole set. `true` posts every journal to the ledger,
+         *     and `false` saves every journal as a draft.
+         *
+         *     ## Retrying safely
+         *
+         *     Send an `idempotencyKey` to make a retry safe. A repeat of the same request with the same key
+         *     returns the journals it created, with `replayed: true` and status 200, and records nothing new.
+         *     A replay shows each journal's current status, which may have changed since it was created.
+         *     The same key with different journals is refused with a 409. Without a key, a retry after a
+         *     timeout can record the whole set twice.
+         *
+         *     ## Fixing a rejected set
+         *
+         *     A 422 lists problems by each journal's position in `journals`, counting from 0. Nothing was
+         *     recorded, so fix them and send the whole set again.
+         */
+        post: operations["journals.createBulk"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/v1/entities/{entityId}/journals": {
         parameters: {
             query?: never;
@@ -6537,6 +6575,140 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "journals.createBulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    autoPost: boolean;
+                    journals: {
+                        date: string;
+                        narration: string;
+                        lines: {
+                            entityAccountCode?: string;
+                            entityAccountName?: string;
+                            taxRateName?: string;
+                            description?: string;
+                            credit?: string | number;
+                            debit?: string | number;
+                            taxRateId?: string;
+                            dimensionOptionIds?: string[];
+                        }[];
+                        /** @enum {string} */
+                        taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                        fileIds?: string[];
+                    }[];
+                    idempotencyKey?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        replayed: boolean;
+                        data: {
+                            id: string;
+                            logicalJournalId: string | null;
+                            narration: string | null;
+                            /** Format: date-time */
+                            date: string;
+                            status: string;
+                        }[];
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        replayed: boolean;
+                        data: {
+                            id: string;
+                            logicalJournalId: string | null;
+                            narration: string | null;
+                            /** Format: date-time */
+                            date: string;
+                            status: string;
+                        }[];
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description The request is malformed, or a taxed journal needs a GST account the entity lacks (SYSTEM_ACCOUNT_VALIDATION). Nothing was recorded. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized - Invalid or missing API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found - Entity not found or access denied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description This idempotency key was already used for different journals (IDEMPOTENCY_KEY_REUSED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description One or more journals can't be recorded (JOURNALS_REJECTED); `details.problems` lists each with its index. Nothing was recorded. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error?: string;
+                        code?: string;
+                        details?: {
+                            problems?: {
+                                index?: number;
+                                message?: string;
+                            }[];
+                        };
+                    };
+                };
             };
             /** @description Internal server error */
             500: {

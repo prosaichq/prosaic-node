@@ -55,6 +55,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `invoices.list` | `GET /api/public/v1/invoices` |
 | `invoices.retrieve` | `GET /api/public/v1/entities/{entityId}/invoices/{invoiceId}` |
 | `journals.attachFiles` | `POST /api/public/v1/entities/{entityId}/journals/{journalId}/attachments` |
+| `journals.createBulk` | `POST /api/public/v1/entities/{entityId}/journals/bulk` |
 | `journals.create` | `POST /api/public/v1/entities/{entityId}/journals` |
 | `journals.list` | `GET /api/public/v1/entities/{entityId}/journals` |
 | `journals.void` | `PATCH /api/public/v1/entities/{entityId}/journals/{journalId}/void` |

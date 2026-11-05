@@ -85,6 +85,8 @@ export type JournalsListResponse = operations["journals.list"]['responses'][200]
 export type JournalsListParams = NonNullable<operations["journals.list"]['parameters']['query']>;
 export type JournalsCreateResponse = operations["journals.create"]['responses'][200]['content']['application/json'];
 export type JournalsCreateParams = operations["journals.create"]['requestBody']['content']['application/json'];
+export type JournalsCreateBulkResponse = operations["journals.createBulk"]['responses'][200]['content']['application/json'] | operations["journals.createBulk"]['responses'][201]['content']['application/json'];
+export type JournalsCreateBulkParams = operations["journals.createBulk"]['requestBody']['content']['application/json'];
 export type JournalsAttachFilesResponse = operations["journals.attachFiles"]['responses'][200]['content']['application/json'];
 export type JournalsAttachFilesParams = operations["journals.attachFiles"]['requestBody']['content']['application/json'];
 export type JournalsVoidResponse = operations["journals.void"]['responses'][200]['content']['application/json'];
@@ -809,6 +811,33 @@ export class JournalsResource {
    */
   create(entityId: string, params: JournalsCreateParams, options: RequestOptions = {}): APIPromise<JournalsCreateResponse> {
     return new APIPromise(this.transport.request<JournalsCreateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/journals`, { body: params }, options));
+  }
+
+  /**
+   * Create several manual journals at once
+   * Creates up to 100 manual journals, with at most 1,000 lines between them, in one transaction:
+   * either every journal is recorded or none is. Each journal takes the same fields as
+   * `POST /api/public/v1/entities/{entityId}/journals`, including dimensions and `fileIds`.
+   *
+   * `autoPost` is required and applies to the whole set. `true` posts every journal to the ledger,
+   * and `false` saves every journal as a draft.
+   *
+   * ## Retrying safely
+   *
+   * Send an `idempotencyKey` to make a retry safe. A repeat of the same request with the same key
+   * returns the journals it created, with `replayed: true` and status 200, and records nothing new.
+   * A replay shows each journal's current status, which may have changed since it was created.
+   * The same key with different journals is refused with a 409. Without a key, a retry after a
+   * timeout can record the whole set twice.
+   *
+   * ## Fixing a rejected set
+   *
+   * A 422 lists problems by each journal's position in `journals`, counting from 0. Nothing was
+   * recorded, so fix them and send the whole set again.
+   *
+   */
+  createBulk(entityId: string, params: JournalsCreateBulkParams, options: RequestOptions = {}): APIPromise<JournalsCreateBulkResponse> {
+    return new APIPromise(this.transport.request<JournalsCreateBulkResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/journals/bulk`, { body: params }, options));
   }
 
   /**

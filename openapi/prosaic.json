@@ -12738,6 +12738,326 @@
         "x-sdk-method": "void"
       }
     },
+    "/api/public/v1/entities/{entityId}/journals/bulk": {
+      "post": {
+        "summary": "Create several manual journals at once",
+        "description": "Creates up to 100 manual journals, with at most 1,000 lines between them, in one transaction:\neither every journal is recorded or none is. Each journal takes the same fields as\n`POST /api/public/v1/entities/{entityId}/journals`, including dimensions and `fileIds`.\n\n`autoPost` is required and applies to the whole set. `true` posts every journal to the ledger,\nand `false` saves every journal as a draft.\n\n## Retrying safely\n\nSend an `idempotencyKey` to make a retry safe. A repeat of the same request with the same key\nreturns the journals it created, with `replayed: true` and status 200, and records nothing new.\nA replay shows each journal's current status, which may have changed since it was created.\nThe same key with different journals is refused with a 409. Without a key, a retry after a\ntimeout can record the whole set twice.\n\n## Fixing a rejected set\n\nA 422 lists problems by each journal's position in `journals`, counting from 0. Nothing was\nrecorded, so fix them and send the whole set again.\n",
+        "tags": [
+          "Journals"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "autoPost": {
+                    "type": "boolean"
+                  },
+                  "journals": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "date": {
+                          "type": "string"
+                        },
+                        "narration": {
+                          "type": "string"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "entityAccountCode": {
+                                "type": "string"
+                              },
+                              "entityAccountName": {
+                                "type": "string"
+                              },
+                              "taxRateName": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "credit": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "debit": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "taxRateId": {
+                                "type": "string"
+                              },
+                              "dimensionOptionIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        },
+                        "taxMode": {
+                          "type": "string",
+                          "enum": [
+                            "NO_TAX",
+                            "TAX_INCLUSIVE",
+                            "TAX_EXCLUSIVE"
+                          ]
+                        },
+                        "fileIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "date",
+                        "narration",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "idempotencyKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "autoPost",
+                  "journals"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "replayed": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "logicalJournalId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "narration": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "logicalJournalId",
+                          "narration",
+                          "date",
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "replayed",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "replayed": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "logicalJournalId": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "narration": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "date": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "logicalJournalId",
+                          "narration",
+                          "date",
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "replayed",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is malformed, or a taxed journal needs a GST account the entity lacks (SYSTEM_ACCOUNT_VALIDATION). Nothing was recorded."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not found - Entity not found or access denied"
+          },
+          "409": {
+            "description": "This idempotency key was already used for different journals (IDEMPOTENCY_KEY_REUSED)"
+          },
+          "422": {
+            "description": "One or more journals can't be recorded (JOURNALS_REJECTED); `details.problems` lists each with its index. Nothing was recorded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "problems": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "index": {
+                                "type": "integer"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "journals.createBulk",
+        "x-sdk-resource": "journals",
+        "x-sdk-method": "createBulk"
+      }
+    },
     "/api/public/v1/entities/{entityId}/journals": {
       "get": {
         "summary": "List manual journals",
