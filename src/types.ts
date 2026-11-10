@@ -33,13 +33,14 @@ export interface paths {
         put?: never;
         /**
          * Update a single account in a chart of accounts template
-         * @description Updates one account in a chart of accounts template without resending the full account list.
+         * @description Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+         *     Updates one account in a chart of accounts template without resending the full account list.
          *     Supports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same
          *     parent). A code rename cascades non-destructively to every entity account derived from this
-         *     template account (balances and customizations are preserved). Changes propagate to all entities
+         *     template account (balances and customizations are preserved). Metadata changes follow existing propagation policy for entities
          *     using the template. Omitted fields preserve their existing values; send `description: null` to
          *     clear the description. `accountId` is the TemplateAccount ID from `GET /charts/{chartId}`.
-         *     Requires API key authentication.
+         *     Reporting changes remain subject to human review before propagation. Requires bearer authentication.
          */
         post: operations["charts.updateAccount"];
         delete?: never;
@@ -59,10 +60,11 @@ export interface paths {
         put?: never;
         /**
          * Add a single account to a chart of accounts template
-         * @description Adds one account to a chart of accounts template without resending the full account list. To
-         *     add a top-level (parent) account, provide its global account `code`; to add a custom child
+         * @description Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+         *     Adds one account to a chart of accounts template without resending the full account list. To
+         *     add a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child
          *     account, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).
-         *     The addition propagates to every entity using the template. Requires API key authentication.
+         *     Activated rows use the explicit fields above and remain subject to review before reporting propagation. Requires bearer authentication.
          */
         post: operations["charts.createAccount"];
         delete?: never;
@@ -130,12 +132,13 @@ export interface paths {
         put?: never;
         /**
          * Update a chart of accounts template
-         * @description Updates a chart of accounts template. When `accounts` is provided it fully replaces the
+         * @description Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+         *     Updates a chart of accounts template. When `accounts` is provided it fully replaces the
          *     template's account list (delegates to updateAccountTemplateAccounts and propagates to all
          *     entities). When `accounts` is omitted, only the provided template metadata (`name`,
          *     `description`) is updated and accounts are left untouched. Omit a metadata field to preserve
          *     its existing value, or send `description: null` to clear the description. A full replacement
-         *     list must still contain every
+         *     list in a nonactivated workspace must still contain every
          *     system account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with
          *     `isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing
          *     all missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system
@@ -175,7 +178,8 @@ export interface paths {
         put?: never;
         /**
          * Create a chart of accounts template
-         * @description Creates a new chart of accounts template in the workspace. Every system global
+         * @description Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+         *     In nonactivated workspaces, creates a chart from global definitions. Every system global
          *     account (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present
          *     in `accounts` with `isIncluded: true` — otherwise the request fails with
          *     `SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set
@@ -472,7 +476,7 @@ export interface paths {
         put?: never;
         /**
          * Update an entity account
-         * @description Updates an entity account's editable fields. Parent accounts can only update taxCode and mappedCode. Bank account-linked accounts have additional restrictions.
+         * @description Discover GET /api/public/v1/entities/{entityId}/report-categories before a write. In activated scope, create with reporting.groupKey and explicit reporting.categoryKey (null for eligible group-only accounts); omit legacy parent references. Metadata-only patches preserve reporting. Reporting updates require reporting.expected with the saved pair (or null for an unassigned account). All active workspaces must allow the write. Type derives from group. A contract mismatch or stale pair returns 409; reload and rediscover without automatically retrying a mutation. Stored subtype output remains a compatibility value.
          */
         post: operations["entityAccounts.update"];
         delete?: never;
@@ -516,8 +520,7 @@ export interface paths {
         put?: never;
         /**
          * Create a child account in the chart of accounts
-         * @description Creates a new child (sub) account under an existing parent account. Only 2-level hierarchy is supported (parent → child, no grandchildren).
-         *     Parent account can be referenced by ID, code, or mappedCode to support external system integrations.
+         * @description Discover GET /api/public/v1/entities/{entityId}/report-categories before a write. In activated scope, create with reporting.groupKey and explicit reporting.categoryKey (null for eligible group-only accounts); omit legacy parent references. Metadata-only patches preserve reporting. Reporting updates require reporting.expected with the saved pair (or null for an unassigned account). All active workspaces must allow the write. Type derives from group. A contract mismatch or stale pair returns 409; reload and rediscover without automatically retrying a mutation. Stored subtype output remains a compatibility value.
          */
         post: operations["entityAccounts.create"];
         delete?: never;
@@ -1480,6 +1483,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/v1/report-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List report groups and categories for the authorised workspace
+         * @description Returns the complete stored taxonomy for the authorised workspace's country. Parent IDs and sort order describe the group tree. Headings are structure only; isAssignable=false prevents their selection. An ordinary group may allow a null category, but bank and asset-account functions can still require one. Category placements are exact, not inherited.
+         *     Examples: Operating expenses (exp.operating) is assignable with no category; Retained earnings (equ.retainedearnings) also permits a null category. Expenses (exp) is a heading and cannot be assigned. This endpoint does not change accounts. No country parameter or pagination is required.
+         */
+        get: operations["reportCategories.listForWorkspace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/v1": {
         parameters: {
             query?: never;
@@ -1916,7 +1940,13 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    expectedUpdatedAt?: string;
+                };
+            };
+        };
         responses: {
             /** @description Successful response */
             200: {
@@ -1971,12 +2001,19 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
+                    expectedTemplateUpdatedAt?: string;
                     name?: string;
                     description?: string | null;
                     /** @enum {string|null} */
                     taxCode?: "NZ_GST_15_INC" | "NZ_GST_15_EXP" | "NZ_GST_0_NONE" | "NZ_GST_0_ZERO" | "AU_GST_10_INC" | "AU_GST_10_EXP" | "AU_GST_0_NONE" | "AU_GST_0_INPUT" | "AU_GST_0_EXPORT" | null;
                     mappedCode?: string | null;
                     code?: string;
+                    id?: string;
+                    clientKey?: string;
+                    groupKey?: string;
+                    categoryKey?: string | null;
+                    systemRole?: string | null;
+                    expectedUpdatedAt?: string;
                 };
             };
         };
@@ -2047,6 +2084,12 @@ export interface operations {
                     taxCode?: "NZ_GST_15_INC" | "NZ_GST_15_EXP" | "NZ_GST_0_NONE" | "NZ_GST_0_ZERO" | "AU_GST_10_INC" | "AU_GST_10_EXP" | "AU_GST_0_NONE" | "AU_GST_0_INPUT" | "AU_GST_0_EXPORT" | null;
                     description?: string | null;
                     mappedCode?: string | null;
+                    id?: string;
+                    clientKey?: string;
+                    groupKey?: string;
+                    categoryKey?: string | null;
+                    systemRole?: string | null;
+                    expectedUpdatedAt?: string;
                 };
             };
         };
@@ -2174,8 +2217,12 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        templateUpdatedAt: string;
                         data: {
                             id: string;
+                            updatedAt?: string;
+                            reportCategoryReviewedAt?: string | null;
+                            reportCategoryReviewVersion?: number;
                             code: string;
                             name: string;
                             type: string;
@@ -2260,6 +2307,7 @@ export interface operations {
                     name?: string;
                     description?: string | null;
                     includeSystemAccounts?: boolean;
+                    expectedUpdatedAt?: string;
                     accounts?: {
                         code: string;
                         isIncluded: boolean;
@@ -2269,6 +2317,12 @@ export interface operations {
                         taxCode?: "NZ_GST_15_INC" | "NZ_GST_15_EXP" | "NZ_GST_0_NONE" | "NZ_GST_0_ZERO" | "AU_GST_10_INC" | "AU_GST_10_EXP" | "AU_GST_0_NONE" | "AU_GST_0_INPUT" | "AU_GST_0_EXPORT" | null;
                         mappedCode?: string | null;
                         parentCode?: string | null;
+                        id?: string;
+                        clientKey?: string;
+                        groupKey?: string;
+                        categoryKey?: string | null;
+                        systemRole?: string | null;
+                        expectedUpdatedAt?: string;
                     }[];
                 };
             };
@@ -2422,14 +2476,20 @@ export interface operations {
                     accounts: {
                         code: string;
                         name: string;
-                        type: string;
                         isIncluded: boolean;
+                        type?: string;
                         subtype?: string | null;
                         /** @enum {string|null} */
                         taxCode?: "NZ_GST_15_INC" | "NZ_GST_15_EXP" | "NZ_GST_0_NONE" | "NZ_GST_0_ZERO" | "AU_GST_10_INC" | "AU_GST_10_EXP" | "AU_GST_0_NONE" | "AU_GST_0_INPUT" | "AU_GST_0_EXPORT" | null;
                         description?: string | null;
                         mappedCode?: string | null;
                         parentCode?: string | null;
+                        id?: string;
+                        clientKey?: string;
+                        groupKey?: string;
+                        categoryKey?: string | null;
+                        systemRole?: string | null;
+                        expectedUpdatedAt?: string;
                     }[];
                     description?: string;
                     includeSystemAccounts?: boolean;
@@ -2517,6 +2577,9 @@ export interface operations {
                             sourceType: string | null;
                             entityAccount: {
                                 id: string;
+                                updatedAt?: string;
+                                reportCategoryReviewedAt?: string | null;
+                                reportCategoryReviewVersion?: number;
                                 code: string;
                                 name: string;
                                 type: string;
@@ -2694,6 +2757,9 @@ export interface operations {
                                 sourceType: string | null;
                                 entityAccount: {
                                     id: string;
+                                    updatedAt?: string;
+                                    reportCategoryReviewedAt?: string | null;
+                                    reportCategoryReviewVersion?: number;
                                     code: string;
                                     name: string;
                                     type: string;
@@ -3425,6 +3491,9 @@ export interface operations {
                             sourceType: string | null;
                             entityAccount: {
                                 id: string;
+                                updatedAt?: string;
+                                reportCategoryReviewedAt?: string | null;
+                                reportCategoryReviewVersion?: number;
                                 code: string;
                                 name: string;
                                 type: string;
@@ -3713,6 +3782,14 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
+                    reporting?: {
+                        groupKey: string;
+                        categoryKey: string | null;
+                        expected: {
+                            groupKey: string;
+                            categoryKey: string | null;
+                        } | null;
+                    };
                     name?: string;
                     description?: string | null;
                     taxCode?: string;
@@ -3731,6 +3808,9 @@ export interface operations {
                     "application/json": {
                         data: {
                             id: string;
+                            updatedAt?: string;
+                            reportCategoryReviewedAt?: string | null;
+                            reportCategoryReviewVersion?: number;
                             code: string;
                             name: string;
                             type: string;
@@ -3857,6 +3937,9 @@ export interface operations {
                     "application/json": {
                         data: {
                             id: string;
+                            updatedAt?: string;
+                            reportCategoryReviewedAt?: string | null;
+                            reportCategoryReviewVersion?: number;
                             code: string;
                             name: string;
                             type: string;
@@ -3955,6 +4038,10 @@ export interface operations {
                     code: string;
                     name: string;
                     taxCode: string;
+                    reporting?: {
+                        groupKey: string;
+                        categoryKey: string | null;
+                    };
                     parentAccountId?: string;
                     parentAccountCode?: string;
                     parentMappedCode?: string;
@@ -3973,6 +4060,9 @@ export interface operations {
                     "application/json": {
                         data: {
                             id: string;
+                            updatedAt?: string;
+                            reportCategoryReviewedAt?: string | null;
+                            reportCategoryReviewVersion?: number;
                             code: string;
                             name: string;
                             type: string;
@@ -7187,9 +7277,9 @@ export interface operations {
                             id: string;
                             description: string | null;
                             /** Format: date-time */
-                            createdAt: string;
-                            /** Format: date-time */
                             updatedAt: string;
+                            /** Format: date-time */
+                            createdAt: string;
                             parentId: string | null;
                             journalId: string;
                             entityAccountId: string;
@@ -7300,6 +7390,12 @@ export interface operations {
                     "application/json": {
                         data: {
                             country: string;
+                            legacyDefaults?: {
+                                globalAccountId: string;
+                                code: string;
+                                groupKey: string;
+                                categoryKey: string | null;
+                            }[];
                             groups: {
                                 id: string;
                                 key: string;
@@ -7323,6 +7419,7 @@ export interface operations {
                                 defaultGroupId: string;
                                 allowedGroupIds: string[];
                             }[];
+                            reportingInputsEnabled: boolean;
                         };
                         meta?: {
                             count: number;
@@ -8494,6 +8591,9 @@ export interface operations {
                                 sourceType: string | null;
                                 entityAccount: {
                                     id: string;
+                                    updatedAt?: string;
+                                    reportCategoryReviewedAt?: string | null;
+                                    reportCategoryReviewVersion?: number;
                                     code: string;
                                     name: string;
                                     type: string;
@@ -8942,6 +9042,9 @@ export interface operations {
                                 sourceType: string | null;
                                 entityAccount: {
                                     id: string;
+                                    updatedAt?: string;
+                                    reportCategoryReviewedAt?: string | null;
+                                    reportCategoryReviewVersion?: number;
                                     code: string;
                                     name: string;
                                     type: string;
@@ -9111,6 +9214,9 @@ export interface operations {
                                 sourceType: string | null;
                                 entityAccount: {
                                     id: string;
+                                    updatedAt?: string;
+                                    reportCategoryReviewedAt?: string | null;
+                                    reportCategoryReviewVersion?: number;
                                     code: string;
                                     name: string;
                                     type: string;
@@ -9647,6 +9753,106 @@ export interface operations {
                         code?: string;
                     };
                 };
+            };
+        };
+    };
+    "reportCategories.listForWorkspace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            country: string;
+                            legacyDefaults?: {
+                                globalAccountId: string;
+                                code: string;
+                                groupKey: string;
+                                categoryKey: string | null;
+                            }[];
+                            groups: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                accountType: string;
+                                description: string | null;
+                                parentId: string | null;
+                                sortOrder: number;
+                                isHeading: boolean;
+                                isAssignable: boolean;
+                                allowGroupOnly: boolean;
+                            }[];
+                            categories: {
+                                id: string;
+                                key: string;
+                                name: string;
+                                status: string;
+                                description: string;
+                                codingGuidance: string | null;
+                                defaultGroupId: string;
+                                allowedGroupIds: string[];
+                            }[];
+                            workspaceId: string;
+                            reportingInputsEnabled: boolean;
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid entity ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid bearer authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bearer token is pinned to another entity */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or access denied */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected failure loading the taxonomy */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Permission service temporarily unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

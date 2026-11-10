@@ -12,6 +12,7 @@ export type ChartsListAccountsParams = NonNullable<operations["charts.listAccoun
 export type ChartsCreateAccountResponse = operations["charts.createAccount"]['responses'][200]['content']['application/json'];
 export type ChartsCreateAccountParams = operations["charts.createAccount"]['requestBody']['content']['application/json'];
 export type ChartsDeleteAccountResponse = operations["charts.deleteAccount"]['responses'][200]['content']['application/json'];
+export type ChartsDeleteAccountParams = operations["charts.deleteAccount"]['requestBody']['content']['application/json'];
 export type ChartsUpdateAccountResponse = operations["charts.updateAccount"]['responses'][200]['content']['application/json'];
 export type ChartsUpdateAccountParams = operations["charts.updateAccount"]['requestBody']['content']['application/json'];
 export type ChartsDelResponse = operations["charts.del"]['responses'][200]['content']['application/json'];
@@ -119,6 +120,7 @@ export type GstReturnsListParams = NonNullable<operations["gstReturns.list"]['pa
 export type InvoicesListResponse = operations["invoices.list"]['responses'][200]['content']['application/json'];
 export type InvoicesListParams = NonNullable<operations["invoices.list"]['parameters']['query']>;
 export type MeRetrieveResponse = operations["me.retrieve"]['responses'][200]['content']['application/json'];
+export type ReportCategoriesListForWorkspaceResponse = operations["reportCategories.listForWorkspace"]['responses'][200]['content']['application/json'];
 export type RulesListResponse = operations["rules.list"]['responses'][200]['content']['application/json'];
 export type RulesListParams = NonNullable<operations["rules.list"]['parameters']['query']>;
 export type RulesCreateResponse = operations["rules.create"]['responses'][201]['content']['application/json'];
@@ -161,7 +163,8 @@ export class ChartsResource {
 
   /**
    * Create a chart of accounts template
-   * Creates a new chart of accounts template in the workspace. Every system global
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+   * In nonactivated workspaces, creates a chart from global definitions. Every system global
    * account (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present
    * in `accounts` with `isIncluded: true` — otherwise the request fails with
    * `SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set
@@ -201,10 +204,11 @@ export class ChartsResource {
 
   /**
    * Add a single account to a chart of accounts template
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
    * Adds one account to a chart of accounts template without resending the full account list. To
-   * add a top-level (parent) account, provide its global account `code`; to add a custom child
+   * add a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child
    * account, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).
-   * The addition propagates to every entity using the template. Requires API key authentication.
+   * Activated rows use the explicit fields above and remain subject to review before reporting propagation. Requires bearer authentication.
    *
    */
   createAccount(chartId: string, params: ChartsCreateAccountParams, options: RequestOptions = {}): APIPromise<ChartsCreateAccountResponse> {
@@ -219,19 +223,20 @@ export class ChartsResource {
    * from `GET /charts/{chartId}`. Requires API key authentication.
    *
    */
-  deleteAccount(chartId: string, accountId: string, options: RequestOptions = {}): APIPromise<ChartsDeleteAccountResponse> {
-    return new APIPromise(this.transport.request<ChartsDeleteAccountResponse>("POST", `/api/public/v1/charts/${pathParam(chartId)}/accounts/${pathParam(accountId)}/delete`, {}, options));
+  deleteAccount(chartId: string, accountId: string, params: ChartsDeleteAccountParams = {}, options: RequestOptions = {}): APIPromise<ChartsDeleteAccountResponse> {
+    return new APIPromise(this.transport.request<ChartsDeleteAccountResponse>("POST", `/api/public/v1/charts/${pathParam(chartId)}/accounts/${pathParam(accountId)}/delete`, { body: params }, options));
   }
 
   /**
    * Update a single account in a chart of accounts template
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
    * Updates one account in a chart of accounts template without resending the full account list.
    * Supports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same
    * parent). A code rename cascades non-destructively to every entity account derived from this
-   * template account (balances and customizations are preserved). Changes propagate to all entities
+   * template account (balances and customizations are preserved). Metadata changes follow existing propagation policy for entities
    * using the template. Omitted fields preserve their existing values; send `description: null` to
    * clear the description. `accountId` is the TemplateAccount ID from `GET /charts/{chartId}`.
-   * Requires API key authentication.
+   * Reporting changes remain subject to human review before propagation. Requires bearer authentication.
    *
    */
   updateAccount(chartId: string, accountId: string, params: ChartsUpdateAccountParams = {}, options: RequestOptions = {}): APIPromise<ChartsUpdateAccountResponse> {
@@ -248,12 +253,13 @@ export class ChartsResource {
 
   /**
    * Update a chart of accounts template
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
    * Updates a chart of accounts template. When `accounts` is provided it fully replaces the
    * template's account list (delegates to updateAccountTemplateAccounts and propagates to all
    * entities). When `accounts` is omitted, only the provided template metadata (`name`,
    * `description`) is updated and accounts are left untouched. Omit a metadata field to preserve
    * its existing value, or send `description: null` to clear the description. A full replacement
-   * list must still contain every
+   * list in a nonactivated workspace must still contain every
    * system account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with
    * `isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing
    * all missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system
@@ -504,8 +510,7 @@ export class EntityAccountsResource {
 
   /**
    * Create a child account in the chart of accounts
-   * Creates a new child (sub) account under an existing parent account. Only 2-level hierarchy is supported (parent → child, no grandchildren).
-   * Parent account can be referenced by ID, code, or mappedCode to support external system integrations.
+   * Discover GET /api/public/v1/entities/{entityId}/report-categories before a write. In activated scope, create with reporting.groupKey and explicit reporting.categoryKey (null for eligible group-only accounts); omit legacy parent references. Metadata-only patches preserve reporting. Reporting updates require reporting.expected with the saved pair (or null for an unassigned account). All active workspaces must allow the write. Type derives from group. A contract mismatch or stale pair returns 409; reload and rediscover without automatically retrying a mutation. Stored subtype output remains a compatibility value.
    *
    */
   create(entityId: string, params: EntityAccountsCreateParams, options: RequestOptions = {}): APIPromise<EntityAccountsCreateResponse> {
@@ -538,7 +543,8 @@ export class EntityAccountsResource {
 
   /**
    * Update an entity account
-   * Updates an entity account's editable fields. Parent accounts can only update taxCode and mappedCode. Bank account-linked accounts have additional restrictions.
+   * Discover GET /api/public/v1/entities/{entityId}/report-categories before a write. In activated scope, create with reporting.groupKey and explicit reporting.categoryKey (null for eligible group-only accounts); omit legacy parent references. Metadata-only patches preserve reporting. Reporting updates require reporting.expected with the saved pair (or null for an unassigned account). All active workspaces must allow the write. Type derives from group. A contract mismatch or stale pair returns 409; reload and rediscover without automatically retrying a mutation. Stored subtype output remains a compatibility value.
+   *
    */
   update(entityId: string, accountId: string, params: EntityAccountsUpdateParams = {}, options: RequestOptions = {}): APIPromise<EntityAccountsUpdateResponse> {
     return new APIPromise(this.transport.request<EntityAccountsUpdateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/charts/${pathParam(accountId)}/update`, { body: params }, options));
@@ -893,6 +899,16 @@ export class ReportCategoriesResource {
    */
   list(entityId: string, options: RequestOptions = {}): APIPromise<ReportCategoriesListResponse> {
     return new APIPromise(this.transport.request<ReportCategoriesListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/report-categories`, {}, options));
+  }
+
+  /**
+   * List report groups and categories for the authorised workspace
+   * Returns the complete stored taxonomy for the authorised workspace's country. Parent IDs and sort order describe the group tree. Headings are structure only; isAssignable=false prevents their selection. An ordinary group may allow a null category, but bank and asset-account functions can still require one. Category placements are exact, not inherited.
+   * Examples: Operating expenses (exp.operating) is assignable with no category; Retained earnings (equ.retainedearnings) also permits a null category. Expenses (exp) is a heading and cannot be assigned. This endpoint does not change accounts. No country parameter or pagination is required.
+   *
+   */
+  listForWorkspace(options: RequestOptions = {}): APIPromise<ReportCategoriesListForWorkspaceResponse> {
+    return new APIPromise(this.transport.request<ReportCategoriesListForWorkspaceResponse>("GET", `/api/public/v1/report-categories`, {}, options));
   }
 }
 
