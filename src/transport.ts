@@ -159,7 +159,7 @@ export class Transport {
     }
     const headers = new Headers({
       accept: 'application/json',
-      'user-agent': 'prosaic-sdk/0.1.0-alpha.2',
+      'user-agent': 'prosaic-sdk/0.1.0-alpha.3',
     });
     const workspace = options.workspaceId ?? this.#options.workspaceId;
     if (workspace) headers.set('x-workspace-id', workspace);

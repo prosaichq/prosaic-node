@@ -15,10 +15,18 @@ export async function createChartWithSystemAccounts(
   client: Prosaic,
   accounts: ChartsCreateParams['accounts'],
 ): Promise<string> {
-  // Obtain account codes, names and types from globalAccounts.list().
+  const { data: taxonomy } = await client.reportCategories.listForWorkspace();
+  // Activated charts need explicit pairs and all required role choices.
+  // This helper never manufactures classification or review approval.
+  if (
+    taxonomy.reportingInputsEnabled &&
+    accounts.some((row) => row.isIncluded && (!row.groupKey || row.categoryKey === undefined))
+  ) {
+    throw new Error('Choose a report group and explicit category for every included row');
+  }
   const { data: chart } = await client.charts.create({
     name: 'Firm chart',
-    includeSystemAccounts: true,
+    includeSystemAccounts: !taxonomy.reportingInputsEnabled,
     accounts,
   });
   return chart.id;

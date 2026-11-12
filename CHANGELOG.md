@@ -2,8 +2,13 @@
 
 ## 0.1.0-alpha.3 (unreleased)
 
-- Regenerated from the 12 November 2026 API snapshot: 80 operations across 25 resource groups.
+- Regenerated from the 12 November 2026 API snapshot: 81 operations across 25 resource groups.
 - Added `fixedAssets.update()`, which changes a draft fixed asset. Fields you leave out keep their stored values, and `null` clears a field that can be empty. An asset's own depreciation method, rate and useful life override its asset type's defaults. Rate and useful life are exclusive: setting one clears the other, and method `'none'` clears both. An active or disposed asset returns `409`.
+- Deliberate breaking API v1 chart-write update in activated workspaces: create accounts with an explicit report group and category choice (null for eligible group-only accounts); account type derives from group. Parent inputs remain supported only in nonactivated workspaces. API URL version `/v1`, package version and workspace capability are separate.
+- Added `reportCategories.listForWorkspace()` for discovery before an entity exists. Entity discovery exposes capability across every active workspace. Writes recheck policy and return `CHART_INPUT_CONTRACT_MISMATCH` (409) when the contract changed, or `CHART_INPUT_POLICY_UNAVAILABLE` (503).
+- Template reads expose stable IDs, row versions, template version and review state. Reporting and replacement writes require saved preconditions. Metadata-only patches preserve classification. API access does not confirm human template review or bypass permanent system-role locks.
+- Entity reporting edits include the expected saved pair. Conflict responses require reload and deliberate resubmission; mutations are never retried automatically. Stored subtype values and trial-balance grouping remain compatible.
+- Added a [chart-write migration guide](docs/charts-v2-migration.md). Publication is pending.
 
 ## 0.1.0-alpha.2
 

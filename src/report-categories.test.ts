@@ -50,3 +50,58 @@ describe('report category discovery', () => {
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('workspace chart input discovery', () => {
+  it('uses the workspace capability endpoint before an entity exists', async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input, init) => {
+      expect(new URL(String(input)).pathname).toBe('/api/public/v1/report-categories');
+      expect(init?.method).toBe('GET');
+      expect(new Headers(init?.headers).get('authorization')).toBe('Bearer oauth-token');
+      expect(new Headers(init?.headers).get('x-workspace-id')).toBe('selected-workspace');
+      return Response.json({
+        data: {
+          workspaceId: 'selected-workspace',
+          country: 'AU',
+          reportingInputsEnabled: true,
+          groups: [],
+          categories: [],
+        },
+      });
+    });
+    const client = new Prosaic({
+      accessToken: 'oauth-token',
+      workspaceId: 'selected-workspace',
+      fetch: fetcher,
+    });
+    const result = await client.reportCategories.listForWorkspace();
+    expect(result.data.reportingInputsEnabled).toBe(true);
+    expect(result.data.workspaceId).toBe('selected-workspace');
+  });
+
+  it('keeps explicit null and expected pair on a reporting edit and never retries a contract conflict', async () => {
+    const fetcher = vi.fn<typeof fetch>(async (_input, init) => {
+      expect(JSON.parse(String(init?.body))).toEqual({
+        reporting: {
+          groupKey: 'exp.operating',
+          categoryKey: null,
+          expected: { groupKey: 'exp.operating', categoryKey: 'travel' },
+        },
+      });
+      return Response.json(
+        { error: 'Rediscover capability', code: 'CHART_INPUT_CONTRACT_MISMATCH' },
+        { status: 409 },
+      );
+    });
+    const client = new Prosaic('test-key', { fetch: fetcher });
+    await expect(
+      client.entityAccounts.update('entity', 'account', {
+        reporting: {
+          groupKey: 'exp.operating',
+          categoryKey: null,
+          expected: { groupKey: 'exp.operating', categoryKey: 'travel' },
+        },
+      }),
+    ).rejects.toMatchObject({ status: 409, code: 'CHART_INPUT_CONTRACT_MISMATCH' });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+});
