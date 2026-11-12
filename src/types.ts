@@ -729,7 +729,15 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update a draft fixed asset
+         * @description Updates only the supplied fields on a draft fixed asset. Omitted fields keep
+         *     their stored values; send null to clear a nullable field. The asset's own
+         *     depreciation method, rate and useful life override its asset type's defaults.
+         *     Rate and useful life are exclusive: setting one clears the other, and
+         *     method "none" clears both. Active and disposed assets cannot be edited here.
+         */
+        patch: operations["fixedAssets.update"];
         trace?: never;
     };
     "/api/public/v1/entities/{entityId}/fixed-assets": {
@@ -5456,6 +5464,127 @@ export interface operations {
             };
         };
     };
+    "fixedAssets.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name?: string;
+                    dimensionOptionIds?: string[];
+                    depreciationRate?: number | null;
+                    purchaseDate?: string;
+                    startDate?: string;
+                    purchasePrice?: unknown;
+                    residualValue?: unknown;
+                    initialAccumulatedDepreciation?: unknown;
+                    entityFixedAssetTypeId?: string | null;
+                    assetNumber?: string | null;
+                    description?: string | null;
+                    businessUsePercentage?: number | null;
+                    /** @enum {string|null} */
+                    depreciationMethod?: "none" | "straight_line" | "diminishing_value" | null;
+                    usefulLifeYears?: number | null;
+                    immediateExpensePercentage?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            name: string;
+                            assetNumber: string | null;
+                            description: string | null;
+                            status: string;
+                            purchaseDate: string | null;
+                            startDate: string | null;
+                            purchasePrice: number | null;
+                            residualValue: number | null;
+                            businessUsePercentage: number | null;
+                            initialAccumulatedDepreciation: number | null;
+                            depreciationMethod: string | null;
+                            usefulLifeYears: number | null;
+                            depreciationRate: number | null;
+                            methodParams: unknown;
+                            disposalDate: string | null;
+                            disposalProceeds: number | null;
+                            bookValue: number | null;
+                            assetType: {
+                                id: string;
+                                name: string;
+                            } | null;
+                            mostRecentDepreciationRun: {
+                                year: number;
+                                month: number;
+                                accumulatedDepreciation: number;
+                            } | null;
+                            createdAt: string;
+                            updatedAt: string | null;
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid body, or depreciation, business use, asset number or dimension rules failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized - Invalid or missing API key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden - No edit access to the specified entity */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Fixed asset or asset type not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The asset is not a draft */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "fixedAssets.list": {
         parameters: {
             query?: {
@@ -7055,11 +7184,6 @@ export interface operations {
                             journalType: string;
                             bankTransactionId: string | null;
                             gst: string;
-                            entityAccount: {
-                                id: string;
-                                name: string;
-                                code: string;
-                            };
                             id: string;
                             description: string | null;
                             /** Format: date-time */
@@ -7074,6 +7198,11 @@ export interface operations {
                             credit: string;
                             /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                             debit: string;
+                            entityAccount: {
+                                id: string;
+                                name: string;
+                                code: string;
+                            };
                             taxRate: {
                                 id: string;
                                 name: string;

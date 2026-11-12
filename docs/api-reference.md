@@ -45,6 +45,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `fixedAssets.create` | `POST /api/public/v1/entities/{entityId}/fixed-assets` |
 | `fixedAssets.list` | `GET /api/public/v1/entities/{entityId}/fixed-assets` |
 | `fixedAssets.retrieve` | `GET /api/public/v1/entities/{entityId}/fixed-assets/{assetId}` |
+| `fixedAssets.update` | `PATCH /api/public/v1/entities/{entityId}/fixed-assets/{assetId}` |
 | `generalLedger.byAccount` | `GET /api/public/v1/entities/{entityId}/general-ledger/account` |
 | `generalLedger.byTransaction` | `GET /api/public/v1/entities/{entityId}/general-ledger/transaction` |
 | `globalAccounts.list` | `GET /api/public/v1/global-accounts` |
