@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-alpha.3 (unreleased)
+
+- Regenerated from the 12 November 2026 API snapshot: 80 operations across 25 resource groups.
+- Added `fixedAssets.update()`, which changes a draft fixed asset. Fields you leave out keep their stored values, and `null` clears a field that can be empty. An asset's own depreciation method, rate and useful life override its asset type's defaults. Rate and useful life are exclusive: setting one clears the other, and method `'none'` clears both. An active or disposed asset returns `409`.
+
 ## 0.1.0-alpha.2
 
 - First npm release, as `prosaic-node`. Install it with `npm install prosaic-node@next`. Earlier archives were named `@prosaic/sdk`; import from `prosaic-node` instead.

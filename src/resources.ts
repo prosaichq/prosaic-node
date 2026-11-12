@@ -71,6 +71,8 @@ export type FixedAssetsListParams = NonNullable<operations["fixedAssets.list"]['
 export type FixedAssetsCreateResponse = operations["fixedAssets.create"]['responses'][201]['content']['application/json'];
 export type FixedAssetsCreateParams = operations["fixedAssets.create"]['requestBody']['content']['application/json'];
 export type FixedAssetsRetrieveResponse = operations["fixedAssets.retrieve"]['responses'][200]['content']['application/json'];
+export type FixedAssetsUpdateResponse = operations["fixedAssets.update"]['responses'][200]['content']['application/json'];
+export type FixedAssetsUpdateParams = operations["fixedAssets.update"]['requestBody']['content']['application/json'];
 export type GeneralLedgerByAccountResponse = operations["generalLedger.byAccount"]['responses'][200]['content']['application/json'];
 export type GeneralLedgerByAccountParams = NonNullable<operations["generalLedger.byAccount"]['parameters']['query']>;
 export type GeneralLedgerByTransactionResponse = operations["generalLedger.byTransaction"]['responses'][200]['content']['application/json'];
@@ -641,6 +643,19 @@ export class FixedAssetsResource {
    */
   retrieve(entityId: string, assetId: string, options: RequestOptions = {}): APIPromise<FixedAssetsRetrieveResponse> {
     return new APIPromise(this.transport.request<FixedAssetsRetrieveResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/fixed-assets/${pathParam(assetId)}`, {}, options));
+  }
+
+  /**
+   * Update a draft fixed asset
+   * Updates only the supplied fields on a draft fixed asset. Omitted fields keep
+   * their stored values; send null to clear a nullable field. The asset's own
+   * depreciation method, rate and useful life override its asset type's defaults.
+   * Rate and useful life are exclusive: setting one clears the other, and
+   * method "none" clears both. Active and disposed assets cannot be edited here.
+   *
+   */
+  update(entityId: string, assetId: string, params: FixedAssetsUpdateParams = {}, options: RequestOptions = {}): APIPromise<FixedAssetsUpdateResponse> {
+    return new APIPromise(this.transport.request<FixedAssetsUpdateResponse>("PATCH", `/api/public/v1/entities/${pathParam(entityId)}/fixed-assets/${pathParam(assetId)}`, { body: params }, options));
   }
 }
 

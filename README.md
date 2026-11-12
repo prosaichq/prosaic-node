@@ -202,6 +202,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 - Chart accounts expose saved `reportGroup` and nullable `reportCategory` summaries. A non-null group with a null category is a group-only assignment; a null group means unassigned. Use these fields for current reporting. `subtype` preserves legacy compatibility values and can differ from current report placement.
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
 - `journals.createBulk()` records up to 100 journals and 1,000 lines in one transaction: all of them or none. `autoPost` is required. Send an `idempotencyKey` to make a retry safe, because the SDK never retries it for you. A rejected set throws an `APIError` whose `details.problems` lists each problem with its journal's position in the request.
+- `fixedAssets.update()` changes a draft fixed asset. Send only the fields to change: omitted fields keep their stored values, and `null` clears a field that can be empty. `depreciationRate` is a percentage, and it overrides the asset type's default rate. Setting a rate clears a stored useful life, and the reverse. An active or disposed asset returns `409`.
 - `files.upload(entityId, file)` accepts a `File` or `Blob`. Use a named `File`, or pass a `filename` request option for a `Blob`.
 - Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.
 - `extensions.request()` requires an extension-scoped token. Ordinary API keys and user OAuth tokens cannot call it. An upstream error is represented by embedded `status`/`ok` fields inside an HTTP 200 response.
@@ -210,7 +211,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 79 operations across 25 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 80 operations across 25 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
 | Area                      | Resources                                                                      |
 | ------------------------- | ------------------------------------------------------------------------------ |
@@ -226,7 +227,7 @@ Use the [API resource reference](docs/api-reference.md) to find a method, and th
 
 ### Alpha compatibility
 
-The SDK targets the **6 November 2026** API snapshot. The developer documentation may describe newer API capabilities.
+The SDK targets the **12 November 2026** API snapshot. The developer documentation may describe newer API capabilities.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 

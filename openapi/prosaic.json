@@ -9696,6 +9696,295 @@
         "operationId": "fixedAssets.retrieve",
         "x-sdk-resource": "fixedAssets",
         "x-sdk-method": "retrieve"
+      },
+      "patch": {
+        "summary": "Update a draft fixed asset",
+        "description": "Updates only the supplied fields on a draft fixed asset. Omitted fields keep\ntheir stored values; send null to clear a nullable field. The asset's own\ndepreciation method, rate and useful life override its asset type's defaults.\nRate and useful life are exclusive: setting one clears the other, and\nmethod \"none\" clears both. Active and disposed assets cannot be edited here.\n",
+        "tags": [
+          "Fixed Assets"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "assetId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "dimensionOptionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "depreciationRate": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "purchaseDate": {
+                    "type": "string"
+                  },
+                  "startDate": {
+                    "type": "string"
+                  },
+                  "purchasePrice": {},
+                  "residualValue": {},
+                  "initialAccumulatedDepreciation": {},
+                  "entityFixedAssetTypeId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "assetNumber": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "businessUsePercentage": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "depreciationMethod": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "straight_line",
+                      "diminishing_value"
+                    ],
+                    "nullable": true
+                  },
+                  "usefulLifeYears": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "immediateExpensePercentage": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "assetNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "description": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "purchaseDate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "startDate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "purchasePrice": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "residualValue": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "businessUsePercentage": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "initialAccumulatedDepreciation": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "depreciationMethod": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "usefulLifeYears": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "depreciationRate": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "methodParams": {},
+                        "disposalDate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "disposalProceeds": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "bookValue": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "assetType": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "mostRecentDepreciationRun": {
+                          "type": "object",
+                          "properties": {
+                            "year": {
+                              "type": "number"
+                            },
+                            "month": {
+                              "type": "number"
+                            },
+                            "accumulatedDepreciation": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "year",
+                            "month",
+                            "accumulatedDepreciation"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "assetNumber",
+                        "description",
+                        "status",
+                        "purchaseDate",
+                        "startDate",
+                        "purchasePrice",
+                        "residualValue",
+                        "businessUsePercentage",
+                        "initialAccumulatedDepreciation",
+                        "depreciationMethod",
+                        "usefulLifeYears",
+                        "depreciationRate",
+                        "methodParams",
+                        "disposalDate",
+                        "disposalProceeds",
+                        "bookValue",
+                        "assetType",
+                        "mostRecentDepreciationRun",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body, or depreciation, business use, asset number or dimension rules failed"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "403": {
+            "description": "Forbidden - No edit access to the specified entity"
+          },
+          "404": {
+            "description": "Fixed asset or asset type not found"
+          },
+          "409": {
+            "description": "The asset is not a draft"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "fixedAssets.update",
+        "x-sdk-resource": "fixedAssets",
+        "x-sdk-method": "update"
       }
     },
     "/api/public/v1/entities/{entityId}/fixed-assets": {
@@ -14061,26 +14350,6 @@
                           "gst": {
                             "type": "string"
                           },
-                          "entityAccount": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string"
-                              },
-                              "code": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "code"
-                            ],
-                            "additionalProperties": false
-                          },
                           "id": {
                             "type": "string"
                           },
@@ -14116,6 +14385,26 @@
                           "debit": {
                             "type": "string",
                             "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                          },
+                          "entityAccount": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "code"
+                            ],
+                            "additionalProperties": false
                           },
                           "taxRate": {
                             "type": "object",
@@ -14170,7 +14459,6 @@
                           "journalType",
                           "bankTransactionId",
                           "gst",
-                          "entityAccount",
                           "id",
                           "description",
                           "createdAt",
@@ -14181,6 +14469,7 @@
                           "taxRateId",
                           "credit",
                           "debit",
+                          "entityAccount",
                           "taxRate",
                           "accountVersion",
                           "lineNumber",
