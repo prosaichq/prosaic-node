@@ -197,7 +197,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 - `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the response is unpaginated.
 - Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
-- Chart writes follow the selected workspace capability. Discover `reportCategories.listForWorkspace()` before creating a template. Activated included rows need `groupKey`, explicit `categoryKey` (nullable when eligible), and appropriate `systemRole` choices. Full replacement carries stable IDs, each row’s `expectedUpdatedAt`, and the template `expectedUpdatedAt`. Template account reporting edits use `expectedTemplateUpdatedAt` plus row `expectedUpdatedAt`. Metadata-only updates preserve classification. API writes leave changed template assignments unreviewed and cannot approve propagation. See the [migration guide](docs/charts-v2-migration.md) and [system-account example](examples/system-accounts.ts).
+- Chart writes follow the selected workspace capability. Discover `reportCategories.listForWorkspace()` before creating a template. Activated included rows need `groupKey`, explicit `categoryKey` (nullable when eligible), and appropriate `systemRole` choices. Full replacement carries stable IDs, each row’s `expectedUpdatedAt`, and the template `expectedUpdatedAt`. Template account reporting edits use `expectedTemplateUpdatedAt` plus row `expectedUpdatedAt`. Metadata-only updates preserve classification. API writes leave changed template assignments unreviewed and cannot approve propagation. See [Chart of accounts](https://developer.prosaic.works/docs/ledger/chart-of-accounts) and the [system-account example](examples/system-accounts.ts).
 - `reportCategories.listForWorkspace()` returns the authorised workspace’s country taxonomy, `workspaceId` and `reportingInputsEnabled`, before an entity exists. `reportCategories.list(entityId)` exposes capability across all active workspaces and returns the complete taxonomy for the authorised entity's country. Headings are structure only (`isAssignable: false`). A group's `allowGroupOnly` permission does not remove category requirements for bank or asset-account functions. See the [discovery example](examples/report-categories.ts).
 - Chart accounts expose saved `reportGroup` and nullable `reportCategory` summaries. A non-null group with a null category is a group-only assignment; a null group means unassigned. Use these fields for current reporting. `subtype` preserves legacy compatibility values and can differ from current report placement.
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
@@ -227,7 +227,7 @@ Use the [API resource reference](docs/api-reference.md) to find a method, and th
 
 ### Alpha compatibility
 
-The SDK targets the **12 November 2026** API snapshot. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode. See the [chart migration guide](docs/charts-v2-migration.md) before upgrading.
+The SDK targets the **12 November 2026** API snapshot. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 

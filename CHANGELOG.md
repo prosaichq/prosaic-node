@@ -8,7 +8,6 @@
 - Added `reportCategories.listForWorkspace()` for discovery before an entity exists. Entity discovery exposes capability across every active workspace. Writes recheck policy and return `CHART_INPUT_CONTRACT_MISMATCH` (409) when the contract changed, or `CHART_INPUT_POLICY_UNAVAILABLE` (503).
 - Template reads expose stable IDs, row versions, template version and review state. Reporting and replacement writes require saved preconditions. Metadata-only patches preserve classification. API access does not confirm human template review or bypass permanent system-role locks.
 - Entity reporting edits include the expected saved pair. Conflict responses require reload and deliberate resubmission; mutations are never retried automatically. Stored subtype values and trial-balance grouping remain compatible.
-- Added a [chart-write migration guide](docs/charts-v2-migration.md). Publication is pending.
 
 ## 0.1.0-alpha.2
 
