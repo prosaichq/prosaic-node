@@ -71,6 +71,11 @@ export type FixedAssetsListResponse = operations["fixedAssets.list"]['responses'
 export type FixedAssetsListParams = NonNullable<operations["fixedAssets.list"]['parameters']['query']>;
 export type FixedAssetsCreateResponse = operations["fixedAssets.create"]['responses'][201]['content']['application/json'];
 export type FixedAssetsCreateParams = operations["fixedAssets.create"]['requestBody']['content']['application/json'];
+export type FixedAssetsActivateResponse = operations["fixedAssets.activate"]['responses'][200]['content']['application/json'];
+export type FixedAssetsActivateParams = operations["fixedAssets.activate"]['requestBody']['content']['application/json'];
+export type FixedAssetsImportResponse = operations["fixedAssets.import"]['responses'][200]['content']['application/json'];
+export type FixedAssetsImportParams = operations["fixedAssets.import"]['requestBody']['content']['application/json'];
+export type FixedAssetsDelResponse = operations["fixedAssets.del"]['responses'][200]['content']['application/json'];
 export type FixedAssetsRetrieveResponse = operations["fixedAssets.retrieve"]['responses'][200]['content']['application/json'];
 export type FixedAssetsUpdateResponse = operations["fixedAssets.update"]['responses'][200]['content']['application/json'];
 export type FixedAssetsUpdateParams = operations["fixedAssets.update"]['requestBody']['content']['application/json'];
@@ -639,6 +644,68 @@ export class FixedAssetsResource {
    */
   create(entityId: string, params: FixedAssetsCreateParams, options: RequestOptions = {}): APIPromise<FixedAssetsCreateResponse> {
     return new APIPromise(this.transport.request<FixedAssetsCreateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/fixed-assets`, { body: params }, options));
+  }
+
+  /**
+   * Activate draft fixed assets
+   * Activate one or many draft fixed assets, which is what starts them
+   * depreciating. Each asset is activated independently, so the response
+   * lists what succeeded and what did not; a failure does not roll back the
+   * assets that worked.
+   *
+   * An asset must have a type, both dates, a purchase price, a depreciation
+   * method and exactly one of a rate or a useful life before it can be
+   * activated, and any dimension the entity requires must be set on it.
+   *
+   * No purchase journal is posted. A converted asset's purchase is already
+   * in the ledger, as is the depreciation its opening accumulated
+   * depreciation represents, so activation posts nothing for either.
+   *
+   */
+  activate(entityId: string, params: FixedAssetsActivateParams, options: RequestOptions = {}): APIPromise<FixedAssetsActivateResponse> {
+    return new APIPromise(this.transport.request<FixedAssetsActivateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/fixed-assets/activate`, { body: params }, options));
+  }
+
+  /**
+   * Import a fixed asset register
+   * Create many draft fixed assets in one call, reporting on every row.
+   * Built for a conversion from another system.
+   *
+   * Rows are processed independently, so one bad row does not stop the rest.
+   * Each row comes back as `created`, `exists` or `error`, with the field at
+   * fault named on anything refused.
+   * A row whose `assetNumber` is already on the entity is reported as
+   * `exists` with that asset's ID rather than as an error, so retrying a
+   * call that timed out cannot create an asset twice.
+   *
+   * Assets are created as drafts and no journal is posted, so a register
+   * that came out wrong can be read back, deleted with
+   * `DELETE /fixed-assets/{assetId}` and imported again. Activate them with
+   * `POST /fixed-assets/activate` once the register reads correctly.
+   *
+   * Opening accumulated depreciation never posts a journal — the
+   * depreciation it represents is already in the ledger. For the same
+   * reason a cost limit and an immediate expense claim (Investment Boost)
+   * are not accepted here: a boost is already inside the opening
+   * accumulated depreciation, and claiming it again would double-book it.
+   *
+   */
+  import(entityId: string, params: FixedAssetsImportParams, options: RequestOptions = {}): APIPromise<FixedAssetsImportResponse> {
+    return new APIPromise(this.transport.request<FixedAssetsImportResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/fixed-assets/import`, { body: params }, options));
+  }
+
+  /**
+   * Delete a draft fixed asset
+   * Permanently delete a draft fixed asset. Drafts only: an active or
+   * disposed asset has posted journals behind it and is refused with a 409.
+   * Dispose of those instead.
+   *
+   * This is how a register imported with the wrong values is cleared before
+   * importing it again.
+   *
+   */
+  del(entityId: string, assetId: string, options: RequestOptions = {}): APIPromise<FixedAssetsDelResponse> {
+    return new APIPromise(this.transport.request<FixedAssetsDelResponse>("DELETE", `/api/public/v1/entities/${pathParam(entityId)}/fixed-assets/${pathParam(assetId)}`, {}, options));
   }
 
   /**

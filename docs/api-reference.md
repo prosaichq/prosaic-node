@@ -42,7 +42,10 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `files.upload` | `POST /api/public/v1/entities/{entityId}/files/upload` |
 | `fixedAssetTypes.create` | `POST /api/public/v1/entities/{entityId}/fixed-asset-types` |
 | `fixedAssetTypes.list` | `GET /api/public/v1/entities/{entityId}/fixed-asset-types` |
+| `fixedAssets.activate` | `POST /api/public/v1/entities/{entityId}/fixed-assets/activate` |
 | `fixedAssets.create` | `POST /api/public/v1/entities/{entityId}/fixed-assets` |
+| `fixedAssets.del` | `DELETE /api/public/v1/entities/{entityId}/fixed-assets/{assetId}` |
+| `fixedAssets.import` | `POST /api/public/v1/entities/{entityId}/fixed-assets/import` |
 | `fixedAssets.list` | `GET /api/public/v1/entities/{entityId}/fixed-assets` |
 | `fixedAssets.retrieve` | `GET /api/public/v1/entities/{entityId}/fixed-assets/{assetId}` |
 | `fixedAssets.update` | `PATCH /api/public/v1/entities/{entityId}/fixed-assets/{assetId}` |
