@@ -1,4 +1,5 @@
 import Prosaic from '../src/index.js';
+import type { FixedAssetsImportParams } from '../src/index.js';
 
 const apiKey = process.env.PROSAIC_API_KEY;
 const entityId = process.env.PROSAIC_ENTITY_ID;
@@ -68,16 +69,16 @@ if (process.env.PROSAIC_DISCARD_ASSET_ID) {
   await client.fixedAssets.del(entityId, process.env.PROSAIC_DISCARD_ASSET_ID);
 }
 
-// Every row needs a name.
-await client.fixedAssets.import(entityId, {
-  // @ts-expect-error - name is required
-  assets: [{ assetNumber: 'FA-0002' }],
-});
-
-// A cost limit and an investment boost are not imported: a boost is already
-// inside the opening accumulated depreciation, so claiming it again at
-// activation would count it twice.
-await client.fixedAssets.import(entityId, {
+// What the types refuse, checked at compile time and never sent. A cost limit
+// and an investment boost are not import fields: a boost is already inside the
+// opening accumulated depreciation, so claiming it again at activation would
+// count it twice.
+const refused: FixedAssetsImportParams[] = [
+  // @ts-expect-error - every row needs a name
+  { assets: [{ assetNumber: 'FA-0002' }] },
   // @ts-expect-error - costLimit is not an import field
-  assets: [{ name: 'Ute', costLimit: 5000 }],
-});
+  { assets: [{ name: 'Ute', costLimit: 5000 }] },
+  // @ts-expect-error - an investment boost is not an import field
+  { assets: [{ name: 'Ute', immediateExpensePercentage: 20 }] },
+];
+void refused;
