@@ -10213,6 +10213,479 @@
         "operationId": "fixedAssets.update",
         "x-sdk-resource": "fixedAssets",
         "x-sdk-method": "update"
+      },
+      "delete": {
+        "summary": "Delete a draft fixed asset",
+        "description": "Permanently delete a draft fixed asset. Drafts only: an active or\ndisposed asset has posted journals behind it and is refused with a 409.\nDispose of those instead.\n\nThis is how a register imported with the wrong values is cleared before\nimporting it again.\n",
+        "tags": [
+          "Fixed Assets"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "assetId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "deleted": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "deleted"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Entity ID in path does not match the key's entity access"
+          },
+          "404": {
+            "description": "No such asset on this entity"
+          },
+          "409": {
+            "description": "The asset is not a draft"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "operationId": "fixedAssets.del",
+        "x-sdk-resource": "fixedAssets",
+        "x-sdk-method": "del"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/fixed-assets/activate": {
+      "post": {
+        "summary": "Activate draft fixed assets",
+        "description": "Activate one or many draft fixed assets, which is what starts them\ndepreciating. Each asset is activated independently, so the response\nlists what succeeded and what did not; a failure does not roll back the\nassets that worked.\n\nAn asset must have a type, both dates, a purchase price, a depreciation\nmethod and exactly one of a rate or a useful life before it can be\nactivated, and any dimension the entity requires must be set on it.\n\nNo purchase journal is posted. A converted asset's purchase is already\nin the ledger, as is the depreciation its opening accumulated\ndepreciation represents, so activation posts nothing for either.\n",
+        "tags": [
+          "Fixed Assets"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assetIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "assetIds"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "activated": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "assetId": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "assetId",
+                              "name"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "failed": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "assetId": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "error": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "assetId",
+                              "name",
+                              "error"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "activated",
+                        "failed"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body could not be read"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "No access to this entity"
+          },
+          "423": {
+            "description": "The period the activation would post into is locked"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "operationId": "fixedAssets.activate",
+        "x-sdk-resource": "fixedAssets",
+        "x-sdk-method": "activate"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/fixed-assets/import": {
+      "post": {
+        "summary": "Import a fixed asset register",
+        "description": "Create many draft fixed assets in one call, reporting on every row.\nBuilt for a conversion from another system.\n\nRows are processed independently, so one bad row does not stop the rest.\nEach row comes back as `created`, `exists` or `error`, with the field at\nfault named on anything refused.\nA row whose `assetNumber` is already on the entity is reported as\n`exists` with that asset's ID rather than as an error, so retrying a\ncall that timed out cannot create an asset twice.\n\nAssets are created as drafts and no journal is posted, so a register\nthat came out wrong can be read back, deleted with\n`DELETE /fixed-assets/{assetId}` and imported again. Activate them with\n`POST /fixed-assets/activate` once the register reads correctly.\n\nOpening accumulated depreciation never posts a journal — the\ndepreciation it represents is already in the ledger. For the same\nreason a cost limit and an immediate expense claim (Investment Boost)\nare not accepted here: a boost is already inside the opening\naccumulated depreciation, and claiming it again would double-book it.\n",
+        "tags": [
+          "Fixed Assets"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "usefulLifeYears": {
+                          "type": "number"
+                        },
+                        "depreciationRate": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "purchaseDate": {
+                          "type": "string"
+                        },
+                        "startDate": {
+                          "type": "string"
+                        },
+                        "entityFixedAssetTypeId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "assetNumber": {
+                          "type": "string"
+                        },
+                        "purchasePrice": {},
+                        "residualValue": {},
+                        "businessUsePercentage": {
+                          "type": "number"
+                        },
+                        "initialAccumulatedDepreciation": {},
+                        "depreciationMethod": {
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "straight_line",
+                            "diminishing_value"
+                          ],
+                          "nullable": true
+                        },
+                        "assetTypeName": {
+                          "type": "string"
+                        },
+                        "accumulatedDepreciationAsAt": {
+                          "type": "string"
+                        },
+                        "averagingMethod": {
+                          "type": "string",
+                          "enum": [
+                            "full_month"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "filename": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "assets"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "totalRows": {
+                          "type": "number"
+                        },
+                        "createdCount": {
+                          "type": "number"
+                        },
+                        "results": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "row": {
+                                "type": "number"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "assetNumber": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "error",
+                                  "created",
+                                  "exists"
+                                ]
+                              },
+                              "assetId": {
+                                "type": "string"
+                              },
+                              "errors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "field": {
+                                      "type": "string"
+                                    },
+                                    "message": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "field",
+                                    "message"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "warnings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "row",
+                              "name",
+                              "assetNumber",
+                              "status",
+                              "errors",
+                              "warnings"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "totalRows",
+                        "createdCount",
+                        "results"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body could not be read"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "No access to this entity"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "operationId": "fixedAssets.import",
+        "x-sdk-resource": "fixedAssets",
+        "x-sdk-method": "import"
       }
     },
     "/api/public/v1/entities/{entityId}/fixed-assets": {
@@ -19744,6 +20217,14 @@
                           "financialYearStartMonth": {
                             "type": "number"
                           },
+                          "conversionDate": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "gstFilingStartDate": {
+                            "type": "string",
+                            "nullable": true
+                          },
                           "currency": {
                             "type": "string"
                           },
@@ -20019,6 +20500,8 @@
                           "gstPeriodMonths",
                           "gstBasis",
                           "financialYearStartMonth",
+                          "conversionDate",
+                          "gstFilingStartDate",
                           "currency",
                           "bankAccounts",
                           "clients",
@@ -20348,6 +20831,14 @@
                         "financialYearStartMonth": {
                           "type": "number"
                         },
+                        "conversionDate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "gstFilingStartDate": {
+                          "type": "string",
+                          "nullable": true
+                        },
                         "currency": {
                           "type": "string"
                         },
@@ -20623,6 +21114,8 @@
                         "gstPeriodMonths",
                         "gstBasis",
                         "financialYearStartMonth",
+                        "conversionDate",
+                        "gstFilingStartDate",
                         "currency",
                         "bankAccounts",
                         "clients",
@@ -24424,9 +24917,6 @@
                                 "loss": {
                                   "type": "string"
                                 },
-                                "gain": {
-                                  "type": "string"
-                                },
                                 "private_loss": {
                                   "type": "string"
                                 },
@@ -24437,6 +24927,9 @@
                                   "type": "string"
                                 },
                                 "capital_gain": {
+                                  "type": "string"
+                                },
+                                "gain": {
                                   "type": "string"
                                 }
                               },

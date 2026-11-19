@@ -729,7 +729,16 @@ export interface paths {
         get: operations["fixedAssets.retrieve"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete a draft fixed asset
+         * @description Permanently delete a draft fixed asset. Drafts only: an active or
+         *     disposed asset has posted journals behind it and is refused with a 409.
+         *     Dispose of those instead.
+         *
+         *     This is how a register imported with the wrong values is cleared before
+         *     importing it again.
+         */
+        delete: operations["fixedAssets.del"];
         options?: never;
         head?: never;
         /**
@@ -741,6 +750,76 @@ export interface paths {
          *     method "none" clears both. Active and disposed assets cannot be edited here.
          */
         patch: operations["fixedAssets.update"];
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/fixed-assets/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Activate draft fixed assets
+         * @description Activate one or many draft fixed assets, which is what starts them
+         *     depreciating. Each asset is activated independently, so the response
+         *     lists what succeeded and what did not; a failure does not roll back the
+         *     assets that worked.
+         *
+         *     An asset must have a type, both dates, a purchase price, a depreciation
+         *     method and exactly one of a rate or a useful life before it can be
+         *     activated, and any dimension the entity requires must be set on it.
+         *
+         *     No purchase journal is posted. A converted asset's purchase is already
+         *     in the ledger, as is the depreciation its opening accumulated
+         *     depreciation represents, so activation posts nothing for either.
+         */
+        post: operations["fixedAssets.activate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/fixed-assets/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import a fixed asset register
+         * @description Create many draft fixed assets in one call, reporting on every row.
+         *     Built for a conversion from another system.
+         *
+         *     Rows are processed independently, so one bad row does not stop the rest.
+         *     Each row comes back as `created`, `exists` or `error`, with the field at
+         *     fault named on anything refused.
+         *     A row whose `assetNumber` is already on the entity is reported as
+         *     `exists` with that asset's ID rather than as an error, so retrying a
+         *     call that timed out cannot create an asset twice.
+         *
+         *     Assets are created as drafts and no journal is posted, so a register
+         *     that came out wrong can be read back, deleted with
+         *     `DELETE /fixed-assets/{assetId}` and imported again. Activate them with
+         *     `POST /fixed-assets/activate` once the register reads correctly.
+         *
+         *     Opening accumulated depreciation never posts a journal — the
+         *     depreciation it represents is already in the ledger. For the same
+         *     reason a cost limit and an immediate expense claim (Investment Boost)
+         *     are not accepted here: a boost is already inside the opening
+         *     accumulated depreciation, and claiming it again would double-book it.
+         */
+        post: operations["fixedAssets.import"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/public/v1/entities/{entityId}/fixed-assets": {
@@ -5554,6 +5633,72 @@ export interface operations {
             };
         };
     };
+    "fixedAssets.del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            deleted: boolean;
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity ID in path does not match the key's entity access */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No such asset on this entity */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The asset is not a draft */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "fixedAssets.update": {
         parameters: {
             query?: never;
@@ -5667,6 +5812,181 @@ export interface operations {
                 content?: never;
             };
             /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "fixedAssets.activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    assetIds: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            activated: {
+                                assetId: string;
+                                name: string;
+                            }[];
+                            failed: {
+                                assetId: string;
+                                name: string;
+                                error: string;
+                            }[];
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description The body could not be read */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No access to this entity */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The period the activation would post into is locked */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "fixedAssets.import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    assets: {
+                        name: string;
+                        description?: string;
+                        usefulLifeYears?: number;
+                        depreciationRate?: number | null;
+                        purchaseDate?: string;
+                        startDate?: string;
+                        entityFixedAssetTypeId?: string | null;
+                        assetNumber?: string;
+                        purchasePrice?: unknown;
+                        residualValue?: unknown;
+                        businessUsePercentage?: number;
+                        initialAccumulatedDepreciation?: unknown;
+                        /** @enum {string|null} */
+                        depreciationMethod?: "none" | "straight_line" | "diminishing_value" | null;
+                        assetTypeName?: string;
+                        accumulatedDepreciationAsAt?: string;
+                        /** @enum {string} */
+                        averagingMethod?: "full_month";
+                    }[];
+                    filename?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            totalRows: number;
+                            createdCount: number;
+                            results: {
+                                row: number;
+                                name: string;
+                                assetNumber: string | null;
+                                /** @enum {string} */
+                                status: "error" | "created" | "exists";
+                                assetId?: string;
+                                errors: {
+                                    field: string;
+                                    message: string;
+                                }[];
+                                warnings: string[];
+                            }[];
+                        };
+                        meta?: {
+                            count: number;
+                        };
+                    };
+                };
+            };
+            /** @description The body could not be read */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No access to this entity */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Server error */
             500: {
                 headers: {
                     [name: string]: unknown;
@@ -9028,6 +9348,8 @@ export interface operations {
                             gstPeriodMonths: number | null;
                             gstBasis: string | null;
                             financialYearStartMonth: number;
+                            conversionDate: string | null;
+                            gstFilingStartDate: string | null;
                             currency: string;
                             bankAccounts: {
                                 id: string;
@@ -9200,6 +9522,8 @@ export interface operations {
                             gstPeriodMonths: number | null;
                             gstBasis: string | null;
                             financialYearStartMonth: number;
+                            conversionDate: string | null;
+                            gstFilingStartDate: string | null;
                             currency: string;
                             bankAccounts: {
                                 id: string;
@@ -10969,11 +11293,11 @@ export interface operations {
                             saleTaxCode?: string;
                             accountCodes?: {
                                 loss?: string;
-                                gain?: string;
                                 private_loss?: string;
                                 private_gain?: string;
                                 depreciation_recovery?: string;
                                 capital_gain?: string;
+                                gain?: string;
                             };
                         };
                         fixedAssetPurchase?: {
