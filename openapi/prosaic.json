@@ -19027,12 +19027,13 @@
             "name": "groupBy",
             "in": "query",
             "required": false,
-            "description": "How to group accounts in the response",
+            "description": "How to group accounts. Use `reportGroup` for saved report groups in the entity's country order. Each group's `type` is its stable key and `name` is its label. Accounts without a saved group appear together under `unassigned`. Use `none` to group rows yourself.\n**Deprecated.** Use `groupBy=reportGroup` in place of `groupBy=subtype`.\n",
             "schema": {
               "type": "string",
               "enum": [
                 "type",
                 "subtype",
+                "reportGroup",
                 "none"
               ]
             }
@@ -19241,6 +19242,40 @@
                                     },
                                     "reportCategoryKey": {
                                       "type": "string",
+                                      "nullable": true
+                                    },
+                                    "reportGroup": {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "name"
+                                      ],
+                                      "additionalProperties": false,
+                                      "nullable": true
+                                    },
+                                    "reportCategory": {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "name"
+                                      ],
+                                      "additionalProperties": false,
                                       "nullable": true
                                     },
                                     "debitBalance": {
@@ -19521,6 +19556,40 @@
                                     },
                                     "reportCategoryKey": {
                                       "type": "string",
+                                      "nullable": true
+                                    },
+                                    "reportGroup": {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "name"
+                                      ],
+                                      "additionalProperties": false,
+                                      "nullable": true
+                                    },
+                                    "reportCategory": {
+                                      "type": "object",
+                                      "properties": {
+                                        "key": {
+                                          "type": "string"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "key",
+                                        "name"
+                                      ],
+                                      "additionalProperties": false,
                                       "nullable": true
                                     },
                                     "debitBalance": {

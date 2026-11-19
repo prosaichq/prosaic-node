@@ -12,6 +12,30 @@ function json(body: unknown, status = 200, headers: HeadersInit = {}): Response 
 }
 
 describe('HTTP transport', () => {
+  it('requests a trial balance by report group and preserves account classifications', async () => {
+    const account = {
+      accountCode: '6810',
+      reportGroup: { key: 'ass.current', name: 'Current assets' },
+      reportCategory: { key: 'ass.bank', name: 'Bank accounts' },
+      netBalance: '7500.01',
+    };
+    const client = new Prosaic('test-key', {
+      fetch: async (input, init) => {
+        const url = new URL(String(input));
+        expect(url.pathname).toBe('/api/public/v1/entities/entity%2Fid/trial-balance');
+        expect(url.searchParams.get('groupBy')).toBe('reportGroup');
+        expect(init?.method).toBe('GET');
+        return json({ accountGroups: [{ type: 'ass.current', accounts: [account] }] });
+      },
+    });
+
+    const result = await client.reports.trialBalance('entity/id', { groupBy: 'reportGroup' });
+
+    expect(result.accountGroups[0]?.accounts[0]?.reportGroup).toEqual(account.reportGroup);
+    expect(result.accountGroups[0]?.accounts[0]?.reportCategory).toEqual(account.reportCategory);
+    expect(result.accountGroups[0]?.accounts[0]?.netBalance).toBe('7500.01');
+  });
+
   it('preserves automatic system-account inclusion and exposes inherited roles on reads', async () => {
     const params: ChartsUpdateParams = {
       includeSystemAccounts: true,

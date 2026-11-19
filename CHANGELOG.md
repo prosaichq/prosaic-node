@@ -2,6 +2,7 @@
 
 ## 0.1.0-alpha.3 (unreleased)
 
+- Added `groupBy: "reportGroup"` to `reports.trialBalance()` and included the saved report group and category on account rows. `groupBy: "subtype"` remains available during deprecation.
 - Regenerated from the 12 November 2026 API snapshot: 81 operations across 25 resource groups.
 - Added `fixedAssets.update()`, which changes a draft fixed asset. Fields you leave out keep their stored values, and `null` clears a field that can be empty. An asset's own depreciation method, rate and useful life override its asset type's defaults. Rate and useful life are exclusive: setting one clears the other, and method `'none'` clears both. An active or disposed asset returns `409`.
 - Deliberate breaking API v1 chart-write update in activated workspaces: create accounts with an explicit report group and category choice (null for eligible group-only accounts); account type derives from group. Parent inputs remain supported only in nonactivated workspaces. API URL version `/v1`, package version and workspace capability are separate.

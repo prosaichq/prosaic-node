@@ -8785,8 +8785,11 @@ export interface operations {
                 movementStartDate?: string;
                 /** @description End date for movement mode. */
                 movementEndDate?: string;
-                /** @description How to group accounts in the response */
-                groupBy?: "type" | "subtype" | "none";
+                /**
+                 * @description How to group accounts. Use `reportGroup` for saved report groups in the entity's country order. Each group's `type` is its stable key and `name` is its label. Accounts without a saved group appear together under `unassigned`. Use `none` to group rows yourself.
+                 *     **Deprecated.** Use `groupBy=reportGroup` in place of `groupBy=subtype`.
+                 */
+                groupBy?: "type" | "subtype" | "reportGroup" | "none";
                 /** @description Include accounts with zero balances */
                 includeZeroBalances?: "false" | "true";
                 /** @description Whether to include comparison columns */
@@ -8849,6 +8852,14 @@ export interface operations {
                                 reportGroupKey?: string | null;
                                 reportGroupName?: string;
                                 reportCategoryKey?: string | null;
+                                reportGroup?: {
+                                    key: string;
+                                    name: string;
+                                } | null;
+                                reportCategory?: {
+                                    key: string;
+                                    name: string;
+                                } | null;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                 debitBalance: string;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
@@ -8929,6 +8940,14 @@ export interface operations {
                                 reportGroupKey?: string | null;
                                 reportGroupName?: string;
                                 reportCategoryKey?: string | null;
+                                reportGroup?: {
+                                    key: string;
+                                    name: string;
+                                } | null;
+                                reportCategory?: {
+                                    key: string;
+                                    name: string;
+                                } | null;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
                                 debitBalance: string;
                                 /** @description Exact decimal serialized as a string. Use Decimal.js for arithmetic. */
