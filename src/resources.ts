@@ -144,6 +144,7 @@ export type ScheduledTasksUpdateParams = operations["scheduledTasks.update"]['re
 export type ScheduledTasksRunResponse = operations["scheduledTasks.run"]['responses'][202]['content']['application/json'];
 export type TransactionsReconcileBulkResponse = operations["transactions.reconcileBulk"]['responses'][200]['content']['application/json'];
 export type TransactionsReconcileBulkParams = operations["transactions.reconcileBulk"]['requestBody']['content']['application/json'];
+export type ChartsListXeroReportMappingsResponse = operations["charts.listXeroReportMappings"]['responses'][200]['content']['application/json'];
 
 export class VersionResource {
   constructor(private readonly transport: Transport) {}
@@ -285,6 +286,15 @@ export class ChartsResource {
    */
   update(chartId: string, params: ChartsUpdateParams = {}, options: RequestOptions = {}): APIPromise<ChartsUpdateResponse> {
     return new APIPromise(this.transport.request<ChartsUpdateResponse>("POST", `/api/public/v1/charts/${pathParam(chartId)}/update`, { body: params }, options));
+  }
+
+  /**
+   * List approved Xero report-code mappings
+   * Look up Xero Report Code values in the authorised workspace's country. Each entry gives the Prosaic report group and optional category. Only approved NZ placements that are valid in the current taxonomy are returned. Other countries return an empty lookup. Missing codes require review.
+   *
+   */
+  listXeroReportMappings(options: RequestOptions = {}): APIPromise<ChartsListXeroReportMappingsResponse> {
+    return new APIPromise(this.transport.request<ChartsListXeroReportMappingsResponse>("GET", `/api/public/v1/xero-report-mappings`, {}, options));
   }
 }
 
