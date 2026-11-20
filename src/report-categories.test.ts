@@ -51,6 +51,41 @@ describe('report category discovery', () => {
   });
 });
 
+describe('Xero report-code mapping discovery', () => {
+  it('reads the selected workspace lookup and preserves group-only mappings', async () => {
+    const payload = {
+      data: {
+        country: 'NZ',
+        mappings: {
+          'ASS.CUR': { groupKey: 'ass.current', categoryKey: null },
+          'ASS.CUR.BAN': { groupKey: 'ass.current', categoryKey: 'ass.bank' },
+        },
+      },
+    };
+    const fetcher = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(String(input));
+      expect(url.pathname).toBe('/api/public/v1/xero-report-mappings');
+      expect(url.search).toBe('');
+      expect(init?.method).toBe('GET');
+      const headers = new Headers(init?.headers);
+      expect(headers.get('authorization')).toBe('Bearer oauth-token');
+      expect(headers.get('x-workspace-id')).toBe('selected-workspace');
+      return Response.json(payload);
+    });
+    const api = new Prosaic({
+      accessToken: 'oauth-token',
+      workspaceId: 'selected-workspace',
+      fetch: fetcher,
+    });
+
+    const { data } = await api.charts.listXeroReportMappings();
+    const category: string | null | undefined = data.mappings['ASS.CUR']?.categoryKey;
+    expect(data).toEqual(payload.data);
+    expect(category).toBeNull();
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+});
+
 describe('workspace chart input discovery', () => {
   it('uses the workspace capability endpoint before an entity exists', async () => {
     const fetcher = vi.fn<typeof fetch>(async (input, init) => {

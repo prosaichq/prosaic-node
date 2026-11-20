@@ -9,6 +9,10 @@ const client = new Prosaic(apiKey, { baseUrl: process.env.PROSAIC_BASE_URL });
 const { data: workspaceTaxonomy } = await client.reportCategories.listForWorkspace();
 console.log(workspaceTaxonomy.workspaceId, workspaceTaxonomy.reportingInputsEnabled);
 
+// Look up a value from the Xero Chart of Accounts export's Report Code column.
+const { data: xeroLookup } = await client.charts.listXeroReportMappings();
+console.log(xeroLookup.country, xeroLookup.mappings['ASS.CUR.BAN']);
+
 // Country comes from the authorised entity. Headings are structure, not choices.
 const { data: taxonomy } = await client.reportCategories.list(entityId);
 console.log('Every active workspace ready:', taxonomy.reportingInputsEnabled);

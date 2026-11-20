@@ -13,6 +13,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `charts.del` | `POST /api/public/v1/charts/{chartId}/delete` |
 | `charts.deleteAccount` | `POST /api/public/v1/charts/{chartId}/accounts/{accountId}/delete` |
 | `charts.listAccounts` | `GET /api/public/v1/charts/{chartId}` |
+| `charts.listXeroReportMappings` | `GET /api/public/v1/xero-report-mappings` |
 | `charts.list` | `GET /api/public/v1/charts` |
 | `charts.updateAccount` | `POST /api/public/v1/charts/{chartId}/accounts/{accountId}/update` |
 | `charts.update` | `POST /api/public/v1/charts/{chartId}/update` |
