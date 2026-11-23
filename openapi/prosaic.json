@@ -520,6 +520,37 @@
           }
         }
       },
+      "TrialBalanceCompareAmounts": {
+        "type": "object",
+        "required": [
+          "debit",
+          "credit"
+        ],
+        "properties": {
+          "debit": {
+            "type": "string"
+          },
+          "credit": {
+            "type": "string"
+          }
+        }
+      },
+      "TrialBalanceComparePlacement": {
+        "type": "object",
+        "nullable": true,
+        "required": [
+          "key",
+          "name"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "ReportGroupSummary": {
         "type": "object",
         "nullable": true,
@@ -594,7 +625,7 @@
     "/api/public/v1/charts/{chartId}/accounts/{accountId}/delete": {
       "post": {
         "summary": "Delete a single account from a chart of accounts template",
-        "description": "Removes one account from a chart of accounts template without resending the full account list.\nThe removal propagates to every entity using the template. Accounts that have journal entries,\nchild accounts, or are system accounts cannot be removed. `accountId` is the TemplateAccount ID\nfrom `GET /charts/{chartId}`. Requires API key authentication.\n",
+        "description": "Removes one account from a chart of accounts template without resending the full account list.\nThe removal propagates to every entity using the template. Accounts that have journal entries,\nchild accounts, or are system accounts cannot be removed. `accountId` is the TemplateAccount ID\nfrom `GET /charts/{chartId}`. Successful writes return reviewRequired, unreviewedCount, and reviewUrl.\nRequires bearer authentication.\n",
         "tags": [
           "Charts"
         ],
@@ -648,6 +679,15 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "reviewRequired": {
+                          "type": "boolean"
+                        },
+                        "unreviewedCount": {
+                          "type": "number"
+                        },
+                        "reviewUrl": {
+                          "type": "string"
+                        },
                         "success": {
                           "type": "boolean"
                         },
@@ -656,6 +696,9 @@
                         }
                       },
                       "required": [
+                        "reviewRequired",
+                        "unreviewedCount",
+                        "reviewUrl",
                         "success",
                         "entitiesUpdated"
                       ],
@@ -700,7 +743,7 @@
     "/api/public/v1/charts/{chartId}/accounts/{accountId}/update": {
       "post": {
         "summary": "Update a single account in a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.\nUpdates one account in a chart of accounts template without resending the full account list.\nSupports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same\nparent). A code rename cascades non-destructively to every entity account derived from this\ntemplate account (balances and customizations are preserved). Metadata changes follow existing propagation policy for entities\nusing the template. Omitted fields preserve their existing values; send `description: null` to\nclear the description. `accountId` is the TemplateAccount ID from `GET /charts/{chartId}`.\nReporting changes remain subject to human review before propagation. Requires bearer authentication.\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nUpdates one account in a chart of accounts template without resending the full account list.\nSupports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same\nparent). A code rename cascades non-destructively to every entity account derived from this\ntemplate account (balances and customizations are preserved). Metadata changes follow existing propagation policy for entities\nusing the template. Omitted fields preserve their existing values; send `description: null` to\nclear the description. `accountId` is the TemplateAccount ID from `GET /charts/{chartId}`.\nReporting changes to the template leave existing entity reporting assignments intact. Requires bearer authentication.\n",
         "tags": [
           "Charts"
         ],
@@ -803,6 +846,15 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "reviewRequired": {
+                          "type": "boolean"
+                        },
+                        "unreviewedCount": {
+                          "type": "number"
+                        },
+                        "reviewUrl": {
+                          "type": "string"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -811,6 +863,9 @@
                         }
                       },
                       "required": [
+                        "reviewRequired",
+                        "unreviewedCount",
+                        "reviewUrl",
                         "id",
                         "entitiesUpdated"
                       ],
@@ -858,7 +913,7 @@
     "/api/public/v1/charts/{chartId}/accounts": {
       "post": {
         "summary": "Add a single account to a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.\nAdds one account to a chart of accounts template without resending the full account list. To\nadd a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child\naccount, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).\nActivated rows use the explicit fields above and remain subject to review before reporting propagation. Requires bearer authentication.\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nAdds one account to a chart of accounts template without resending the full account list. To\nadd a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child\naccount, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).\nActivated additions are provisioned to linked charts under the same rules as an editor save. Requires bearer authentication.\n",
         "tags": [
           "Charts"
         ],
@@ -958,6 +1013,15 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "reviewRequired": {
+                          "type": "boolean"
+                        },
+                        "unreviewedCount": {
+                          "type": "number"
+                        },
+                        "reviewUrl": {
+                          "type": "string"
+                        },
                         "id": {
                           "type": "string",
                           "nullable": true
@@ -970,6 +1034,9 @@
                         }
                       },
                       "required": [
+                        "reviewRequired",
+                        "unreviewedCount",
+                        "reviewUrl",
                         "id",
                         "code",
                         "entitiesUpdated"
@@ -1096,7 +1163,7 @@
     "/api/public/v1/charts/{chartId}": {
       "get": {
         "summary": "Get chart of accounts template accounts",
-        "description": "Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.\n\nEach included account also exposes its nullable confirmed systemRole and saved reportGroup/reportCategory summaries. subtype remains the legacy compatibility value, independent of report placement. Hidden global suggestions have systemRole=null and no saved report assignment.\n\n**Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.\n\nTo fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.\n\n**Tax codes**: The `taxCode` field is returned as the human-readable tax *name* (e.g. `\"15% GST on Income\"`, or `\"No GST\"` when unset), not the machine code. When creating or updating a template you must pass the machine *code* instead (`NZ_GST_15_INC`, `NZ_GST_15_EXP`, `NZ_GST_0_NONE`, `NZ_GST_0_ZERO`), so convert the name back to its code before writing.\n",
+        "description": "Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.\n\nEach included account also exposes its nullable confirmed systemRole and saved reportGroup/reportCategory summaries. subtype remains the legacy compatibility value, independent of report placement. Hidden global suggestions have systemRole=null and no saved report assignment.\n\n**Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.\n\nTo fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.\n\n`taxCode` retains the display name (for example `\"No GST\"`). `taxCodeValue` is the stored machine code, or null when unset. Send the machine code as `taxCode` in writes.\n`reviewStatus` counts all saved classified accounts, including reviewed and unreviewed rows. Hidden suggestions are excluded.\n",
         "tags": [
           "Charts"
         ],
@@ -1119,6 +1186,24 @@
             "in": "query",
             "required": false,
             "description": "When true, includes global accounts not in the template (with isIncluded=false). Disables pagination.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "summary",
+            "in": "query",
+            "description": "Return template metadata and review counts with an empty data array.",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "editable",
+            "in": "query",
+            "description": "Include the full versioned update payload for a complete, activated template the caller can configure. The editable field is null if no such payload is available.",
             "schema": {
               "type": "boolean",
               "default": false
@@ -1154,187 +1239,915 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "templateUpdatedAt": {
-                      "type": "string"
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "updatedAt": {
-                            "type": "string"
-                          },
-                          "reportCategoryReviewedAt": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "reportCategoryReviewVersion": {
-                            "type": "number"
-                          },
-                          "code": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "type": {
-                            "type": "string"
-                          },
-                          "subtype": {
-                            "type": "string"
-                          },
-                          "reportGroup": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "key": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string"
-                              },
-                              "status": {
-                                "type": "string"
-                              },
-                              "accountType": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "key",
-                              "name",
-                              "status",
-                              "accountType"
-                            ],
-                            "additionalProperties": false,
-                            "nullable": true
-                          },
-                          "reportCategory": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "key": {
-                                "type": "string"
-                              },
-                              "name": {
-                                "type": "string"
-                              },
-                              "status": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "key",
-                              "name",
-                              "status"
-                            ],
-                            "additionalProperties": false,
-                            "nullable": true
-                          },
-                          "taxCode": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "mappedCode": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "isSystem": {
-                            "type": "boolean"
-                          },
-                          "systemRole": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "parentId": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "isExcluded": {
-                            "type": "boolean"
-                          },
-                          "isIncluded": {
-                            "type": "boolean"
-                          },
-                          "source": {
-                            "type": "string",
-                            "enum": [
-                              "template",
-                              "overridden",
-                              "custom"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "code",
-                          "name",
-                          "type",
-                          "subtype",
-                          "reportGroup",
-                          "reportCategory",
-                          "taxCode",
-                          "description",
-                          "mappedCode",
-                          "isSystem"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "pagination": {
+                  "anyOf": [
+                    {
                       "type": "object",
                       "properties": {
-                        "currentPage": {
+                        "editable": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "expectedUpdatedAt": {
+                              "type": "string"
+                            },
+                            "accounts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "expectedUpdatedAt": {
+                                    "type": "string"
+                                  },
+                                  "taxCode": {
+                                    "type": "string",
+                                    "enum": [
+                                      "NZ_GST_15_INC",
+                                      "NZ_GST_15_EXP",
+                                      "NZ_GST_0_NONE",
+                                      "NZ_GST_0_ZERO",
+                                      "AU_GST_10_INC",
+                                      "AU_GST_10_EXP",
+                                      "AU_GST_0_NONE",
+                                      "AU_GST_0_INPUT",
+                                      "AU_GST_0_EXPORT"
+                                    ]
+                                  },
+                                  "groupKey": {
+                                    "type": "string"
+                                  },
+                                  "categoryKey": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "mappedCode": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "systemRole": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "isIncluded": {
+                                    "type": "boolean",
+                                    "enum": [
+                                      true
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "code",
+                                  "name",
+                                  "expectedUpdatedAt",
+                                  "taxCode",
+                                  "groupKey",
+                                  "categoryKey",
+                                  "description",
+                                  "mappedCode",
+                                  "systemRole",
+                                  "isIncluded"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "description",
+                            "expectedUpdatedAt",
+                            "accounts"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "templateUpdatedAt": {
+                          "type": "string"
+                        },
+                        "unreviewedCount": {
                           "type": "number"
                         },
-                        "pageSize": {
-                          "type": "number"
+                        "reviewStatus": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number"
+                            },
+                            "reviewed": {
+                              "type": "number"
+                            },
+                            "unreviewed": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "reviewed",
+                            "unreviewed"
+                          ],
+                          "additionalProperties": false
                         },
-                        "totalCount": {
-                          "type": "number"
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taxCodeValue": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              },
+                              "reportCategoryReviewedAt": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "reportCategoryReviewVersion": {
+                                "type": "number"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "subtype": {
+                                "type": "string"
+                              },
+                              "reportGroup": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "accountType": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status",
+                                  "accountType"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "reportCategory": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "taxCode": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "mappedCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isSystem": {
+                                "type": "boolean"
+                              },
+                              "systemRole": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "parentId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isExcluded": {
+                                "type": "boolean"
+                              },
+                              "isIncluded": {
+                                "type": "boolean"
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "template",
+                                  "overridden",
+                                  "custom"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "taxCodeValue",
+                              "id",
+                              "code",
+                              "name",
+                              "type",
+                              "subtype",
+                              "reportGroup",
+                              "reportCategory",
+                              "taxCode",
+                              "description",
+                              "mappedCode",
+                              "isSystem"
+                            ],
+                            "additionalProperties": false
+                          }
                         },
-                        "totalPages": {
-                          "type": "number"
-                        },
-                        "hasNextPage": {
-                          "type": "boolean"
-                        },
-                        "hasPreviousPage": {
-                          "type": "boolean"
+                        "meta": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "count"
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "required": [
-                        "currentPage",
-                        "pageSize",
-                        "totalCount",
-                        "totalPages",
-                        "hasNextPage",
-                        "hasPreviousPage"
+                        "templateUpdatedAt",
+                        "unreviewedCount",
+                        "reviewStatus",
+                        "data",
+                        "meta"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "editable": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "expectedUpdatedAt": {
+                              "type": "string"
+                            },
+                            "accounts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "expectedUpdatedAt": {
+                                    "type": "string"
+                                  },
+                                  "taxCode": {
+                                    "type": "string",
+                                    "enum": [
+                                      "NZ_GST_15_INC",
+                                      "NZ_GST_15_EXP",
+                                      "NZ_GST_0_NONE",
+                                      "NZ_GST_0_ZERO",
+                                      "AU_GST_10_INC",
+                                      "AU_GST_10_EXP",
+                                      "AU_GST_0_NONE",
+                                      "AU_GST_0_INPUT",
+                                      "AU_GST_0_EXPORT"
+                                    ]
+                                  },
+                                  "groupKey": {
+                                    "type": "string"
+                                  },
+                                  "categoryKey": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "mappedCode": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "systemRole": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "isIncluded": {
+                                    "type": "boolean",
+                                    "enum": [
+                                      true
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "code",
+                                  "name",
+                                  "expectedUpdatedAt",
+                                  "taxCode",
+                                  "groupKey",
+                                  "categoryKey",
+                                  "description",
+                                  "mappedCode",
+                                  "systemRole",
+                                  "isIncluded"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "description",
+                            "expectedUpdatedAt",
+                            "accounts"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "templateUpdatedAt": {
+                          "type": "string"
+                        },
+                        "unreviewedCount": {
+                          "type": "number"
+                        },
+                        "reviewStatus": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number"
+                            },
+                            "reviewed": {
+                              "type": "number"
+                            },
+                            "unreviewed": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "reviewed",
+                            "unreviewed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taxCodeValue": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              },
+                              "reportCategoryReviewedAt": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "reportCategoryReviewVersion": {
+                                "type": "number"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "subtype": {
+                                "type": "string"
+                              },
+                              "reportGroup": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "accountType": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status",
+                                  "accountType"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "reportCategory": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "taxCode": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "mappedCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isSystem": {
+                                "type": "boolean"
+                              },
+                              "systemRole": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "parentId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isExcluded": {
+                                "type": "boolean"
+                              },
+                              "isIncluded": {
+                                "type": "boolean"
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "template",
+                                  "overridden",
+                                  "custom"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "taxCodeValue",
+                              "id",
+                              "code",
+                              "name",
+                              "type",
+                              "subtype",
+                              "reportGroup",
+                              "reportCategory",
+                              "taxCode",
+                              "description",
+                              "mappedCode",
+                              "isSystem"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "currentPage": {
+                              "type": "number"
+                            },
+                            "pageSize": {
+                              "type": "number"
+                            },
+                            "totalCount": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "hasNextPage": {
+                              "type": "boolean"
+                            },
+                            "hasPreviousPage": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "currentPage",
+                            "pageSize",
+                            "totalCount",
+                            "totalPages",
+                            "hasNextPage",
+                            "hasPreviousPage"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "templateUpdatedAt",
+                        "unreviewedCount",
+                        "reviewStatus",
+                        "data",
+                        "pagination"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "editable": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "expectedUpdatedAt": {
+                              "type": "string"
+                            },
+                            "accounts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "expectedUpdatedAt": {
+                                    "type": "string"
+                                  },
+                                  "taxCode": {
+                                    "type": "string",
+                                    "enum": [
+                                      "NZ_GST_15_INC",
+                                      "NZ_GST_15_EXP",
+                                      "NZ_GST_0_NONE",
+                                      "NZ_GST_0_ZERO",
+                                      "AU_GST_10_INC",
+                                      "AU_GST_10_EXP",
+                                      "AU_GST_0_NONE",
+                                      "AU_GST_0_INPUT",
+                                      "AU_GST_0_EXPORT"
+                                    ]
+                                  },
+                                  "groupKey": {
+                                    "type": "string"
+                                  },
+                                  "categoryKey": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "mappedCode": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "systemRole": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "isIncluded": {
+                                    "type": "boolean",
+                                    "enum": [
+                                      true
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "code",
+                                  "name",
+                                  "expectedUpdatedAt",
+                                  "taxCode",
+                                  "groupKey",
+                                  "categoryKey",
+                                  "description",
+                                  "mappedCode",
+                                  "systemRole",
+                                  "isIncluded"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "description",
+                            "expectedUpdatedAt",
+                            "accounts"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "templateUpdatedAt": {
+                          "type": "string"
+                        },
+                        "unreviewedCount": {
+                          "type": "number"
+                        },
+                        "reviewStatus": {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number"
+                            },
+                            "reviewed": {
+                              "type": "number"
+                            },
+                            "unreviewed": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "reviewed",
+                            "unreviewed"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taxCodeValue": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "id": {
+                                "type": "string"
+                              },
+                              "updatedAt": {
+                                "type": "string"
+                              },
+                              "reportCategoryReviewedAt": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "reportCategoryReviewVersion": {
+                                "type": "number"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "subtype": {
+                                "type": "string"
+                              },
+                              "reportGroup": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "accountType": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status",
+                                  "accountType"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "reportCategory": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "key",
+                                  "name",
+                                  "status"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              },
+                              "taxCode": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "mappedCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isSystem": {
+                                "type": "boolean"
+                              },
+                              "systemRole": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "parentId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isExcluded": {
+                                "type": "boolean"
+                              },
+                              "isIncluded": {
+                                "type": "boolean"
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "template",
+                                  "overridden",
+                                  "custom"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "taxCodeValue",
+                              "id",
+                              "code",
+                              "name",
+                              "type",
+                              "subtype",
+                              "reportGroup",
+                              "reportCategory",
+                              "taxCode",
+                              "description",
+                              "mappedCode",
+                              "isSystem"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "pagination": {
+                          "type": "object",
+                          "properties": {
+                            "currentPage": {
+                              "type": "number"
+                            },
+                            "pageSize": {
+                              "type": "number"
+                            },
+                            "totalCount": {
+                              "type": "number"
+                            },
+                            "totalPages": {
+                              "type": "number"
+                            },
+                            "hasNextPage": {
+                              "type": "boolean"
+                            },
+                            "hasPreviousPage": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "currentPage",
+                            "pageSize",
+                            "totalCount",
+                            "totalPages",
+                            "hasNextPage",
+                            "hasPreviousPage"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "templateUpdatedAt",
+                        "unreviewedCount",
+                        "reviewStatus",
+                        "data",
+                        "pagination"
                       ],
                       "additionalProperties": false
                     }
-                  },
-                  "required": [
-                    "templateUpdatedAt",
-                    "data",
-                    "pagination"
-                  ],
-                  "additionalProperties": false
+                  ]
                 }
               }
             }
@@ -1360,7 +2173,7 @@
     "/api/public/v1/charts/{chartId}/update": {
       "post": {
         "summary": "Update a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.\nUpdates a chart of accounts template. When `accounts` is provided it fully replaces the\ntemplate's account list (delegates to updateAccountTemplateAccounts and propagates to all\nentities). When `accounts` is omitted, only the provided template metadata (`name`,\n`description`) is updated and accounts are left untouched. Omit a metadata field to preserve\nits existing value, or send `description: null` to clear the description. A full replacement\nlist in a nonactivated workspace must still contain every\nsystem account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with\n`isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing\nall missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system\naccounts automatically. For surgical single-account changes use the\n`/charts/{chartId}/accounts` endpoints instead. Requires API key authentication.\n\n**Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.\nPassing a name (e.g. `\"15% GST on Income\"`) is stored verbatim and resolves to null wherever the\ncode is looked up. Valid codes are `NZ_GST_15_INC` (15% GST on Income), `NZ_GST_15_EXP`\n(15% GST on Expenses), `NZ_GST_0_NONE` (No GST), and `NZ_GST_0_ZERO` (Zero-rated GST). Note that\n`GET /api/public/v1/charts/{chartId}` returns the human-readable name on read — convert it back to\nthe machine code before writing.\n\n**Field preserve/clear semantics**: For each account, omitting a field (`description`, `taxCode`,\n`mappedCode`) preserves its existing value, while an explicit null clears it (taxCode clears to\n`NZ_GST_0_NONE`).\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nUpdates a chart of accounts template. When `accounts` is provided it fully replaces the\ntemplate's account list (delegates to updateAccountTemplateAccounts and propagates to all\nentities). When `accounts` is omitted, only the provided template metadata (`name`,\n`description`) is updated and accounts are left untouched. Omit a metadata field to preserve\nits existing value, or send `description: null` to clear the description. A full replacement\nlist in a nonactivated workspace must still contain every\nsystem account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with\n`isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing\nall missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system\naccounts automatically. For surgical single-account changes use the\n`/charts/{chartId}/accounts` endpoints instead. Requires API key authentication.\n\n**Tax codes**: Send `taxCodeValue` from `GET /api/public/v1/charts/{chartId}` as `taxCode`\nwhen writing. Activated replacements require a machine code for each included row.\n\n**Legacy field preserve/clear semantics**: For each account, omitting a field (`description`, `taxCode`,\n`mappedCode`) preserves its existing value, while an explicit null clears it (taxCode clears to\n`NZ_GST_0_NONE`).\n",
         "tags": [
           "Charts"
         ],
@@ -1485,6 +2298,15 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "reviewRequired": {
+                          "type": "boolean"
+                        },
+                        "unreviewedCount": {
+                          "type": "number"
+                        },
+                        "reviewUrl": {
+                          "type": "string"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -1500,6 +2322,9 @@
                         }
                       },
                       "required": [
+                        "reviewRequired",
+                        "unreviewedCount",
+                        "reviewUrl",
                         "id",
                         "name",
                         "description",
@@ -1676,13 +2501,17 @@
                           },
                           "accountCount": {
                             "type": "number"
+                          },
+                          "unreviewedCount": {
+                            "type": "number"
                           }
                         },
                         "required": [
                           "id",
                           "name",
                           "description",
-                          "accountCount"
+                          "accountCount",
+                          "unreviewedCount"
                         ],
                         "additionalProperties": false
                       }
@@ -1719,7 +2548,7 @@
       },
       "post": {
         "summary": "Create a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.\nIn nonactivated workspaces, creates a chart from global definitions. Every system global\naccount (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present\nin `accounts` with `isIncluded: true` — otherwise the request fails with\n`SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set\n`includeSystemAccounts: true` to have any omitted system accounts added\nautomatically from their global definitions. Requires API key authentication.\n\n**Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.\nPassing a name (e.g. `\"15% GST on Income\"`) is stored verbatim and resolves to null wherever the\ncode is looked up. Valid codes are `NZ_GST_15_INC` (15% GST on Income), `NZ_GST_15_EXP`\n(15% GST on Expenses), `NZ_GST_0_NONE` (No GST), and `NZ_GST_0_ZERO` (Zero-rated GST). Omit\n`taxCode` or set it to null to default to `NZ_GST_0_NONE` (No GST).\n\n**Description defaults**: `description` is optional per account; omitting it (or null) leaves\nthe account description empty.\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nIn nonactivated workspaces, creates a chart from global definitions. Every system global\naccount (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present\nin `accounts` with `isIncluded: true` — otherwise the request fails with\n`SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set\n`includeSystemAccounts: true` to have any omitted system accounts added\nautomatically from their global definitions. Requires API key authentication.\n\n**Tax codes**: Send a machine code for the workspace country, such as `NZ_GST_15_INC`.\nActivated workspaces require a code on each included row. Legacy inputs may omit `taxCode`.\n\n**Description defaults**: `description` is optional per account; omitting it (or null) leaves\nthe account description empty.\n",
         "tags": [
           "Charts"
         ],
@@ -1842,6 +2671,15 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "reviewRequired": {
+                          "type": "boolean"
+                        },
+                        "unreviewedCount": {
+                          "type": "number"
+                        },
+                        "reviewUrl": {
+                          "type": "string"
+                        },
                         "id": {
                           "type": "string"
                         },
@@ -1854,6 +2692,9 @@
                         }
                       },
                       "required": [
+                        "reviewRequired",
+                        "unreviewedCount",
+                        "reviewUrl",
                         "id",
                         "name",
                         "description"
@@ -4257,6 +5098,147 @@
         "operationId": "bankAccounts.importTransactions",
         "x-sdk-resource": "bankAccounts",
         "x-sdk-method": "importTransactions"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/bank-accounts/create": {
+      "post": {
+        "summary": "Create an unconnected bank account for an entity",
+        "description": "Create a bank account for a client of this entity and link it to a new\naccount in the entity's chart. Use the chart account ID when posting\njournals. A later Akahu connection by the same client can attach to\nthis account when the full bank account number has a unique eligible\nmatch. Confirm the mapped code before submitting it.\n",
+        "tags": [
+          "Bank Accounts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "OAuth2": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "accountNumber": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "institution": {
+                    "type": "string"
+                  },
+                  "mappedCode": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "clientId",
+                  "accountNumber"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "bankAccountId": {
+                          "type": "string"
+                        },
+                        "chartAccountId": {
+                          "type": "string"
+                        },
+                        "bankAccountName": {
+                          "type": "string"
+                        },
+                        "institution": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "accountNumber": {
+                          "type": "string"
+                        },
+                        "mappedCode": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "bankAccountId",
+                        "chartAccountId",
+                        "bankAccountName",
+                        "institution",
+                        "accountNumber",
+                        "mappedCode"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON or request body"
+          },
+          "401": {
+            "description": "Invalid or missing API key or token"
+          },
+          "404": {
+            "description": "Entity not accessible or client not found for this entity"
+          },
+          "409": {
+            "description": "Bank account number conflicts with an existing account for the client"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "bankAccounts.create",
+        "x-sdk-resource": "bankAccounts",
+        "x-sdk-method": "create"
       }
     },
     "/api/public/v1/entities/{entityId}/bank-accounts/import": {
@@ -12651,8 +13633,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "false",
-                "true"
+                "true",
+                "false"
               ]
             },
             "description": "Include draft returns whose period has not started yet (default false)"
@@ -13846,6 +14828,9 @@
                   },
                   "idempotencyKey": {
                     "type": "string"
+                  },
+                  "includeLines": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -13890,6 +14875,115 @@
                           },
                           "status": {
                             "type": "string"
+                          },
+                          "lines": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "journalId": {
+                                  "type": "string"
+                                },
+                                "parentId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "entityAccountId": {
+                                  "type": "string"
+                                },
+                                "lineNumber": {
+                                  "type": "number"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "credit": {
+                                  "type": "string",
+                                  "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                },
+                                "debit": {
+                                  "type": "string",
+                                  "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                },
+                                "taxRateId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "entityAccount": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "code": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "code",
+                                    "name"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "taxRate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "code": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "rate": {
+                                      "type": "string",
+                                      "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "code",
+                                    "name",
+                                    "description",
+                                    "rate"
+                                  ],
+                                  "additionalProperties": false,
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "journalId",
+                                "parentId",
+                                "entityAccountId",
+                                "lineNumber",
+                                "type",
+                                "description",
+                                "credit",
+                                "debit",
+                                "taxRateId",
+                                "entityAccount",
+                                "taxRate"
+                              ],
+                              "additionalProperties": false
+                            }
                           }
                         },
                         "required": [
@@ -13956,6 +15050,115 @@
                           },
                           "status": {
                             "type": "string"
+                          },
+                          "lines": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "journalId": {
+                                  "type": "string"
+                                },
+                                "parentId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "entityAccountId": {
+                                  "type": "string"
+                                },
+                                "lineNumber": {
+                                  "type": "number"
+                                },
+                                "type": {
+                                  "type": "string"
+                                },
+                                "description": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "credit": {
+                                  "type": "string",
+                                  "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                },
+                                "debit": {
+                                  "type": "string",
+                                  "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                },
+                                "taxRateId": {
+                                  "type": "string",
+                                  "nullable": true
+                                },
+                                "entityAccount": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "code": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "code",
+                                    "name"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "taxRate": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "code": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "description": {
+                                      "type": "string",
+                                      "nullable": true
+                                    },
+                                    "rate": {
+                                      "type": "string",
+                                      "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "code",
+                                    "name",
+                                    "description",
+                                    "rate"
+                                  ],
+                                  "additionalProperties": false,
+                                  "nullable": true
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "journalId",
+                                "parentId",
+                                "entityAccountId",
+                                "lineNumber",
+                                "type",
+                                "description",
+                                "credit",
+                                "debit",
+                                "taxRateId",
+                                "entityAccount",
+                                "taxRate"
+                              ],
+                              "additionalProperties": false
+                            }
                           }
                         },
                         "required": [
@@ -15587,8 +16790,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "false",
-                "true"
+                "true",
+                "false"
               ]
             }
           },
@@ -17446,8 +18649,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "false",
-                "true"
+                "true",
+                "false"
               ]
             }
           }
@@ -18123,6 +19326,571 @@
         "operationId": "reports.profitLoss",
         "x-sdk-resource": "reports",
         "x-sdk-method": "profitLoss"
+      }
+    },
+    "/api/public/v1/entities/{entityId}": {
+      "patch": {
+        "summary": "Update entity settings",
+        "description": "Changes only the supplied settings. A conversion date change cannot move existing posted journals or bank transactions across the cutoff.",
+        "tags": [
+          "Entities"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "conversionDate": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "gstFilingStartDate": {
+                    "type": "string"
+                  },
+                  "industryCode": {
+                    "type": "string"
+                  },
+                  "nzbn": {
+                    "type": "string"
+                  },
+                  "isGstRegistered": {
+                    "type": "boolean"
+                  },
+                  "areGstReportsAutomated": {
+                    "type": "boolean"
+                  },
+                  "gstNumber": {
+                    "type": "string"
+                  },
+                  "gstPeriod": {
+                    "type": "string",
+                    "enum": [
+                      "2",
+                      "1",
+                      "3",
+                      "6",
+                      "12"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "currentTemplateId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "defaultTaxAccountId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "isGstRegistered": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "gstNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "areGstReportsAutomated": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "industryCode": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "nzbn": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "settingsUrl": {
+                          "type": "string"
+                        },
+                        "gstPeriodMonths": {
+                          "type": "number",
+                          "nullable": true
+                        },
+                        "gstBasis": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "financialYearStartMonth": {
+                          "type": "number"
+                        },
+                        "conversionDate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "gstFilingStartDate": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "currency": {
+                          "type": "string"
+                        },
+                        "bankAccounts": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "externalId": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "alias": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "institution": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "accountNumber": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "logoUrl": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "type": {
+                                "type": "string"
+                              },
+                              "sourceType": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "entityAccount": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string"
+                                  },
+                                  "reportCategoryReviewedAt": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "reportCategoryReviewVersion": {
+                                    "type": "number"
+                                  },
+                                  "code": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "subtype": {
+                                    "type": "string"
+                                  },
+                                  "reportGroup": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string"
+                                      },
+                                      "accountType": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "key",
+                                      "name",
+                                      "status",
+                                      "accountType"
+                                    ],
+                                    "additionalProperties": false,
+                                    "nullable": true
+                                  },
+                                  "reportCategory": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "status": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "key",
+                                      "name",
+                                      "status"
+                                    ],
+                                    "additionalProperties": false,
+                                    "nullable": true
+                                  },
+                                  "taxCode": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "mappedCode": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "isSystem": {
+                                    "type": "boolean"
+                                  },
+                                  "systemRole": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "parentId": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "isExcluded": {
+                                    "type": "boolean"
+                                  },
+                                  "isIncluded": {
+                                    "type": "boolean"
+                                  },
+                                  "source": {
+                                    "type": "string",
+                                    "enum": [
+                                      "template",
+                                      "overridden",
+                                      "custom"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "code",
+                                  "name",
+                                  "type",
+                                  "subtype",
+                                  "reportGroup",
+                                  "reportCategory",
+                                  "taxCode",
+                                  "description",
+                                  "mappedCode",
+                                  "isSystem"
+                                ],
+                                "additionalProperties": false,
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "entityId",
+                              "externalId",
+                              "name",
+                              "alias",
+                              "institution",
+                              "accountNumber",
+                              "logoUrl",
+                              "type",
+                              "sourceType",
+                              "entityAccount"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "clients": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "tradingName": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "email",
+                              "name",
+                              "tradingName",
+                              "createdAt"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "taxRates": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "rate": {
+                                "type": "string",
+                                "description": "Exact decimal serialized as a string. Use Decimal.js for arithmetic."
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "code",
+                              "name",
+                              "description",
+                              "rate"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "type",
+                        "currentTemplateId",
+                        "defaultTaxAccountId",
+                        "createdAt",
+                        "isGstRegistered",
+                        "gstNumber",
+                        "areGstReportsAutomated",
+                        "industryCode",
+                        "nzbn",
+                        "settingsUrl",
+                        "gstPeriodMonths",
+                        "gstBasis",
+                        "financialYearStartMonth",
+                        "conversionDate",
+                        "gstFilingStartDate",
+                        "currency",
+                        "bankAccounts",
+                        "clients",
+                        "taxRates"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Token does not allow this mutation"
+          },
+          "404": {
+            "description": "Entity not found or access denied"
+          },
+          "409": {
+            "description": "Conversion date or GST filing settings conflict with existing activity",
+            "or settings changed concurrently": null
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "entities.update",
+        "x-sdk-resource": "entities",
+        "x-sdk-method": "update"
+      },
+      "delete": {
+        "summary": "Queue entity deletion",
+        "description": "Requests background deletion of the entity and its accounting data.",
+        "tags": [
+          "Entities"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "jobId": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "jobId",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Token does not allow this mutation"
+          },
+          "404": {
+            "description": "Entity not found or access denied"
+          },
+          "409": {
+            "description": "Deletion is already in progress"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "operationId": "entities.del",
+        "x-sdk-resource": "entities",
+        "x-sdk-method": "del"
       }
     },
     "/api/public/v1/entities/{entityId}/transactions/{transactionId}/reconcile": {
@@ -19456,6 +21224,525 @@
         "x-sdk-method": "list"
       }
     },
+    "/api/public/v1/entities/{entityId}/trial-balance/compare": {
+      "post": {
+        "summary": "Compare a Xero trial balance with Prosaic",
+        "description": "Read-only monetary comparison in the entity's currency. Supply one row per\nXero account code. Cumulative mode uses asOfDate, and movement mode uses\nthe inclusive from/to date range. Dates are local to the entity.\nMatches use the explicit mapping, exact code, then unique mapped code.\nThe tolerance defaults to zero. Differences are Xero minus Prosaic.\n",
+        "tags": [
+          "Reports"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "reportMode": {
+                        "type": "string",
+                        "enum": [
+                          "movement"
+                        ]
+                      },
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      },
+                      "rows": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "debit": {
+                                  "type": "string"
+                                },
+                                "credit": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "debit",
+                                "credit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "balance": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "balance"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        }
+                      },
+                      "mapping": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "tolerance": {
+                        "type": "string"
+                      },
+                      "includeReportPlacement": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "reportMode",
+                      "from",
+                      "to",
+                      "rows"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "reportMode": {
+                        "type": "string",
+                        "enum": [
+                          "cumulative"
+                        ]
+                      },
+                      "asOfDate": {
+                        "type": "string"
+                      },
+                      "rows": {
+                        "type": "array",
+                        "items": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "debit": {
+                                  "type": "string"
+                                },
+                                "credit": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "debit",
+                                "credit"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "code": {
+                                  "type": "string"
+                                },
+                                "balance": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "code",
+                                "balance"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        }
+                      },
+                      "mapping": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "tolerance": {
+                        "type": "string"
+                      },
+                      "includeReportPlacement": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "reportMode",
+                      "asOfDate",
+                      "rows"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reportPlacement": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "xeroCode": {
+                            "type": "string"
+                          },
+                          "prosaicCode": {
+                            "type": "string"
+                          },
+                          "reportGroup": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "name"
+                            ],
+                            "additionalProperties": false,
+                            "nullable": true
+                          },
+                          "reportCategory": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "name"
+                            ],
+                            "additionalProperties": false,
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "xeroCode",
+                          "prosaicCode",
+                          "reportGroup",
+                          "reportCategory"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "metadata": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "reportMode": {
+                              "type": "string",
+                              "enum": [
+                                "cumulative"
+                              ]
+                            },
+                            "asOfDate": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "currency": {
+                              "type": "string"
+                            },
+                            "timezone": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reportMode",
+                            "asOfDate",
+                            "entityId",
+                            "currency",
+                            "timezone"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "reportMode": {
+                              "type": "string",
+                              "enum": [
+                                "movement"
+                              ]
+                            },
+                            "from": {
+                              "type": "string"
+                            },
+                            "to": {
+                              "type": "string"
+                            },
+                            "entityId": {
+                              "type": "string"
+                            },
+                            "currency": {
+                              "type": "string"
+                            },
+                            "timezone": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "reportMode",
+                            "from",
+                            "to",
+                            "entityId",
+                            "currency",
+                            "timezone"
+                          ],
+                          "additionalProperties": false
+                        }
+                      ]
+                    },
+                    "isTied": {
+                      "type": "boolean"
+                    },
+                    "matched": {
+                      "type": "number"
+                    },
+                    "differences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "prosaicCode": {
+                            "type": "string"
+                          },
+                          "prosaicBalance": {
+                            "type": "string"
+                          },
+                          "difference": {
+                            "type": "string"
+                          },
+                          "xeroCode": {
+                            "type": "string"
+                          },
+                          "xeroBalance": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "prosaicCode",
+                          "prosaicBalance",
+                          "difference",
+                          "xeroCode",
+                          "xeroBalance"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "missingInProsaic": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "xeroCode": {
+                            "type": "string"
+                          },
+                          "xeroBalance": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "xeroCode",
+                          "xeroBalance"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "extraInProsaic": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "prosaicCode": {
+                            "type": "string"
+                          },
+                          "prosaicBalance": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "prosaicCode",
+                          "prosaicBalance"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "ambiguous": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "candidateProsaicCodes": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "xeroCode": {
+                            "type": "string"
+                          },
+                          "xeroBalance": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "candidateProsaicCodes",
+                          "xeroCode",
+                          "xeroBalance"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "totals": {
+                      "type": "object",
+                      "properties": {
+                        "xero": {
+                          "type": "object",
+                          "properties": {
+                            "debit": {
+                              "type": "string"
+                            },
+                            "credit": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "debit",
+                            "credit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "prosaic": {
+                          "type": "object",
+                          "properties": {
+                            "debit": {
+                              "type": "string"
+                            },
+                            "credit": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "debit",
+                            "credit"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "difference": {
+                          "type": "object",
+                          "properties": {
+                            "debit": {
+                              "type": "string"
+                            },
+                            "credit": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "debit",
+                            "credit"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "xero",
+                        "prosaic",
+                        "difference"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "metadata",
+                    "isTied",
+                    "matched",
+                    "differences",
+                    "missingInProsaic",
+                    "extraInProsaic",
+                    "ambiguous",
+                    "totals"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body or missing system account setup."
+          },
+          "401": {
+            "description": "Invalid or missing credentials."
+          },
+          "403": {
+            "description": "Entity-scoped token targets a different entity."
+          },
+          "404": {
+            "description": "Entity is absent or the caller lacks view permission."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "operationId": "reports.compareTrialBalance",
+        "x-sdk-resource": "reports",
+        "x-sdk-method": "compareTrialBalance"
+      }
+    },
     "/api/public/v1/entities/{entityId}/trial-balance": {
       "get": {
         "summary": "Get trial balance report",
@@ -19540,8 +21827,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "false",
-                "true"
+                "true",
+                "false"
               ]
             }
           },
@@ -19588,8 +21875,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "false",
-                "true"
+                "true",
+                "false"
               ]
             }
           },
@@ -19601,8 +21888,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "false",
-                "true"
+                "true",
+                "false"
               ]
             }
           }
@@ -20296,6 +22583,25 @@
                             "type": "boolean",
                             "nullable": true
                           },
+                          "gstNumber": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "areGstReportsAutomated": {
+                            "type": "boolean",
+                            "nullable": true
+                          },
+                          "industryCode": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "nzbn": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "settingsUrl": {
+                            "type": "string"
+                          },
                           "gstPeriodMonths": {
                             "type": "number",
                             "nullable": true
@@ -20587,6 +22893,11 @@
                           "defaultTaxAccountId",
                           "createdAt",
                           "isGstRegistered",
+                          "gstNumber",
+                          "areGstReportsAutomated",
+                          "industryCode",
+                          "nzbn",
+                          "settingsUrl",
                           "gstPeriodMonths",
                           "gstBasis",
                           "financialYearStartMonth",
@@ -20694,6 +23005,9 @@
                   "name": {
                     "type": "string"
                   },
+                  "industryCode": {
+                    "type": "string"
+                  },
                   "workspaceDimensionIds": {
                     "type": "array",
                     "items": {
@@ -20726,9 +23040,6 @@
                     "type": "string"
                   },
                   "nzbn": {
-                    "type": "string"
-                  },
-                  "industryCode": {
                     "type": "string"
                   },
                   "conversionDate": {
@@ -20867,7 +23178,8 @@
                 "required": [
                   "accountTemplateId",
                   "type",
-                  "name"
+                  "name",
+                  "industryCode"
                 ],
                 "additionalProperties": false
               }
@@ -20909,6 +23221,25 @@
                         "isGstRegistered": {
                           "type": "boolean",
                           "nullable": true
+                        },
+                        "gstNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "areGstReportsAutomated": {
+                          "type": "boolean",
+                          "nullable": true
+                        },
+                        "industryCode": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "nzbn": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "settingsUrl": {
+                          "type": "string"
                         },
                         "gstPeriodMonths": {
                           "type": "number",
@@ -21201,6 +23532,11 @@
                         "defaultTaxAccountId",
                         "createdAt",
                         "isGstRegistered",
+                        "gstNumber",
+                        "areGstReportsAutomated",
+                        "industryCode",
+                        "nzbn",
+                        "settingsUrl",
                         "gstPeriodMonths",
                         "gstBasis",
                         "financialYearStartMonth",
@@ -21248,10 +23584,7 @@
                       "type": "string"
                     },
                     "details": {
-                      "type": "array",
-                      "items": {
-                        "type": "object"
-                      }
+                      "type": "object"
                     }
                   }
                 }
@@ -21637,8 +23970,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "false",
-                "true"
+                "true",
+                "false"
               ]
             },
             "description": "Include draft returns whose period has not started yet (default false)"
@@ -21853,6 +24186,88 @@
         "operationId": "gstReturns.list",
         "x-sdk-resource": "gstReturns",
         "x-sdk-method": "list"
+      }
+    },
+    "/api/public/v1/industry-codes": {
+      "get": {
+        "summary": "Search New Zealand business industry codes",
+        "description": "Search by full or partial catalogue code, or by words describing the business activity. Returns up to 50 matches.",
+        "tags": [
+          "Entities"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "description"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Search term is invalid"
+          },
+          "403": {
+            "description": "Workspace access required"
+          }
+        },
+        "operationId": "industryCodes.search",
+        "x-sdk-resource": "industryCodes",
+        "x-sdk-method": "search"
       }
     },
     "/api/public/v1/invoices": {
@@ -22332,6 +24747,218 @@
         "x-sdk-resource": "me",
         "x-sdk-method": "retrieve",
         "parameters": []
+      }
+    },
+    "/api/public/v1/nzbn/{nzbn}": {
+      "get": {
+        "summary": "Get NZBN business details",
+        "description": "Returns the registered business, its catalogue industry code and GST number when available from the register.",
+        "tags": [
+          "Entities"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nzbn",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "gstNumber": {
+                          "type": "string"
+                        },
+                        "nzbn": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "entityTypeCode": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "industryCode": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "industryDescription": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "nzbn",
+                        "name",
+                        "entityTypeCode",
+                        "status",
+                        "industryCode",
+                        "industryDescription"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid NZBN"
+          },
+          "403": {
+            "description": "Workspace access required"
+          },
+          "404": {
+            "description": "Business absent from the register"
+          },
+          "503": {
+            "description": "The register is unavailable"
+          }
+        },
+        "operationId": "nzbn.retrieve",
+        "x-sdk-resource": "nzbn",
+        "x-sdk-method": "retrieve"
+      }
+    },
+    "/api/public/v1/nzbn/search": {
+      "get": {
+        "summary": "Search the NZBN Register",
+        "description": "Search by business name or NZBN. Returns up to ten results with an industry code when one is available in the catalogue.",
+        "tags": [
+          "Entities"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "gstNumber": {
+                            "type": "string"
+                          },
+                          "nzbn": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "entityTypeCode": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "industryCode": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "industryDescription": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "nzbn",
+                          "name",
+                          "entityTypeCode",
+                          "status",
+                          "industryCode",
+                          "industryDescription"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Search term is invalid"
+          },
+          "403": {
+            "description": "Workspace access required"
+          },
+          "503": {
+            "description": "The register is unavailable"
+          }
+        },
+        "operationId": "nzbn.search",
+        "x-sdk-resource": "nzbn",
+        "x-sdk-method": "search"
       }
     },
     "/api/public/v1/report-categories": {
@@ -23339,9 +25966,9 @@
             "schema": {
               "type": "string",
               "enum": [
+                "true",
                 "all",
-                "false",
-                "true"
+                "false"
               ]
             },
             "required": false,
@@ -25372,6 +27999,254 @@
         "operationId": "transactions.reconcileBulk",
         "x-sdk-resource": "transactions",
         "x-sdk-method": "reconcileBulk",
+        "parameters": []
+      }
+    },
+    "/api/public/v1/xero-chart-proposals": {
+      "post": {
+        "summary": "Propose a chart template from Xero accounts",
+        "description": "Read-only preview for the authorised workspace's country. Nothing is saved.\nA valid approved report-code placement is marked endpoint. When it is missing,\nexact Xero types may fall back to group-only placement: Current Asset to ass.current,\nNon-current Asset to ass.noncurrent, Current Liability to lia.current, Non-current Liability\nto lia.noncurrent, Direct Costs to exp.cogs, Overhead to exp.operating, and Other Income\nto rev.other. Each group must allow group-only accounts. Broad EXP, LIA and ASS codes remain\nunresolved. Bank rows and unresolved roles, tax labels and codes are listed as exceptions.\n",
+        "tags": [
+          "Charts"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "country": {
+                    "type": "string",
+                    "enum": [
+                      "NZ",
+                      "AU"
+                    ]
+                  },
+                  "accounts": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "taxName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reportCode": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "description": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "country",
+                  "accounts"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "country": {
+                          "type": "string"
+                        },
+                        "accounts": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "row": {
+                                "type": "number"
+                              },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "none",
+                                  "endpoint",
+                                  "fallback"
+                                ]
+                              },
+                              "code": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "isBank": {
+                                "type": "boolean"
+                              },
+                              "sourceCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "type": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "description": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "mappedCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "taxCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "groupKey": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "categoryKey": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "systemRole": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "row",
+                              "source",
+                              "code",
+                              "isBank",
+                              "sourceCode",
+                              "name",
+                              "type",
+                              "description",
+                              "mappedCode",
+                              "taxCode",
+                              "groupKey",
+                              "categoryKey",
+                              "systemRole"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "exceptions": {
+                          "type": "object",
+                          "properties": {
+                            "accounts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "number"
+                                  },
+                                  "reasons": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "reasons"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "missingRequiredRoles": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "required": [
+                            "accounts",
+                            "missingRequiredRoles"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "country",
+                        "accounts",
+                        "exceptions"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "count"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid accounts or workspace country mismatch"
+          },
+          "403": {
+            "description": "Workspace access required"
+          },
+          "404": {
+            "description": "Workspace unavailable"
+          },
+          "500": {
+            "description": "Failed to propose the chart"
+          }
+        },
+        "operationId": "charts.propose",
+        "x-sdk-resource": "charts",
+        "x-sdk-method": "propose",
         "parameters": []
       }
     },

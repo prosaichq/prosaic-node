@@ -5,6 +5,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | SDK method | HTTP endpoint |
 | --- | --- |
 | `bankAccounts.createWithTransactions` | `POST /api/public/v1/entities/{entityId}/bank-accounts/import` |
+| `bankAccounts.create` | `POST /api/public/v1/entities/{entityId}/bank-accounts/create` |
 | `bankAccounts.importTransactions` | `POST /api/public/v1/entities/{entityId}/bank-accounts/{bankAccountId}/import` |
 | `bankAccounts.link` | `POST /api/public/v1/entities/{entityId}/bank-accounts` |
 | `changeSets.create` | `POST /api/public/v1/entities/{entityId}/change-sets` |
@@ -15,6 +16,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `charts.listAccounts` | `GET /api/public/v1/charts/{chartId}` |
 | `charts.listXeroReportMappings` | `GET /api/public/v1/xero-report-mappings` |
 | `charts.list` | `GET /api/public/v1/charts` |
+| `charts.propose` | `POST /api/public/v1/xero-chart-proposals` |
 | `charts.updateAccount` | `POST /api/public/v1/charts/{chartId}/accounts/{accountId}/update` |
 | `charts.update` | `POST /api/public/v1/charts/{chartId}/update` |
 | `clients.createOnboardingLink` | `POST /api/public/v1/clients/{clientId}/onboarding` |
@@ -31,7 +33,9 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `contacts.update` | `PATCH /api/public/v1/entities/{entityId}/contacts/{contactId}` |
 | `dimensions.list` | `GET /api/public/v1/entities/{entityId}/dimensions` |
 | `entities.create` | `POST /api/public/v1/entities` |
+| `entities.del` | `DELETE /api/public/v1/entities/{entityId}` |
 | `entities.list` | `GET /api/public/v1/entities` |
+| `entities.update` | `PATCH /api/public/v1/entities/{entityId}` |
 | `entityAccounts.create` | `POST /api/public/v1/entities/{entityId}/charts` |
 | `entityAccounts.del` | `POST /api/public/v1/entities/{entityId}/charts/{accountId}/delete` |
 | `entityAccounts.list` | `GET /api/public/v1/entities/{entityId}/charts` |
@@ -56,6 +60,7 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `gstReturns.listForEntity` | `GET /api/public/v1/entities/{entityId}/gst-returns` |
 | `gstReturns.list` | `GET /api/public/v1/gst-returns` |
 | `gstReturns.retrieve` | `GET /api/public/v1/entities/{entityId}/gst-returns/{gstReturnId}` |
+| `industryCodes.search` | `GET /api/public/v1/industry-codes` |
 | `invoices.create` | `POST /api/public/v1/entities/{entityId}/invoices` |
 | `invoices.list` | `GET /api/public/v1/invoices` |
 | `invoices.retrieve` | `GET /api/public/v1/entities/{entityId}/invoices/{invoiceId}` |
@@ -66,9 +71,12 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `journals.void` | `PATCH /api/public/v1/entities/{entityId}/journals/{journalId}/void` |
 | `ledger.list` | `GET /api/public/v1/entities/{entityId}/ledger` |
 | `me.retrieve` | `GET /api/public/v1/me` |
+| `nzbn.retrieve` | `GET /api/public/v1/nzbn/{nzbn}` |
+| `nzbn.search` | `GET /api/public/v1/nzbn/search` |
 | `reportCategories.listForWorkspace` | `GET /api/public/v1/report-categories` |
 | `reportCategories.list` | `GET /api/public/v1/entities/{entityId}/report-categories` |
 | `reports.balanceSheet` | `GET /api/public/v1/entities/{entityId}/reports/balance-sheet` |
+| `reports.compareTrialBalance` | `POST /api/public/v1/entities/{entityId}/trial-balance/compare` |
 | `reports.currentAccounts` | `GET /api/public/v1/entities/{entityId}/reports/current-accounts` |
 | `reports.depreciationSchedule` | `GET /api/public/v1/entities/{entityId}/reports/depreciation-schedule` |
 | `reports.profitLoss` | `GET /api/public/v1/entities/{entityId}/reports/profit-loss` |

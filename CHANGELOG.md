@@ -2,7 +2,11 @@
 
 ## 0.1.0-alpha.3 (unreleased)
 
-- Regenerated from the 20 November 2026 API snapshot: 85 operations across 25 resource groups.
+- Added `entities.update()` for partial settings edits and `entities.del()` to queue entity deletion. `entities.create()` now requires a recognised industry code. Use `nzbn.search()`, `nzbn.retrieve()` or `industryCodes.search()` to find it.
+- Added `bankAccounts.create()` for a numbered bank account that can attach to a matching feed later.
+- Added `charts.propose()` to preview Xero account mappings and exceptions. Validated chart template saves can be used immediately. Template reads return the machine tax code as `taxCodeValue` and support review summaries and editable update payloads.
+- Added `reports.compareTrialBalance()` to compare source balances against a Prosaic report without making changes. It returns exact decimals as strings.
+- `journals.createBulk()` accepts `includeLines: true` to retrieve the saved posting lines on creation or on an idempotent replay.
 - Added `charts.listXeroReportMappings()` for the approved NZ Xero report-code placements in the authorised workspace. Each entry has a report group and nullable category. Other countries return an empty lookup.
 - Added `groupBy: "reportGroup"` to `reports.trialBalance()` and included the saved report group and category on account rows. `groupBy: "subtype"` remains available during deprecation.
 - Added `fixedAssets.import()`, which creates up to 100 draft fixed assets in one call and reports on every row. Built for bringing a register over from another system. Each row comes back as `created`, `exists` or `error`: `exists` means an asset already carries that `assetNumber`, returned with its ID instead of an error, so retrying a call that timed out cannot create the asset twice. A row naming an asset type the entity does not have is refused rather than imported without one. Rows are independent, so one refusal does not stop the rest, and the call returns `200` either way — read `results`, not the status. Opening accumulated depreciation posts no journal, because the depreciation it represents is already in the ledger; for the same reason a cost limit and an immediate expense claim are not accepted here. Give `depreciationRate` rather than a fractional `usefulLifeYears`, which must be whole years.
