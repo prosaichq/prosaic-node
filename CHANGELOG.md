@@ -3,6 +3,7 @@
 ## 0.1.0-alpha.3 (unreleased)
 
 - Added `entities.update()` for partial settings edits and `entities.del()` to queue entity deletion. `entities.create()` now requires a recognised industry code. Use `nzbn.search()`, `nzbn.retrieve()` or `industryCodes.search()` to find it.
+- NZBN search and detail share a limit of 30 lookups per minute per workspace. A rate-limited lookup returns `429` with `Retry-After`.
 - Added `bankAccounts.create()` for a numbered bank account that can attach to a matching feed later.
 - Added `charts.propose()` to preview Xero account mappings and exceptions. Validated chart template saves can be used immediately. Template reads return the machine tax code as `taxCodeValue` and support review summaries and editable update payloads.
 - Added `reports.compareTrialBalance()` to compare source balances against a Prosaic report without making changes. It returns exact decimals as strings.

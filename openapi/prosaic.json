@@ -24846,6 +24846,39 @@
           "404": {
             "description": "Business absent from the register"
           },
+          "429": {
+            "description": "The workspace or the NZBN Register has reached its lookup limit",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait or HTTP date when the caller can retry",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "code"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "RATE_LIMITED"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
           "503": {
             "description": "The register is unavailable"
           }
@@ -24951,6 +24984,39 @@
           },
           "403": {
             "description": "Workspace access required"
+          },
+          "429": {
+            "description": "The workspace or the NZBN Register has reached its lookup limit",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait or HTTP date when the caller can retry",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "code"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "RATE_LIMITED"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           },
           "503": {
             "description": "The register is unavailable"

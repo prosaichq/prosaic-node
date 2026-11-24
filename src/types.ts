@@ -11101,6 +11101,21 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description The workspace or the NZBN Register has reached its lookup limit */
+            429: {
+                headers: {
+                    /** @description Seconds to wait or HTTP date when the caller can retry */
+                    "Retry-After"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        /** @enum {string} */
+                        code: "RATE_LIMITED";
+                    };
+                };
+            };
             /** @description The register is unavailable */
             503: {
                 headers: {
@@ -11156,6 +11171,21 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description The workspace or the NZBN Register has reached its lookup limit */
+            429: {
+                headers: {
+                    /** @description Seconds to wait or HTTP date when the caller can retry */
+                    "Retry-After"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        /** @enum {string} */
+                        code: "RATE_LIMITED";
+                    };
+                };
             };
             /** @description The register is unavailable */
             503: {
