@@ -1871,6 +1871,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/v1/entities/{entityId}/bills/{billId}/hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Put a supplier bill on hold
+         * @description Hold an approved bill without changing its posting or payments. Holding an already held bill updates its reason. Requires workspace staff, entity edit permission and the bills feature. A hold does not prevent recording or matching an actual external payment. No journal is posted or reversed, so accounting period locks do not prevent holding a bill.
+         */
+        post: operations["bills.hold"];
+        /**
+         * Release a supplier bill from hold
+         * @description Clear hold metadata on an approved bill; an already released approved bill remains released. Does not approve, pay, unapprove or change the journal. Requires workspace staff, entity edit permission and the bills feature. No request body. Accounting period locks do not prevent releasing a hold.
+         */
+        delete: operations["bills.release"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -12105,6 +12129,231 @@ export interface operations {
                 content?: never;
             };
             /** @description Unexpected bill creation failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                billId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            contactId: string | null;
+                            fileId: string | null;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            supplier: {
+                                name: string;
+                                /** @enum {string|null} */
+                                contactType?: "BUSINESS" | "INDIVIDUAL" | null;
+                                gstNumber?: string | null;
+                                address?: string | null;
+                            } | null;
+                            supplierName: string;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            notes: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                entityAccountId: string | null;
+                                position: number;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                taxAmountStated: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid JSON, reason or unknown field (VALIDATION_ERROR). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill or entity not found, or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill is not approved (BILL_NOT_EDITABLE). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill hold failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                billId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            contactId: string | null;
+                            fileId: string | null;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            supplier: {
+                                name: string;
+                                /** @enum {string|null} */
+                                contactType?: "BUSINESS" | "INDIVIDUAL" | null;
+                                gstNumber?: string | null;
+                                address?: string | null;
+                            } | null;
+                            supplierName: string;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            notes: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                entityAccountId: string | null;
+                                position: number;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                taxAmountStated: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill or entity not found, or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill is not approved (BILL_NOT_EDITABLE). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill release failure. */
             500: {
                 headers: {
                     [name: string]: unknown;

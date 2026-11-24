@@ -47,6 +47,9 @@ export type BillsDelResponse = operations["bills.del"]['responses'][200]['conten
 export type BillsRetrieveResponse = operations["bills.retrieve"]['responses'][200]['content']['application/json'];
 export type BillsUpdateResponse = operations["bills.update"]['responses'][200]['content']['application/json'];
 export type BillsUpdateParams = operations["bills.update"]['requestBody']['content']['application/json'];
+export type BillsReleaseResponse = operations["bills.release"]['responses'][200]['content']['application/json'];
+export type BillsHoldResponse = operations["bills.hold"]['responses'][200]['content']['application/json'];
+export type BillsHoldParams = operations["bills.hold"]['requestBody']['content']['application/json'];
 export type ChangeSetsCreateResponse = operations["changeSets.create"]['responses'][201]['content']['application/json'];
 export type ChangeSetsCreateParams = operations["changeSets.create"]['requestBody']['content']['application/json'];
 export type EntityAccountsListResponse = operations["entityAccounts.list"]['responses'][200]['content']['application/json'];
@@ -549,6 +552,22 @@ export class BillsResource {
    */
   update(entityId: string, billId: string, params: BillsUpdateParams, options: RequestOptions = {}): APIPromise<BillsUpdateResponse> {
     return new APIPromise(this.transport.request<BillsUpdateResponse>("PATCH", `/api/public/v1/entities/${pathParam(entityId)}/bills/${pathParam(billId)}`, { body: params }, options));
+  }
+
+  /**
+   * Release a supplier bill from hold
+   * Clear hold metadata on an approved bill; an already released approved bill remains released. Does not approve, pay, unapprove or change the journal. Requires workspace staff, entity edit permission and the bills feature. No request body. Accounting period locks do not prevent releasing a hold.
+   */
+  release(entityId: string, billId: string, options: RequestOptions = {}): APIPromise<BillsReleaseResponse> {
+    return new APIPromise(this.transport.request<BillsReleaseResponse>("DELETE", `/api/public/v1/entities/${pathParam(entityId)}/bills/${pathParam(billId)}/hold`, {}, options));
+  }
+
+  /**
+   * Put a supplier bill on hold
+   * Hold an approved bill without changing its posting or payments. Holding an already held bill updates its reason. Requires workspace staff, entity edit permission and the bills feature. A hold does not prevent recording or matching an actual external payment. No journal is posted or reversed, so accounting period locks do not prevent holding a bill.
+   */
+  hold(entityId: string, billId: string, params: BillsHoldParams = {}, options: RequestOptions = {}): APIPromise<BillsHoldResponse> {
+    return new APIPromise(this.transport.request<BillsHoldResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bills/${pathParam(billId)}/hold`, { body: params }, options));
   }
 }
 

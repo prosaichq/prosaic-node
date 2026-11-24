@@ -48,3 +48,30 @@ const missingDate: BillsCreateParams = { fileId: 'DOCUMENT_ID' };
 const invalidStatus: BillsUpdateParams = { status: 'PAID' };
 void missingDate;
 void invalidStatus;
+
+/** Hold a posted bill without reversing its journal or changing payments. */
+export async function holdSupplierBill(
+  client: Prosaic,
+  entityId: string,
+  billId: string,
+  reason?: string,
+): Promise<void> {
+  await client.bills.hold(entityId, billId, reason === undefined ? {} : { reason });
+}
+
+/** Release a hold; this does not approve or pay the bill. */
+export async function releaseSupplierBill(
+  client: Prosaic,
+  entityId: string,
+  billId: string,
+): Promise<void> {
+  await client.bills.release(entityId, billId);
+}
+
+function checkHoldInputs(client: Prosaic): void {
+  // @ts-expect-error reason must be a string or null.
+  void client.bills.hold('ENTITY_ID', 'BILL_ID', { reason: 12 });
+  // @ts-expect-error bill ID is required for release.
+  void client.bills.release('ENTITY_ID');
+}
+void checkHoldInputs;
