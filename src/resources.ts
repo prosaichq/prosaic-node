@@ -39,6 +39,14 @@ export type BankAccountsCreateWithTransactionsResponse = operations["bankAccount
 export type BankAccountsCreateWithTransactionsParams = operations["bankAccounts.createWithTransactions"]['requestBody']['content']['application/json'];
 export type BankAccountsImportTransactionsResponse = operations["bankAccounts.importTransactions"]['responses'][200]['content']['application/json'];
 export type BankAccountsImportTransactionsParams = operations["bankAccounts.importTransactions"]['requestBody']['content']['application/json'];
+export type BillsListResponse = operations["bills.list"]['responses'][200]['content']['application/json'];
+export type BillsListParams = NonNullable<operations["bills.list"]['parameters']['query']>;
+export type BillsCreateResponse = operations["bills.create"]['responses'][201]['content']['application/json'];
+export type BillsCreateParams = operations["bills.create"]['requestBody']['content']['application/json'];
+export type BillsDelResponse = operations["bills.del"]['responses'][200]['content']['application/json'];
+export type BillsRetrieveResponse = operations["bills.retrieve"]['responses'][200]['content']['application/json'];
+export type BillsUpdateResponse = operations["bills.update"]['responses'][200]['content']['application/json'];
+export type BillsUpdateParams = operations["bills.update"]['requestBody']['content']['application/json'];
 export type ChangeSetsCreateResponse = operations["changeSets.create"]['responses'][201]['content']['application/json'];
 export type ChangeSetsCreateParams = operations["changeSets.create"]['requestBody']['content']['application/json'];
 export type EntityAccountsListResponse = operations["entityAccounts.list"]['responses'][200]['content']['application/json'];
@@ -498,6 +506,49 @@ export class BankAccountsResource {
    */
   importTransactions(entityId: string, bankAccountId: string, params: BankAccountsImportTransactionsParams, options: RequestOptions = {}): APIPromise<BankAccountsImportTransactionsResponse> {
     return new APIPromise(this.transport.request<BankAccountsImportTransactionsResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bank-accounts/${pathParam(bankAccountId)}/import`, { body: params }, options));
+  }
+}
+
+export class BillsResource {
+  constructor(private readonly transport: Transport) {}
+  /**
+   * List supplier bills for an entity
+   * Requires workspace staff access, entity view permission and the bills feature flag. Returns current payment balances and display statuses. Date filters are inclusive calendar days.
+   */
+  list(entityId: string, params: BillsListParams = {}, options: RequestOptions = {}): APIListPromise<BillsListResponse> {
+    return new APIListPromise(this.transport.request<BillsListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/bills`, { query: params }, options), (page) => this.transport.request<BillsListResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/bills`, { query: { ...params, page } }, options));
+  }
+
+  /**
+   * Create a draft supplier bill
+   * Creates DRAFT only. Upload one document using files.upload and pass its fileId. The document must belong to this entity. Approve separately with PATCH status APPROVED. Requires workspace staff, entity create permission and the bills flag. Amount inputs are finite decimal strings; dates are calendar days. Empty drafts are permitted.
+   */
+  create(entityId: string, params: BillsCreateParams, options: RequestOptions = {}): APIPromise<BillsCreateResponse> {
+    return new APIPromise(this.transport.request<BillsCreateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bills`, { body: params }, options));
+  }
+
+  /**
+   * Delete a draft supplier bill
+   * Only drafts can be deleted. Requires workspace staff, entity edit permission and the bills feature flag.
+   */
+  del(entityId: string, billId: string, options: RequestOptions = {}): APIPromise<BillsDelResponse> {
+    return new APIPromise(this.transport.request<BillsDelResponse>("DELETE", `/api/public/v1/entities/${pathParam(entityId)}/bills/${pathParam(billId)}`, {}, options));
+  }
+
+  /**
+   * Retrieve a supplier bill and its lines
+   * Requires workspace staff, entity view permission and the bills flag. Bills outside the URL entity return 404. Monetary outputs are numeric; dates serialize as ISO strings. Use the list endpoint for current payment balances and display status.
+   */
+  retrieve(entityId: string, billId: string, options: RequestOptions = {}): APIPromise<BillsRetrieveResponse> {
+    return new APIPromise(this.transport.request<BillsRetrieveResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/bills/${pathParam(billId)}`, {}, options));
+  }
+
+  /**
+   * Edit a draft bill or change its status
+   * Send draft fields OR status alone. APPROVED posts a draft, DRAFT unapproves, VOIDED voids. Existing period locks and live-payment restrictions apply. Fields omitted are unchanged; null clears nullable fields; lines replaces all lines. Requires workspace staff, entity edit permission and the bills flag. Approval is a separate call from draft creation. Invalid JSON or mixed status/fields returns 400.
+   */
+  update(entityId: string, billId: string, params: BillsUpdateParams, options: RequestOptions = {}): APIPromise<BillsUpdateResponse> {
+    return new APIPromise(this.transport.request<BillsUpdateResponse>("PATCH", `/api/public/v1/entities/${pathParam(entityId)}/bills/${pathParam(billId)}`, { body: params }, options));
   }
 }
 
@@ -1356,6 +1407,7 @@ export class Resources {
   readonly contacts: ContactsResource;
   readonly entities: EntitiesResource;
   readonly bankAccounts: BankAccountsResource;
+  readonly bills: BillsResource;
   readonly changeSets: ChangeSetsResource;
   readonly entityAccounts: EntityAccountsResource;
   readonly dimensions: DimensionsResource;
@@ -1382,6 +1434,7 @@ export class Resources {
     this.contacts = new ContactsResource(transport);
     this.entities = new EntitiesResource(transport);
     this.bankAccounts = new BankAccountsResource(transport);
+    this.bills = new BillsResource(transport);
     this.changeSets = new ChangeSetsResource(transport);
     this.entityAccounts = new EntityAccountsResource(transport);
     this.dimensions = new DimensionsResource(transport);

@@ -2,6 +2,7 @@
 
 ## 0.1.0-alpha.3 (unreleased)
 
+- Added `bills.list()`, `create()`, `retrieve()`, `update()` and `del()`. Creation saves a draft with one optional uploaded document; approval is a separate `update` with `status: 'APPROVED'`. Bill writes require workspace staff, entity permission and the bills feature flag, and retain accounting period locks and payment restrictions. List balances preserve decimal strings. Mutations are never retried automatically.
 - Regenerated from the 20 November 2026 API snapshot: 85 operations across 25 resource groups.
 - Added `charts.listXeroReportMappings()` for the approved NZ Xero report-code placements in the authorised workspace. Each entry has a report group and nullable category. Other countries return an empty lookup.
 - Added `groupBy: "reportGroup"` to `reports.trialBalance()` and included the saved report group and category on account rows. `groupBy: "subtype"` remains available during deprecation.
