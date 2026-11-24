@@ -9,7 +9,9 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `bankAccounts.link` | `POST /api/public/v1/entities/{entityId}/bank-accounts` |
 | `bills.create` | `POST /api/public/v1/entities/{entityId}/bills` |
 | `bills.del` | `DELETE /api/public/v1/entities/{entityId}/bills/{billId}` |
+| `bills.hold` | `POST /api/public/v1/entities/{entityId}/bills/{billId}/hold` |
 | `bills.list` | `GET /api/public/v1/entities/{entityId}/bills` |
+| `bills.release` | `DELETE /api/public/v1/entities/{entityId}/bills/{billId}/hold` |
 | `bills.retrieve` | `GET /api/public/v1/entities/{entityId}/bills/{billId}` |
 | `bills.update` | `PATCH /api/public/v1/entities/{entityId}/bills/{billId}` |
 | `changeSets.create` | `POST /api/public/v1/entities/{entityId}/change-sets` |

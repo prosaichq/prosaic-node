@@ -118,3 +118,78 @@ describe('supplier bills', () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('supplier bill holds', () => {
+  it('holds with a reason, clears an optional reason and releases without changing the posted status', async () => {
+    const calls: Array<{ method: string; path: string; body: unknown }> = [];
+    const fetcher = vi.fn<typeof fetch>(async (input, init) => {
+      expect(new Headers(init?.headers).get('authorization')).toBe('Bearer test-key');
+      const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+      calls.push({ method: init?.method ?? 'GET', path: new URL(String(input)).pathname, body });
+      return Response.json({
+        data: {
+          id: 'bill/id',
+          status: 'APPROVED',
+          total: 115.01,
+          heldAt: init?.method === 'DELETE' ? null : '2026-11-25T01:00:00.000Z',
+          holdReason: body?.reason ?? null,
+        },
+      });
+    });
+    const client = new Prosaic('test-key', { fetch: fetcher });
+    expect(await client.bills.hold('entity/id', 'bill/id', { reason: 'Disputed' })).toMatchObject({
+      data: {
+        status: 'APPROVED',
+        total: 115.01,
+        holdReason: 'Disputed',
+        heldAt: '2026-11-25T01:00:00.000Z',
+      },
+    });
+    await client.bills.hold('entity/id', 'bill/id');
+    await client.bills.hold('entity/id', 'bill/id', { reason: null });
+    expect(await client.bills.release('entity/id', 'bill/id')).toMatchObject({
+      data: { status: 'APPROVED', total: 115.01, heldAt: null, holdReason: null },
+    });
+    expect(calls).toEqual([
+      {
+        method: 'POST',
+        path: '/api/public/v1/entities/entity%2Fid/bills/bill%2Fid/hold',
+        body: { reason: 'Disputed' },
+      },
+      {
+        method: 'POST',
+        path: '/api/public/v1/entities/entity%2Fid/bills/bill%2Fid/hold',
+        body: {},
+      },
+      {
+        method: 'POST',
+        path: '/api/public/v1/entities/entity%2Fid/bills/bill%2Fid/hold',
+        body: { reason: null },
+      },
+      {
+        method: 'DELETE',
+        path: '/api/public/v1/entities/entity%2Fid/bills/bill%2Fid/hold',
+        body: undefined,
+      },
+    ]);
+  });
+
+  it.each(['hold', 'release'] as const)(
+    '%s preserves a refusal without retry or fallback',
+    async (action) => {
+      const fetcher = vi.fn<typeof fetch>(async () =>
+        Response.json(
+          { error: 'Only approved bills can be held', code: 'BILL_NOT_EDITABLE' },
+          { status: 409 },
+        ),
+      );
+      const client = new Prosaic('test-key', { fetch: fetcher });
+      await expect(
+        action === 'hold'
+          ? client.bills.hold('entity-1', 'bill-1', {})
+          : client.bills.release('entity-1', 'bill-1'),
+      ).rejects.toMatchObject({ status: 409, code: 'BILL_NOT_EDITABLE' });
+      expect(fetcher).toHaveBeenCalledOnce();
+    },
+  );
+});
