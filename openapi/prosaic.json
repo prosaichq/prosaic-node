@@ -19331,7 +19331,7 @@
     "/api/public/v1/entities/{entityId}": {
       "patch": {
         "summary": "Update entity settings",
-        "description": "Changes only the supplied settings. A conversion date change cannot move existing posted journals or bank transactions across the cutoff.",
+        "description": "Changes only the supplied settings. Changing the conversion date adjusts the start of bank activity shown in Prosaic.",
         "tags": [
           "Entities"
         ],
@@ -19795,8 +19795,7 @@
             "description": "Entity not found or access denied"
           },
           "409": {
-            "description": "Conversion date or GST filing settings conflict with existing activity",
-            "or settings changed concurrently": null
+            "description": "Concurrent entity edit or GST filing settings conflict with a finalised return"
           },
           "500": {
             "description": "Internal server error"

@@ -477,7 +477,7 @@ export class EntitiesResource {
 
   /**
    * Update entity settings
-   * Changes only the supplied settings. A conversion date change cannot move existing posted journals or bank transactions across the cutoff.
+   * Changes only the supplied settings. Changing the conversion date adjusts the start of bank activity shown in Prosaic.
    */
   update(entityId: string, params: EntitiesUpdateParams = {}, options: RequestOptions = {}): APIPromise<EntitiesUpdateResponse> {
     return new APIPromise(this.transport.request<EntitiesUpdateResponse>("PATCH", `/api/public/v1/entities/${pathParam(entityId)}`, { body: params }, options));

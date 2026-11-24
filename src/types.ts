@@ -1281,7 +1281,7 @@ export interface paths {
         head?: never;
         /**
          * Update entity settings
-         * @description Changes only the supplied settings. A conversion date change cannot move existing posted journals or bank transactions across the cutoff.
+         * @description Changes only the supplied settings. Changing the conversion date adjusts the start of bank activity shown in Prosaic.
          */
         patch: operations["entities.update"];
         trace?: never;
@@ -9350,7 +9350,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Conversion date or GST filing settings conflict with existing activity */
+            /** @description Concurrent entity edit or GST filing settings conflict with a finalised return */
             409: {
                 headers: {
                     [name: string]: unknown;
