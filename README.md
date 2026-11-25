@@ -107,6 +107,34 @@ console.log(journal.id, journal.status);
 
 Journal creation returns the journal directly. Most other resources return a `{ data }` envelope. The SDK preserves the API's response shape; exported TypeScript types show what each method returns.
 
+### Prepare and finalise an invoice separately
+
+Use `invoices.createDraft()` when a person needs to review or complete an invoice before finalisation. Existing `invoices.create()` continues to create a finalised invoice; neither method emails it.
+
+```ts
+const { data: draft } = await prosaic.invoices.createDraft('YOUR_ENTITY_ID', {
+  taxMode: 'NO_TAX',
+  issueDate: '2026-11-25',
+});
+await prosaic.invoices.update('YOUR_ENTITY_ID', draft.id, {
+  contactId: 'YOUR_CUSTOMER_CONTACT_ID',
+  recipientName: 'Example customer',
+  lines: [
+    {
+      description: 'Service',
+      quantity: '1',
+      unitPrice: '100.00',
+      taxRateCode: 'YOUR_NO_TAX_RATE_CODE',
+      entityAccountId: 'YOUR_REVENUE_ACCOUNT_ID',
+    },
+  ],
+});
+// Only finalise after reviewing a complete draft. The API refuses incomplete invoices.
+await prosaic.invoices.update('YOUR_ENTITY_ID', draft.id, { status: 'FINALISED' });
+```
+
+`invoices.update()` accepts partial content **or** a lifecycle action: `FINALISED`, `DRAFT` (revert), or `VOIDED`. Supply `invoiceNumber` with finalisation to confirm a number already reviewed. A stale number returns `INVOICE_NUMBER_CHANGED`; review the new value before resubmitting. Omitted content fields stay unchanged, null clears nullable fields, and `lines` replaces all lines. `invoices.del()` deletes drafts only. Voiding leaves payments matched unless `unmatchPayments: true` is explicitly supplied. Existing period locks and payment protections still apply; these writes require staff and the appropriate entity permission. See the [invoice lifecycle example](examples/invoice-lifecycle.ts).
+
 ## Authentication and workspaces
 
 Keep API keys and confidential-client secrets on your server, outside browser bundles and source control. API keys and OAuth access tokens are sent as Bearer credentials.
@@ -213,7 +241,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 100 operations across 28 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 103 operations across 28 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
 | Area                         | Resources                                                                      |
 | ---------------------------- | ------------------------------------------------------------------------------ |
@@ -229,7 +257,7 @@ Use the [API resource reference](docs/api-reference.md) to find a method, and th
 
 ### Alpha compatibility
 
-The checked-in contract includes supplier bills and Xero conversion operations. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode.
+The checked-in contract includes supplier bills, invoice draft and lifecycle operations, and Xero conversion operations. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 

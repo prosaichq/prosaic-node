@@ -1061,6 +1061,34 @@ export interface paths {
         get: operations["invoices.retrieve"];
         put?: never;
         post?: never;
+        /**
+         * Delete a draft invoice
+         * @description Only drafts can be deleted. Requires workspace staff and entity edit permission. Uses the app's existing PDF/file retention rules; does not void an issued invoice or unmatch payments.
+         */
+        delete: operations["invoices.del"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit invoice content or perform one explicit lifecycle action
+         * @description Send partial content fields OR status alone with its action-specific options. FINALISED finalises a draft without emailing it; optional invoiceNumber confirms the number shown to the caller. DRAFT reverts a finalised invoice without applied payments or credit; VOIDED voids an issued invoice. Voiding never unmatches payments unless unmatchPayments is explicitly true. PAID and SENT shortcuts are unsupported. Staff may edit issued/paid invoices subject to existing posting, payment, numbering and period-lock safeguards. Omitted fields stay unchanged; null clears nullable fields; lines replaces all lines. Requires staff and entity edit permission.
+         */
+        patch: operations["invoices.update"];
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/invoices/drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an invoice draft without finalising or sending it
+         * @description Requires workspace staff and entity create permission. Tax mode and issue date are required; recipient, lines and line accounts may be incomplete until finalisation. Decimal inputs are finite strings; dates are calendar days. No journal or canonical PDF is created. Existing POST /invoices still creates a finalised invoice. Draft fields match the existing invoice create contract, without template selection or status.
+         */
+        post: operations["invoices.createDraft"];
         delete?: never;
         options?: never;
         head?: never;
@@ -8054,6 +8082,8 @@ export interface operations {
                             dueDate: string | null;
                             /** Format: date-time */
                             sentAt: string | null;
+                            contactId: string | null;
+                            recipientEmails: string[];
                             recipientName: string;
                             recipientEmail: string | null;
                             recipientAddress: string | null;
@@ -8106,6 +8136,340 @@ export interface operations {
                 content?: never;
             };
             /** @description Internal server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "invoices.del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                invoiceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                    };
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invoice or entity not found or inaccessible. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only drafts can be deleted (INVOICE_NOT_DELETABLE). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected draft deletion failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "invoices.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                invoiceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "FINALISED";
+                    invoiceNumber?: string;
+                } | {
+                    /** @enum {string} */
+                    status: "DRAFT";
+                } | {
+                    /** @enum {string} */
+                    status: "VOIDED";
+                    unmatchPayments?: boolean;
+                } | {
+                    bankAccountId?: string | null;
+                    notes?: string | null;
+                    contactId?: string | null;
+                    /** @enum {string} */
+                    taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
+                    bankAccountName?: string | null;
+                    invoiceNumber?: string | null;
+                    recipientName?: string;
+                    recipientEmail?: string | null;
+                    recipientAddress?: string | null;
+                    recipientEmails?: string[];
+                    issueDate?: string;
+                    dueDate?: string | null;
+                    lines?: {
+                        description: string;
+                        taxRateCode: string;
+                        quantity: string;
+                        unitPrice: string;
+                        entityAccountId?: string | null;
+                        taxRate?: string;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            fileId: string | null;
+                            invoiceNumber: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            /** Format: date-time */
+                            sentAt: string | null;
+                            contactId: string | null;
+                            recipientEmails: string[];
+                            recipientName: string;
+                            recipientEmail: string | null;
+                            recipientAddress: string | null;
+                            bankAccountId: string | null;
+                            bankAccountName: string | null;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            amountDue: number | null;
+                            notes: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                entityAccountId: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                position: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid input (VALIDATION_ERROR) or incomplete invoice with issues (INVOICE_INCOMPLETE). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invoice or entity not found or inaccessible. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lifecycle/payment refusal (INVOICE_NOT_EDITABLE), stale confirmed number (INVOICE_NUMBER_CHANGED), or locked period (ACCOUNTING_PERIOD_LOCKED). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected invoice update failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "invoices.createDraft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    taxMode: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
+                    issueDate: string;
+                    bankAccountId?: string | null;
+                    notes?: string | null;
+                    contactId?: string | null;
+                    bankAccountName?: string | null;
+                    invoiceNumber?: string;
+                    recipientName?: string;
+                    recipientEmail?: string | null;
+                    recipientAddress?: string | null;
+                    recipientEmails?: string[];
+                    dueDate?: string | null;
+                    lines?: {
+                        description: string;
+                        taxRateCode: string;
+                        quantity: string;
+                        unitPrice: string;
+                        entityAccountId?: string | null;
+                        taxRate?: string;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            fileId: string | null;
+                            invoiceNumber: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            /** Format: date-time */
+                            sentAt: string | null;
+                            contactId: string | null;
+                            recipientEmails: string[];
+                            recipientName: string;
+                            recipientEmail: string | null;
+                            recipientAddress: string | null;
+                            bankAccountId: string | null;
+                            bankAccountName: string | null;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            amountDue: number | null;
+                            notes: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                entityAccountId: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                position: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid JSON, dates, decimals or fields (VALIDATION_ERROR). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or inaccessible. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected draft creation failure. */
             500: {
                 headers: {
                     [name: string]: unknown;
@@ -8172,6 +8536,8 @@ export interface operations {
                             dueDate: string | null;
                             /** Format: date-time */
                             sentAt: string | null;
+                            contactId: string | null;
+                            recipientEmails: string[];
                             recipientName: string;
                             recipientEmail: string | null;
                             recipientAddress: string | null;
@@ -11729,6 +12095,8 @@ export interface operations {
                             dueDate: string | null;
                             /** Format: date-time */
                             sentAt: string | null;
+                            contactId: string | null;
+                            recipientEmails: string[];
                             recipientName: string;
                             recipientEmail: string | null;
                             recipientAddress: string | null;

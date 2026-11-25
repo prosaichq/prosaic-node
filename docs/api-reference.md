@@ -68,9 +68,12 @@ Generated from the reviewed API snapshot. Path IDs come first, then query/body p
 | `gstReturns.list` | `GET /api/public/v1/gst-returns` |
 | `gstReturns.retrieve` | `GET /api/public/v1/entities/{entityId}/gst-returns/{gstReturnId}` |
 | `industryCodes.search` | `GET /api/public/v1/industry-codes` |
+| `invoices.createDraft` | `POST /api/public/v1/entities/{entityId}/invoices/drafts` |
 | `invoices.create` | `POST /api/public/v1/entities/{entityId}/invoices` |
+| `invoices.del` | `DELETE /api/public/v1/entities/{entityId}/invoices/{invoiceId}` |
 | `invoices.list` | `GET /api/public/v1/invoices` |
 | `invoices.retrieve` | `GET /api/public/v1/entities/{entityId}/invoices/{invoiceId}` |
+| `invoices.update` | `PATCH /api/public/v1/entities/{entityId}/invoices/{invoiceId}` |
 | `journals.attachFiles` | `POST /api/public/v1/entities/{entityId}/journals/{journalId}/attachments` |
 | `journals.createBulk` | `POST /api/public/v1/entities/{entityId}/journals/bulk` |
 | `journals.create` | `POST /api/public/v1/entities/{entityId}/journals` |
