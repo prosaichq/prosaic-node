@@ -2,6 +2,8 @@
 
 ## 0.1.0-alpha.3 (unreleased)
 
+- Added `invoices.createDraft()`, `invoices.update()` and `invoices.del()`. Draft creation never finalises or emails. Update accepts content changes or a separate finalise/revert/void action; void only unmatches payments when explicitly requested. Existing `invoices.create()` still creates a finalised invoice. Public invoice reads include the linked `contactId` and `recipientEmails`. Writes retain staff/entity permissions, period locks and payment protections and are never automatically retried.
+
 - Added `bills.hold()` and `bills.release()` for approved supplier bills. Hold accepts an optional nullable reason up to 500 characters; release clears the hold. Neither action changes posting or records a payment, and both retain staff/entity access checks. Accounting locks do not prevent these metadata changes. Writes are never retried automatically.
 
 - Added `bills.list()`, `create()`, `retrieve()`, `update()` and `del()`. Creation saves a draft with one optional uploaded document; approval is a separate `update` with `status: 'APPROVED'`. Bill writes require workspace staff, entity permission and the bills feature flag, and retain accounting period locks and payment restrictions. List balances preserve decimal strings. Mutations are never retried automatically.

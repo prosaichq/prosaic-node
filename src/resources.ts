@@ -99,7 +99,12 @@ export type GstReturnsListForEntityParams = NonNullable<operations["gstReturns.l
 export type GstReturnsRetrieveResponse = operations["gstReturns.retrieve"]['responses'][200]['content']['application/json'];
 export type InvoicesCreateResponse = operations["invoices.create"]['responses'][201]['content']['application/json'];
 export type InvoicesCreateParams = operations["invoices.create"]['requestBody']['content']['application/json'];
+export type InvoicesCreateDraftResponse = operations["invoices.createDraft"]['responses'][201]['content']['application/json'];
+export type InvoicesCreateDraftParams = operations["invoices.createDraft"]['requestBody']['content']['application/json'];
+export type InvoicesDelResponse = operations["invoices.del"]['responses'][200]['content']['application/json'];
 export type InvoicesRetrieveResponse = operations["invoices.retrieve"]['responses'][200]['content']['application/json'];
+export type InvoicesUpdateResponse = operations["invoices.update"]['responses'][200]['content']['application/json'];
+export type InvoicesUpdateParams = operations["invoices.update"]['requestBody']['content']['application/json'];
 export type JournalsListResponse = operations["journals.list"]['responses'][200]['content']['application/json'];
 export type JournalsListParams = NonNullable<operations["journals.list"]['parameters']['query']>;
 export type JournalsCreateResponse = operations["journals.create"]['responses'][200]['content']['application/json'];
@@ -924,10 +929,34 @@ export class InvoicesResource {
   }
 
   /**
+   * Create an invoice draft without finalising or sending it
+   * Requires workspace staff and entity create permission. Tax mode and issue date are required; recipient, lines and line accounts may be incomplete until finalisation. Decimal inputs are finite strings; dates are calendar days. No journal or canonical PDF is created. Existing POST /invoices still creates a finalised invoice. Draft fields match the existing invoice create contract, without template selection or status.
+   */
+  createDraft(entityId: string, params: InvoicesCreateDraftParams, options: RequestOptions = {}): APIPromise<InvoicesCreateDraftResponse> {
+    return new APIPromise(this.transport.request<InvoicesCreateDraftResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/invoices/drafts`, { body: params }, options));
+  }
+
+  /**
+   * Delete a draft invoice
+   * Only drafts can be deleted. Requires workspace staff and entity edit permission. Uses the app's existing PDF/file retention rules; does not void an issued invoice or unmatch payments.
+   */
+  del(entityId: string, invoiceId: string, options: RequestOptions = {}): APIPromise<InvoicesDelResponse> {
+    return new APIPromise(this.transport.request<InvoicesDelResponse>("DELETE", `/api/public/v1/entities/${pathParam(entityId)}/invoices/${pathParam(invoiceId)}`, {}, options));
+  }
+
+  /**
    * Get an invoice by ID for an entity
    */
   retrieve(entityId: string, invoiceId: string, options: RequestOptions = {}): APIPromise<InvoicesRetrieveResponse> {
     return new APIPromise(this.transport.request<InvoicesRetrieveResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/invoices/${pathParam(invoiceId)}`, {}, options));
+  }
+
+  /**
+   * Edit invoice content or perform one explicit lifecycle action
+   * Send partial content fields OR status alone with its action-specific options. FINALISED finalises a draft without emailing it; optional invoiceNumber confirms the number shown to the caller. DRAFT reverts a finalised invoice without applied payments or credit; VOIDED voids an issued invoice. Voiding never unmatches payments unless unmatchPayments is explicitly true. PAID and SENT shortcuts are unsupported. Staff may edit issued/paid invoices subject to existing posting, payment, numbering and period-lock safeguards. Omitted fields stay unchanged; null clears nullable fields; lines replaces all lines. Requires staff and entity edit permission.
+   */
+  update(entityId: string, invoiceId: string, params: InvoicesUpdateParams, options: RequestOptions = {}): APIPromise<InvoicesUpdateResponse> {
+    return new APIPromise(this.transport.request<InvoicesUpdateResponse>("PATCH", `/api/public/v1/entities/${pathParam(entityId)}/invoices/${pathParam(invoiceId)}`, { body: params }, options));
   }
 
   /**
