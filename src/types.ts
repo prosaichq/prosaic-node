@@ -2560,7 +2560,7 @@ export interface operations {
             query?: {
                 /** @description When true, includes global accounts not in the template (with isIncluded=false). Disables pagination. */
                 includeHidden?: boolean;
-                /** @description Return the template version and pagination with an empty data array. Use templateUpdatedAt as expectedUpdatedAt on writes. */
+                /** @description Return the template version and pagination with an empty data array. Use templateUpdatedAt as the saved template version when writing. */
                 summary?: boolean;
                 /** @description Include the full versioned update payload for a complete, activated template the caller can configure. The editable field is null if no such payload is available. */
                 editable?: boolean;

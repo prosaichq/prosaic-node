@@ -1158,7 +1158,7 @@
           {
             "name": "summary",
             "in": "query",
-            "description": "Return the template version and pagination with an empty data array. Use templateUpdatedAt as expectedUpdatedAt on writes.",
+            "description": "Return the template version and pagination with an empty data array. Use templateUpdatedAt as the saved template version when writing.",
             "schema": {
               "type": "boolean",
               "default": false
