@@ -625,7 +625,7 @@
     "/api/public/v1/charts/{chartId}/accounts/{accountId}/delete": {
       "post": {
         "summary": "Delete a single account from a chart of accounts template",
-        "description": "Removes one account from a chart of accounts template without resending the full account list.\nThe removal propagates to every entity using the template. Accounts that have journal entries,\nchild accounts, or are system accounts cannot be removed. `accountId` is the TemplateAccount ID\nfrom `GET /charts/{chartId}`. Successful writes return reviewRequired, unreviewedCount, and reviewUrl.\nRequires bearer authentication.\n",
+        "description": "Removes one account from a chart of accounts template without resending the full account list.\nThe removal propagates to every entity using the template. Accounts that have journal entries,\nchild accounts, or are system accounts cannot be removed. `accountId` is the TemplateAccount ID\nfrom `GET /charts/{chartId}`.\nRequires bearer authentication.\n",
         "tags": [
           "Charts"
         ],
@@ -679,15 +679,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "reviewRequired": {
-                          "type": "boolean"
-                        },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewUrl": {
-                          "type": "string"
-                        },
                         "success": {
                           "type": "boolean"
                         },
@@ -696,9 +687,6 @@
                         }
                       },
                       "required": [
-                        "reviewRequired",
-                        "unreviewedCount",
-                        "reviewUrl",
                         "success",
                         "entitiesUpdated"
                       ],
@@ -743,7 +731,7 @@
     "/api/public/v1/charts/{chartId}/accounts/{accountId}/update": {
       "post": {
         "summary": "Update a single account in a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nUpdates one account in a chart of accounts template without resending the full account list.\nSupports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same\nparent). A code rename cascades non-destructively to every entity account derived from this\ntemplate account (balances and customizations are preserved). Metadata changes follow existing propagation policy for entities\nusing the template. Omitted fields preserve their existing values; send `description: null` to\nclear the description. `accountId` is the TemplateAccount ID from `GET /charts/{chartId}`.\nReporting changes to the template leave existing entity reporting assignments intact. Requires bearer authentication.\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.\nUpdates one account in a chart of accounts template without resending the full account list.\nSupports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same\nparent). A code rename cascades non-destructively to every entity account derived from this\ntemplate account (balances and customizations are preserved). Metadata changes follow existing propagation policy for entities\nusing the template. Omitted fields preserve their existing values; send `description: null` to\nclear the description. `accountId` is the TemplateAccount ID from `GET /charts/{chartId}`.\nReporting changes to the template leave existing entity reporting assignments intact. Requires bearer authentication.\n",
         "tags": [
           "Charts"
         ],
@@ -846,15 +834,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "reviewRequired": {
-                          "type": "boolean"
-                        },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewUrl": {
-                          "type": "string"
-                        },
                         "id": {
                           "type": "string"
                         },
@@ -863,9 +842,6 @@
                         }
                       },
                       "required": [
-                        "reviewRequired",
-                        "unreviewedCount",
-                        "reviewUrl",
                         "id",
                         "entitiesUpdated"
                       ],
@@ -913,7 +889,7 @@
     "/api/public/v1/charts/{chartId}/accounts": {
       "post": {
         "summary": "Add a single account to a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nAdds one account to a chart of accounts template without resending the full account list. To\nadd a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child\naccount, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).\nActivated additions are provisioned to linked charts under the same rules as an editor save. Requires bearer authentication.\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.\nAdds one account to a chart of accounts template without resending the full account list. To\nadd a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child\naccount, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).\nActivated additions are provisioned to linked charts under the same rules as an editor save. Requires bearer authentication.\n",
         "tags": [
           "Charts"
         ],
@@ -1013,15 +989,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "reviewRequired": {
-                          "type": "boolean"
-                        },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewUrl": {
-                          "type": "string"
-                        },
                         "id": {
                           "type": "string",
                           "nullable": true
@@ -1034,9 +1001,6 @@
                         }
                       },
                       "required": [
-                        "reviewRequired",
-                        "unreviewedCount",
-                        "reviewUrl",
                         "id",
                         "code",
                         "entitiesUpdated"
@@ -1163,7 +1127,7 @@
     "/api/public/v1/charts/{chartId}": {
       "get": {
         "summary": "Get chart of accounts template accounts",
-        "description": "Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.\n\nEach included account also exposes its nullable confirmed systemRole and saved reportGroup/reportCategory summaries. subtype remains the legacy compatibility value, independent of report placement. Hidden global suggestions have systemRole=null and no saved report assignment.\n\n**Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.\n\nTo fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.\n\n`taxCode` retains the display name (for example `\"No GST\"`). `taxCodeValue` is the stored machine code, or null when unset. Send the machine code as `taxCode` in writes.\n`reviewStatus` counts all saved classified accounts, including reviewed and unreviewed rows. Hidden suggestions are excluded.\n",
+        "description": "Returns paginated accounts from a chart-of-accounts **template** (the read-only blueprint entities are provisioned from). When `includeHidden=true`, also returns global accounts not in the template with `isIncluded=false`. Requires API key authentication.\n\nEach included account also exposes its nullable confirmed systemRole and saved reportGroup/reportCategory summaries. subtype remains the legacy compatibility value, independent of report placement. Hidden global suggestions have systemRole=null and no saved report assignment.\n\n**Important**: The `id` values returned by this endpoint are *template account* IDs (`TemplateAccount.id`). They are **not** the IDs of an entity's actual GL accounts — do not use them to post journals or look up reconciliation activity.\n\nTo fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.\n\n`taxCode` retains the display name (for example `\"No GST\"`). `taxCodeValue` is the stored machine code, or null when unset. Send the machine code as `taxCode` in writes.\n",
         "tags": [
           "Charts"
         ],
@@ -1194,7 +1158,7 @@
           {
             "name": "summary",
             "in": "query",
-            "description": "Return template metadata and review counts with an empty data array.",
+            "description": "Return the template version and pagination with an empty data array. Use templateUpdatedAt as expectedUpdatedAt on writes.",
             "schema": {
               "type": "boolean",
               "default": false
@@ -1341,29 +1305,6 @@
                         },
                         "templateUpdatedAt": {
                           "type": "string"
-                        },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewStatus": {
-                          "type": "object",
-                          "properties": {
-                            "total": {
-                              "type": "number"
-                            },
-                            "reviewed": {
-                              "type": "number"
-                            },
-                            "unreviewed": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "total",
-                            "reviewed",
-                            "unreviewed"
-                          ],
-                          "additionalProperties": false
                         },
                         "data": {
                           "type": "array",
@@ -1522,8 +1463,6 @@
                       },
                       "required": [
                         "templateUpdatedAt",
-                        "unreviewedCount",
-                        "reviewStatus",
                         "data",
                         "meta"
                       ],
@@ -1631,29 +1570,6 @@
                         "templateUpdatedAt": {
                           "type": "string"
                         },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewStatus": {
-                          "type": "object",
-                          "properties": {
-                            "total": {
-                              "type": "number"
-                            },
-                            "reviewed": {
-                              "type": "number"
-                            },
-                            "unreviewed": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "total",
-                            "reviewed",
-                            "unreviewed"
-                          ],
-                          "additionalProperties": false
-                        },
                         "data": {
                           "type": "array",
                           "items": {
@@ -1831,8 +1747,6 @@
                       },
                       "required": [
                         "templateUpdatedAt",
-                        "unreviewedCount",
-                        "reviewStatus",
                         "data",
                         "pagination"
                       ],
@@ -1940,29 +1854,6 @@
                         "templateUpdatedAt": {
                           "type": "string"
                         },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewStatus": {
-                          "type": "object",
-                          "properties": {
-                            "total": {
-                              "type": "number"
-                            },
-                            "reviewed": {
-                              "type": "number"
-                            },
-                            "unreviewed": {
-                              "type": "number"
-                            }
-                          },
-                          "required": [
-                            "total",
-                            "reviewed",
-                            "unreviewed"
-                          ],
-                          "additionalProperties": false
-                        },
                         "data": {
                           "type": "array",
                           "items": {
@@ -2140,8 +2031,6 @@
                       },
                       "required": [
                         "templateUpdatedAt",
-                        "unreviewedCount",
-                        "reviewStatus",
                         "data",
                         "pagination"
                       ],
@@ -2173,7 +2062,7 @@
     "/api/public/v1/charts/{chartId}/update": {
       "post": {
         "summary": "Update a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nUpdates a chart of accounts template. When `accounts` is provided it fully replaces the\ntemplate's account list (delegates to updateAccountTemplateAccounts and propagates to all\nentities). When `accounts` is omitted, only the provided template metadata (`name`,\n`description`) is updated and accounts are left untouched. Omit a metadata field to preserve\nits existing value, or send `description: null` to clear the description. A full replacement\nlist in a nonactivated workspace must still contain every\nsystem account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with\n`isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing\nall missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system\naccounts automatically. For surgical single-account changes use the\n`/charts/{chartId}/accounts` endpoints instead. Requires API key authentication.\n\n**Tax codes**: Send `taxCodeValue` from `GET /api/public/v1/charts/{chartId}` as `taxCode`\nwhen writing. Activated replacements require a machine code for each included row.\n\n**Legacy field preserve/clear semantics**: For each account, omitting a field (`description`, `taxCode`,\n`mappedCode`) preserves its existing value, while an explicit null clears it (taxCode clears to\n`NZ_GST_0_NONE`).\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.\nUpdates a chart of accounts template. When `accounts` is provided it fully replaces the\ntemplate's account list (delegates to updateAccountTemplateAccounts and propagates to all\nentities). When `accounts` is omitted, only the provided template metadata (`name`,\n`description`) is updated and accounts are left untouched. Omit a metadata field to preserve\nits existing value, or send `description: null` to clear the description. A full replacement\nlist in a nonactivated workspace must still contain every\nsystem account (`GET /api/public/v1/global-accounts`, `isSystem: true`) with\n`isIncluded: true` — otherwise the request fails with `SYSTEM_ACCOUNT_VALIDATION` listing\nall missing accounts. Set `includeSystemAccounts: true` to carry over any omitted system\naccounts automatically. For surgical single-account changes use the\n`/charts/{chartId}/accounts` endpoints instead. Requires API key authentication.\n\n**Tax codes**: Send `taxCodeValue` from `GET /api/public/v1/charts/{chartId}` as `taxCode`\nwhen writing. Activated replacements require a machine code for each included row.\n\n**Legacy field preserve/clear semantics**: For each account, omitting a field (`description`, `taxCode`,\n`mappedCode`) preserves its existing value, while an explicit null clears it (taxCode clears to\n`NZ_GST_0_NONE`).\n",
         "tags": [
           "Charts"
         ],
@@ -2298,15 +2187,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "reviewRequired": {
-                          "type": "boolean"
-                        },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewUrl": {
-                          "type": "string"
-                        },
                         "id": {
                           "type": "string"
                         },
@@ -2322,9 +2202,6 @@
                         }
                       },
                       "required": [
-                        "reviewRequired",
-                        "unreviewedCount",
-                        "reviewUrl",
                         "id",
                         "name",
                         "description",
@@ -2501,17 +2378,13 @@
                           },
                           "accountCount": {
                             "type": "number"
-                          },
-                          "unreviewedCount": {
-                            "type": "number"
                           }
                         },
                         "required": [
                           "id",
                           "name",
                           "description",
-                          "accountCount",
-                          "unreviewedCount"
+                          "accountCount"
                         ],
                         "additionalProperties": false
                       }
@@ -2548,7 +2421,7 @@
       },
       "post": {
         "summary": "Create a chart of accounts template",
-        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.\nIn nonactivated workspaces, creates a chart from global definitions. Every system global\naccount (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present\nin `accounts` with `isIncluded: true` — otherwise the request fails with\n`SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set\n`includeSystemAccounts: true` to have any omitted system accounts added\nautomatically from their global definitions. Requires API key authentication.\n\n**Tax codes**: Send a machine code for the workspace country, such as `NZ_GST_15_INC`.\nActivated workspaces require a code on each included row. Legacy inputs may omit `taxCode`.\n\n**Description defaults**: `description` is optional per account; omitting it (or null) leaves\nthe account description empty.\n",
+        "description": "Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.\nIn nonactivated workspaces, creates a chart from global definitions. Every system global\naccount (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present\nin `accounts` with `isIncluded: true` — otherwise the request fails with\n`SYSTEM_ACCOUNT_VALIDATION` listing all missing accounts. Set\n`includeSystemAccounts: true` to have any omitted system accounts added\nautomatically from their global definitions. Requires API key authentication.\n\n**Tax codes**: Send a machine code for the workspace country, such as `NZ_GST_15_INC`.\nActivated workspaces require a code on each included row. Legacy inputs may omit `taxCode`.\n\n**Description defaults**: `description` is optional per account; omitting it (or null) leaves\nthe account description empty.\n",
         "tags": [
           "Charts"
         ],
@@ -2671,15 +2544,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "reviewRequired": {
-                          "type": "boolean"
-                        },
-                        "unreviewedCount": {
-                          "type": "number"
-                        },
-                        "reviewUrl": {
-                          "type": "string"
-                        },
                         "id": {
                           "type": "string"
                         },
@@ -2692,9 +2556,6 @@
                         }
                       },
                       "required": [
-                        "reviewRequired",
-                        "unreviewedCount",
-                        "reviewUrl",
                         "id",
                         "name",
                         "description"

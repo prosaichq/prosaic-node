@@ -199,7 +199,7 @@ export class ChartsResource {
 
   /**
    * Create a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * In nonactivated workspaces, creates a chart from global definitions. Every system global
    * account (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present
    * in `accounts` with `isIncluded: true` — otherwise the request fails with
@@ -229,7 +229,6 @@ export class ChartsResource {
    * To fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.
    *
    * `taxCode` retains the display name (for example `"No GST"`). `taxCodeValue` is the stored machine code, or null when unset. Send the machine code as `taxCode` in writes.
-   * `reviewStatus` counts all saved classified accounts, including reviewed and unreviewed rows. Hidden suggestions are excluded.
    *
    */
   listAccounts(chartId: string, params: ChartsListAccountsParams = {}, options: RequestOptions = {}): APIListPromise<ChartsListAccountsResponse> {
@@ -238,7 +237,7 @@ export class ChartsResource {
 
   /**
    * Add a single account to a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * Adds one account to a chart of accounts template without resending the full account list. To
    * add a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child
    * account, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).
@@ -254,7 +253,7 @@ export class ChartsResource {
    * Removes one account from a chart of accounts template without resending the full account list.
    * The removal propagates to every entity using the template. Accounts that have journal entries,
    * child accounts, or are system accounts cannot be removed. `accountId` is the TemplateAccount ID
-   * from `GET /charts/{chartId}`. Successful writes return reviewRequired, unreviewedCount, and reviewUrl.
+   * from `GET /charts/{chartId}`.
    * Requires bearer authentication.
    *
    */
@@ -264,7 +263,7 @@ export class ChartsResource {
 
   /**
    * Update a single account in a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * Updates one account in a chart of accounts template without resending the full account list.
    * Supports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same
    * parent). A code rename cascades non-destructively to every entity account derived from this
@@ -288,7 +287,7 @@ export class ChartsResource {
 
   /**
    * Update a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409. Successful writes return reviewRequired, unreviewedCount, and reviewUrl for any remaining review work.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * Updates a chart of accounts template. When `accounts` is provided it fully replaces the
    * template's account list (delegates to updateAccountTemplateAccounts and propagates to all
    * entities). When `accounts` is omitted, only the provided template metadata (`name`,
