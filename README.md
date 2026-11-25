@@ -203,7 +203,9 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
 - `journals.createBulk()` records up to 100 journals and 1,000 lines in one transaction: all of them or none. `autoPost` is required. Send an `idempotencyKey` to make a retry safe, because the SDK never retries it for you. A rejected set throws an `APIError` whose `details.problems` lists each problem with its journal's position in the request.
 - `fixedAssets.update()` changes a draft fixed asset. Send only the fields to change: omitted fields keep their stored values, and `null` clears a field that can be empty. `depreciationRate` is a percentage, and it overrides the asset type's default rate. Setting a rate clears a stored useful life, and the reverse. An active or disposed asset returns `409`.
+- `bills.hold(entityId, billId, { reason? })` and `bills.release(entityId, billId)` change only an approved bill’s hold metadata. They leave the posted liability and payments intact; neither is an accounting reversal or client payment consent. The reason is optional/nullable and limited to 500 characters.
 - `files.upload(entityId, file)` accepts a `File` or `Blob`. Use a named `File`, or pass a `filename` request option for a `Blob`.
+- `bills.create(entityId, { issueDate, fileId, ... })` saves a draft with one optional document returned by `files.upload()`. Review it before `bills.update(entityId, billId, { status: 'APPROVED' })` posts it to payables. Editing draft fields and changing status are separate requests. `DRAFT` unapproves and `VOIDED` voids; live payments and accounting period locks can refuse a move. All bill methods require workspace staff, entity permission and the bills feature flag. Monetary inputs are decimal strings; monetary outputs are numbers except list `amountPaid`/`amountDue`, which are decimal strings (null `amountDue` for drafts and voided bills). See the [supplier bill example](examples/supplier-bills.ts).
 - Scheduled-task input `schedule` is a cadence/time object; its response `schedule` is display text.
 - `extensions.request()` requires an extension-scoped token. Ordinary API keys and user OAuth tokens cannot call it. An upstream error is represented by embedded `status`/`ok` fields inside an HTTP 200 response.
 
@@ -211,23 +213,23 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 80 operations across 25 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 100 operations across 28 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
-| Area                      | Resources                                                                      |
-| ------------------------- | ------------------------------------------------------------------------------ |
-| Identity and setup        | `me`, `version`, `entities`, `clients`                                         |
-| Accounts and dimensions   | `charts`, `entityAccounts`, `globalAccounts`, `dimensions`, `reportCategories` |
-| Transactions and journals | `transactions`, `bankAccounts`, `journals`, `changeSets`                       |
-| Financial reporting       | `ledger`, `generalLedger`, `reports`, `gstReturns`                             |
-| Contacts and invoices     | `contacts`, `invoices`                                                         |
-| Assets and files          | `fixedAssets`, `fixedAssetTypes`, `files`                                      |
-| Automation and extensions | `rules`, `scheduledTasks`, `extensions`                                        |
+| Area                         | Resources                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------ |
+| Identity and setup           | `me`, `version`, `entities`, `clients`, `nzbn`, `industryCodes`                |
+| Accounts and dimensions      | `charts`, `entityAccounts`, `globalAccounts`, `dimensions`, `reportCategories` |
+| Transactions and journals    | `transactions`, `bankAccounts`, `journals`, `changeSets`                       |
+| Financial reporting          | `ledger`, `generalLedger`, `reports`, `gstReturns`                             |
+| Contacts, invoices and bills | `contacts`, `invoices`, `bills`                                                |
+| Assets and files             | `fixedAssets`, `fixedAssetTypes`, `files`                                      |
+| Automation and extensions    | `rules`, `scheduledTasks`, `extensions`                                        |
 
 Use the [API resource reference](docs/api-reference.md) to find a method, and the [developer documentation](https://developer.prosaic.works/) for the wider API.
 
 ### Alpha compatibility
 
-The SDK targets the **12 November 2026** API snapshot. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode.
+The checked-in contract includes supplier bills and Xero conversion operations. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 

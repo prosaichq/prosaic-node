@@ -5711,6 +5711,1827 @@
         "x-sdk-method": "link"
       }
     },
+    "/api/public/v1/entities/{entityId}/bills/{billId}/hold": {
+      "post": {
+        "summary": "Put a supplier bill on hold",
+        "description": "Hold an approved bill without changing its posting or payments. Holding an already held bill updates its reason. Requires workspace staff, entity edit permission and the bills feature. A hold does not prevent recording or matching an actual external payment. No journal is posted or reversed, so accounting period locks do not prevent holding a bill.",
+        "tags": [
+          "Bills"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "billId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "contactId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "fileId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "supplierInvoiceNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reference": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "taxMode": {
+                          "type": "string"
+                        },
+                        "issueDate": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "dueDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "supplier": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "contactType": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS",
+                                "INDIVIDUAL"
+                              ],
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "address": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "supplierName": {
+                          "type": "string"
+                        },
+                        "subtotal": {
+                          "type": "number"
+                        },
+                        "taxTotal": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "notes": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "heldAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "holdReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "entityAccountId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "position": {
+                                "type": "number"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "number"
+                              },
+                              "unitPrice": {
+                                "type": "number"
+                              },
+                              "taxRate": {
+                                "type": "number"
+                              },
+                              "taxRateCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "amount": {
+                                "type": "number"
+                              },
+                              "taxAmount": {
+                                "type": "number"
+                              },
+                              "taxAmountStated": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "entityAccountId",
+                              "position",
+                              "description",
+                              "quantity",
+                              "unitPrice",
+                              "taxRate",
+                              "taxRateCode",
+                              "amount",
+                              "taxAmount",
+                              "taxAmountStated"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "entityId",
+                        "workspaceId",
+                        "contactId",
+                        "fileId",
+                        "supplierInvoiceNumber",
+                        "reference",
+                        "status",
+                        "taxMode",
+                        "issueDate",
+                        "dueDate",
+                        "supplier",
+                        "supplierName",
+                        "subtotal",
+                        "taxTotal",
+                        "total",
+                        "notes",
+                        "heldAt",
+                        "holdReason",
+                        "createdAt",
+                        "updatedAt",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON, reason or unknown field (VALIDATION_ERROR)."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Staff access required or token entity mismatch."
+          },
+          "404": {
+            "description": "Bill or entity not found, or bills disabled."
+          },
+          "409": {
+            "description": "Bill is not approved (BILL_NOT_EDITABLE)."
+          },
+          "500": {
+            "description": "Unexpected bill hold failure."
+          }
+        },
+        "operationId": "bills.hold",
+        "x-sdk-resource": "bills",
+        "x-sdk-method": "hold"
+      },
+      "delete": {
+        "summary": "Release a supplier bill from hold",
+        "description": "Clear hold metadata on an approved bill; an already released approved bill remains released. Does not approve, pay, unapprove or change the journal. Requires workspace staff, entity edit permission and the bills feature. No request body. Accounting period locks do not prevent releasing a hold.",
+        "tags": [
+          "Bills"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "billId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "contactId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "fileId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "supplierInvoiceNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reference": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "taxMode": {
+                          "type": "string"
+                        },
+                        "issueDate": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "dueDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "supplier": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "contactType": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS",
+                                "INDIVIDUAL"
+                              ],
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "address": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "supplierName": {
+                          "type": "string"
+                        },
+                        "subtotal": {
+                          "type": "number"
+                        },
+                        "taxTotal": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "notes": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "heldAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "holdReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "entityAccountId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "position": {
+                                "type": "number"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "number"
+                              },
+                              "unitPrice": {
+                                "type": "number"
+                              },
+                              "taxRate": {
+                                "type": "number"
+                              },
+                              "taxRateCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "amount": {
+                                "type": "number"
+                              },
+                              "taxAmount": {
+                                "type": "number"
+                              },
+                              "taxAmountStated": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "entityAccountId",
+                              "position",
+                              "description",
+                              "quantity",
+                              "unitPrice",
+                              "taxRate",
+                              "taxRateCode",
+                              "amount",
+                              "taxAmount",
+                              "taxAmountStated"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "entityId",
+                        "workspaceId",
+                        "contactId",
+                        "fileId",
+                        "supplierInvoiceNumber",
+                        "reference",
+                        "status",
+                        "taxMode",
+                        "issueDate",
+                        "dueDate",
+                        "supplier",
+                        "supplierName",
+                        "subtotal",
+                        "taxTotal",
+                        "total",
+                        "notes",
+                        "heldAt",
+                        "holdReason",
+                        "createdAt",
+                        "updatedAt",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Staff access required or token entity mismatch."
+          },
+          "404": {
+            "description": "Bill or entity not found, or bills disabled."
+          },
+          "409": {
+            "description": "Bill is not approved (BILL_NOT_EDITABLE)."
+          },
+          "500": {
+            "description": "Unexpected bill release failure."
+          }
+        },
+        "operationId": "bills.release",
+        "x-sdk-resource": "bills",
+        "x-sdk-method": "release"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/bills/{billId}": {
+      "get": {
+        "summary": "Retrieve a supplier bill and its lines",
+        "description": "Requires workspace staff, entity view permission and the bills flag. Bills outside the URL entity return 404. Monetary outputs are numeric; dates serialize as ISO strings. Use the list endpoint for current payment balances and display status.",
+        "tags": [
+          "Bills"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "billId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "contactId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "fileId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "supplierInvoiceNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reference": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "taxMode": {
+                          "type": "string"
+                        },
+                        "issueDate": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "dueDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "supplier": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "contactType": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS",
+                                "INDIVIDUAL"
+                              ],
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "address": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "supplierName": {
+                          "type": "string"
+                        },
+                        "subtotal": {
+                          "type": "number"
+                        },
+                        "taxTotal": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "notes": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "heldAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "holdReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "entityAccountId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "position": {
+                                "type": "number"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "number"
+                              },
+                              "unitPrice": {
+                                "type": "number"
+                              },
+                              "taxRate": {
+                                "type": "number"
+                              },
+                              "taxRateCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "amount": {
+                                "type": "number"
+                              },
+                              "taxAmount": {
+                                "type": "number"
+                              },
+                              "taxAmountStated": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "entityAccountId",
+                              "position",
+                              "description",
+                              "quantity",
+                              "unitPrice",
+                              "taxRate",
+                              "taxRateCode",
+                              "amount",
+                              "taxAmount",
+                              "taxAmountStated"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "entityId",
+                        "workspaceId",
+                        "contactId",
+                        "fileId",
+                        "supplierInvoiceNumber",
+                        "reference",
+                        "status",
+                        "taxMode",
+                        "issueDate",
+                        "dueDate",
+                        "supplier",
+                        "supplierName",
+                        "subtotal",
+                        "taxTotal",
+                        "total",
+                        "notes",
+                        "heldAt",
+                        "holdReason",
+                        "createdAt",
+                        "updatedAt",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Staff access required or token entity mismatch."
+          },
+          "404": {
+            "description": "Bill or entity not found, or bills disabled."
+          },
+          "500": {
+            "description": "Unexpected bill retrieval failure."
+          }
+        },
+        "operationId": "bills.retrieve",
+        "x-sdk-resource": "bills",
+        "x-sdk-method": "retrieve"
+      },
+      "patch": {
+        "summary": "Edit a draft bill or change its status",
+        "description": "Send draft fields OR status alone. APPROVED posts a draft, DRAFT unapproves, VOIDED voids. Existing period locks and live-payment restrictions apply. Fields omitted are unchanged; null clears nullable fields; lines replaces all lines. Requires workspace staff, entity edit permission and the bills flag. Approval is a separate call from draft creation. Invalid JSON or mixed status/fields returns 400.",
+        "tags": [
+          "Bills"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "billId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "APPROVED",
+                          "DRAFT",
+                          "VOIDED"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "status"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "contactId": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "fileId": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "supplierInvoiceNumber": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "reference": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "taxMode": {
+                        "type": "string",
+                        "enum": [
+                          "TAX_EXCLUSIVE",
+                          "TAX_INCLUSIVE",
+                          "NO_TAX"
+                        ]
+                      },
+                      "supplierName": {
+                        "type": "string"
+                      },
+                      "notes": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "issueDate": {
+                        "type": "string"
+                      },
+                      "dueDate": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "lines": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "description": {
+                              "type": "string"
+                            },
+                            "taxRateCode": {
+                              "type": "string"
+                            },
+                            "quantity": {
+                              "type": "string"
+                            },
+                            "unitPrice": {
+                              "type": "string"
+                            },
+                            "taxRate": {
+                              "type": "string"
+                            },
+                            "entityAccountId": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "taxAmount": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "description",
+                            "taxRateCode",
+                            "quantity",
+                            "unitPrice",
+                            "taxRate"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "contactId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "fileId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "supplierInvoiceNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reference": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "taxMode": {
+                          "type": "string"
+                        },
+                        "issueDate": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "dueDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "supplier": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "contactType": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS",
+                                "INDIVIDUAL"
+                              ],
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "address": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "supplierName": {
+                          "type": "string"
+                        },
+                        "subtotal": {
+                          "type": "number"
+                        },
+                        "taxTotal": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "notes": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "heldAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "holdReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "entityAccountId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "position": {
+                                "type": "number"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "number"
+                              },
+                              "unitPrice": {
+                                "type": "number"
+                              },
+                              "taxRate": {
+                                "type": "number"
+                              },
+                              "taxRateCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "amount": {
+                                "type": "number"
+                              },
+                              "taxAmount": {
+                                "type": "number"
+                              },
+                              "taxAmountStated": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "entityAccountId",
+                              "position",
+                              "description",
+                              "quantity",
+                              "unitPrice",
+                              "taxRate",
+                              "taxRateCode",
+                              "amount",
+                              "taxAmount",
+                              "taxAmountStated"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "entityId",
+                        "workspaceId",
+                        "contactId",
+                        "fileId",
+                        "supplierInvoiceNumber",
+                        "reference",
+                        "status",
+                        "taxMode",
+                        "issueDate",
+                        "dueDate",
+                        "supplier",
+                        "supplierName",
+                        "subtotal",
+                        "taxTotal",
+                        "total",
+                        "notes",
+                        "heldAt",
+                        "holdReason",
+                        "createdAt",
+                        "updatedAt",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input (VALIDATION_ERROR) or incomplete bill with structured issues (BILL_INCOMPLETE)."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Staff access required or token entity mismatch."
+          },
+          "404": {
+            "description": "Bill or entity not found, or bills disabled."
+          },
+          "409": {
+            "description": "Lifecycle or live-payment conflict (BILL_NOT_EDITABLE), or accounting period locked (ACCOUNTING_PERIOD_LOCKED)."
+          },
+          "500": {
+            "description": "Unexpected bill update failure."
+          }
+        },
+        "operationId": "bills.update",
+        "x-sdk-resource": "bills",
+        "x-sdk-method": "update"
+      },
+      "delete": {
+        "summary": "Delete a draft supplier bill",
+        "description": "Only drafts can be deleted. Requires workspace staff, entity edit permission and the bills feature flag.",
+        "tags": [
+          "Bills"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "billId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Staff access required or token entity mismatch."
+          },
+          "404": {
+            "description": "Bill or entity not found, or bills disabled."
+          },
+          "409": {
+            "description": "Only drafts can be deleted (BILL_NOT_EDITABLE)."
+          },
+          "500": {
+            "description": "Unexpected bill deletion failure."
+          }
+        },
+        "operationId": "bills.del",
+        "x-sdk-resource": "bills",
+        "x-sdk-method": "del"
+      }
+    },
+    "/api/public/v1/entities/{entityId}/bills": {
+      "get": {
+        "summary": "List supplier bills for an entity",
+        "description": "Requires workspace staff access, entity view permission and the bills feature flag. Returns current payment balances and display statuses. Date filters are inclusive calendar days.",
+        "tags": [
+          "Bills"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 25
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "displayStatuses",
+            "description": "Comma-separated DRAFT, AWAITING_PAYMENT, PART_PAID, OVERDUE, ON_HOLD, PAID or VOIDED.",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "contactId",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "dueDateFrom",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "dueDateTo",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "description": "Supplier name or supplier invoice number.",
+            "schema": {
+              "type": "string"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "supplierName": {
+                            "type": "string"
+                          },
+                          "supplierInvoiceNumber": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "reference": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "issueDate": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "dueDate": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "displayStatus": {
+                            "type": "string",
+                            "enum": [
+                              "DRAFT",
+                              "VOIDED",
+                              "AWAITING_PAYMENT",
+                              "PART_PAID",
+                              "OVERDUE",
+                              "ON_HOLD",
+                              "PAID"
+                            ]
+                          },
+                          "total": {
+                            "type": "number"
+                          },
+                          "amountPaid": {
+                            "type": "string"
+                          },
+                          "amountDue": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "heldAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "holdReason": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "entity": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "supplierName",
+                          "supplierInvoiceNumber",
+                          "reference",
+                          "issueDate",
+                          "dueDate",
+                          "status",
+                          "displayStatus",
+                          "total",
+                          "amountPaid",
+                          "amountDue",
+                          "heldAt",
+                          "holdReason",
+                          "entity"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "currentPage": {
+                          "type": "number"
+                        },
+                        "pageSize": {
+                          "type": "number"
+                        },
+                        "totalCount": {
+                          "type": "number"
+                        },
+                        "totalPages": {
+                          "type": "number"
+                        },
+                        "hasNextPage": {
+                          "type": "boolean"
+                        },
+                        "hasPreviousPage": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "currentPage",
+                        "pageSize",
+                        "totalCount",
+                        "totalPages",
+                        "hasNextPage",
+                        "hasPreviousPage"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filters or pagination (VALIDATION_ERROR)."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Staff access required or token entity mismatch."
+          },
+          "404": {
+            "description": "Entity not found or bills disabled."
+          },
+          "500": {
+            "description": "Unexpected bill listing failure."
+          }
+        },
+        "operationId": "bills.list",
+        "x-sdk-resource": "bills",
+        "x-sdk-method": "list"
+      },
+      "post": {
+        "summary": "Create a draft supplier bill",
+        "description": "Creates DRAFT only. Upload one document using files.upload and pass its fileId. The document must belong to this entity. Approve separately with PATCH status APPROVED. Requires workspace staff, entity create permission and the bills flag. Amount inputs are finite decimal strings; dates are calendar days. Empty drafts are permitted.",
+        "tags": [
+          "Bills"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "issueDate": {
+                    "type": "string"
+                  },
+                  "reference": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "notes": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "contactId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "fileId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "supplierInvoiceNumber": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "taxMode": {
+                    "type": "string",
+                    "enum": [
+                      "TAX_EXCLUSIVE",
+                      "TAX_INCLUSIVE",
+                      "NO_TAX"
+                    ]
+                  },
+                  "supplierName": {
+                    "type": "string"
+                  },
+                  "dueDate": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "taxRateCode": {
+                          "type": "string"
+                        },
+                        "quantity": {
+                          "type": "string"
+                        },
+                        "unitPrice": {
+                          "type": "string"
+                        },
+                        "taxRate": {
+                          "type": "string"
+                        },
+                        "entityAccountId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "taxAmount": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "description",
+                        "taxRateCode",
+                        "quantity",
+                        "unitPrice",
+                        "taxRate"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "issueDate"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "entityId": {
+                          "type": "string"
+                        },
+                        "workspaceId": {
+                          "type": "string"
+                        },
+                        "contactId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "fileId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "supplierInvoiceNumber": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "reference": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "taxMode": {
+                          "type": "string"
+                        },
+                        "issueDate": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "dueDate": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "supplier": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "contactType": {
+                              "type": "string",
+                              "enum": [
+                                "BUSINESS",
+                                "INDIVIDUAL"
+                              ],
+                              "nullable": true
+                            },
+                            "gstNumber": {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            "address": {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ],
+                          "additionalProperties": false,
+                          "nullable": true
+                        },
+                        "supplierName": {
+                          "type": "string"
+                        },
+                        "subtotal": {
+                          "type": "number"
+                        },
+                        "taxTotal": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        },
+                        "notes": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "heldAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "holdReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "lines": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "entityAccountId": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "position": {
+                                "type": "number"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "quantity": {
+                                "type": "number"
+                              },
+                              "unitPrice": {
+                                "type": "number"
+                              },
+                              "taxRate": {
+                                "type": "number"
+                              },
+                              "taxRateCode": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "amount": {
+                                "type": "number"
+                              },
+                              "taxAmount": {
+                                "type": "number"
+                              },
+                              "taxAmountStated": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "entityAccountId",
+                              "position",
+                              "description",
+                              "quantity",
+                              "unitPrice",
+                              "taxRate",
+                              "taxRateCode",
+                              "amount",
+                              "taxAmount",
+                              "taxAmountStated"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "entityId",
+                        "workspaceId",
+                        "contactId",
+                        "fileId",
+                        "supplierInvoiceNumber",
+                        "reference",
+                        "status",
+                        "taxMode",
+                        "issueDate",
+                        "dueDate",
+                        "supplier",
+                        "supplierName",
+                        "subtotal",
+                        "taxTotal",
+                        "total",
+                        "notes",
+                        "heldAt",
+                        "holdReason",
+                        "createdAt",
+                        "updatedAt",
+                        "lines"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON, bill input, contact, account, tax code or file (VALIDATION_ERROR)."
+          },
+          "401": {
+            "description": "Authentication required."
+          },
+          "403": {
+            "description": "Staff access required or token entity mismatch."
+          },
+          "404": {
+            "description": "Entity not found or bills disabled."
+          },
+          "500": {
+            "description": "Unexpected bill creation failure."
+          }
+        },
+        "operationId": "bills.create",
+        "x-sdk-resource": "bills",
+        "x-sdk-method": "create"
+      }
+    },
     "/api/public/v1/entities/{entityId}/change-sets": {
       "post": {
         "summary": "Submit a change-set (proposed financial writes) for an entity",
@@ -5795,9 +7616,9 @@
                                 "taxMode": {
                                   "type": "string",
                                   "enum": [
-                                    "NO_TAX",
+                                    "TAX_EXCLUSIVE",
                                     "TAX_INCLUSIVE",
-                                    "TAX_EXCLUSIVE"
+                                    "NO_TAX"
                                   ]
                                 }
                               },
@@ -5868,9 +7689,9 @@
                                 "taxMode": {
                                   "type": "string",
                                   "enum": [
-                                    "NO_TAX",
+                                    "TAX_EXCLUSIVE",
                                     "TAX_INCLUSIVE",
-                                    "TAX_EXCLUSIVE"
+                                    "NO_TAX"
                                   ]
                                 },
                                 "confidence": {
@@ -14102,9 +15923,9 @@
                   "taxMode": {
                     "type": "string",
                     "enum": [
-                      "NO_TAX",
+                      "TAX_EXCLUSIVE",
                       "TAX_INCLUSIVE",
-                      "TAX_EXCLUSIVE"
+                      "NO_TAX"
                     ]
                   },
                   "issueDate": {
@@ -14806,9 +16627,9 @@
                         "taxMode": {
                           "type": "string",
                           "enum": [
-                            "NO_TAX",
+                            "TAX_EXCLUSIVE",
                             "TAX_INCLUSIVE",
-                            "TAX_EXCLUSIVE"
+                            "NO_TAX"
                           ]
                         },
                         "fileIds": {
@@ -15766,9 +17587,9 @@
                   "taxMode": {
                     "type": "string",
                     "enum": [
-                      "NO_TAX",
+                      "TAX_EXCLUSIVE",
                       "TAX_INCLUSIVE",
-                      "TAX_EXCLUSIVE"
+                      "NO_TAX"
                     ]
                   },
                   "fileIds": {
@@ -19973,9 +21794,9 @@
                   "taxMode": {
                     "type": "string",
                     "enum": [
-                      "NO_TAX",
+                      "TAX_EXCLUSIVE",
                       "TAX_INCLUSIVE",
-                      "TAX_EXCLUSIVE"
+                      "NO_TAX"
                     ]
                   },
                   "fileIds": {
@@ -24308,9 +26129,9 @@
               "type": "string",
               "enum": [
                 "DRAFT",
-                "FINALISED",
+                "VOIDED",
                 "PAID",
-                "VOIDED"
+                "FINALISED"
               ]
             },
             "description": "Filter by persisted invoice lifecycle status."
@@ -27789,9 +29610,9 @@
                         "taxMode": {
                           "type": "string",
                           "enum": [
-                            "NO_TAX",
+                            "TAX_EXCLUSIVE",
                             "TAX_INCLUSIVE",
-                            "TAX_EXCLUSIVE"
+                            "NO_TAX"
                           ]
                         },
                         "fileIds": {

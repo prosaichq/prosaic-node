@@ -424,6 +424,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/v1/entities/{entityId}/bills/{billId}/hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Put a supplier bill on hold
+         * @description Hold an approved bill without changing its posting or payments. Holding an already held bill updates its reason. Requires workspace staff, entity edit permission and the bills feature. A hold does not prevent recording or matching an actual external payment. No journal is posted or reversed, so accounting period locks do not prevent holding a bill.
+         */
+        post: operations["bills.hold"];
+        /**
+         * Release a supplier bill from hold
+         * @description Clear hold metadata on an approved bill; an already released approved bill remains released. Does not approve, pay, unapprove or change the journal. Requires workspace staff, entity edit permission and the bills feature. No request body. Accounting period locks do not prevent releasing a hold.
+         */
+        delete: operations["bills.release"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/bills/{billId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a supplier bill and its lines
+         * @description Requires workspace staff, entity view permission and the bills flag. Bills outside the URL entity return 404. Monetary outputs are numeric; dates serialize as ISO strings. Use the list endpoint for current payment balances and display status.
+         */
+        get: operations["bills.retrieve"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a draft supplier bill
+         * @description Only drafts can be deleted. Requires workspace staff, entity edit permission and the bills feature flag.
+         */
+        delete: operations["bills.del"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a draft bill or change its status
+         * @description Send draft fields OR status alone. APPROVED posts a draft, DRAFT unapproves, VOIDED voids. Existing period locks and live-payment restrictions apply. Fields omitted are unchanged; null clears nullable fields; lines replaces all lines. Requires workspace staff, entity edit permission and the bills flag. Approval is a separate call from draft creation. Invalid JSON or mixed status/fields returns 400.
+         */
+        patch: operations["bills.update"];
+        trace?: never;
+    };
+    "/api/public/v1/entities/{entityId}/bills": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List supplier bills for an entity
+         * @description Requires workspace staff access, entity view permission and the bills feature flag. Returns current payment balances and display statuses. Date filters are inclusive calendar days.
+         */
+        get: operations["bills.list"];
+        put?: never;
+        /**
+         * Create a draft supplier bill
+         * @description Creates DRAFT only. Upload one document using files.upload and pass its fileId. The document must belong to this entity. Approve separately with PATCH status APPROVED. Requires workspace staff, entity create permission and the bills flag. Amount inputs are finite decimal strings; dates are calendar days. Empty drafts are permitted.
+         */
+        post: operations["bills.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/v1/entities/{entityId}/change-sets": {
         parameters: {
             query?: never;
@@ -4087,6 +4163,759 @@ export interface operations {
             };
         };
     };
+    "bills.hold": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                billId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            contactId: string | null;
+                            fileId: string | null;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            supplier: {
+                                name: string;
+                                /** @enum {string|null} */
+                                contactType?: "BUSINESS" | "INDIVIDUAL" | null;
+                                gstNumber?: string | null;
+                                address?: string | null;
+                            } | null;
+                            supplierName: string;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            notes: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                entityAccountId: string | null;
+                                position: number;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                taxAmountStated: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid JSON, reason or unknown field (VALIDATION_ERROR). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill or entity not found, or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill is not approved (BILL_NOT_EDITABLE). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill hold failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                billId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            contactId: string | null;
+                            fileId: string | null;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            supplier: {
+                                name: string;
+                                /** @enum {string|null} */
+                                contactType?: "BUSINESS" | "INDIVIDUAL" | null;
+                                gstNumber?: string | null;
+                                address?: string | null;
+                            } | null;
+                            supplierName: string;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            notes: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                entityAccountId: string | null;
+                                position: number;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                taxAmountStated: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill or entity not found, or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill is not approved (BILL_NOT_EDITABLE). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill release failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.retrieve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                billId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            contactId: string | null;
+                            fileId: string | null;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            supplier: {
+                                name: string;
+                                /** @enum {string|null} */
+                                contactType?: "BUSINESS" | "INDIVIDUAL" | null;
+                                gstNumber?: string | null;
+                                address?: string | null;
+                            } | null;
+                            supplierName: string;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            notes: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                entityAccountId: string | null;
+                                position: number;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                taxAmountStated: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill or entity not found, or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill retrieval failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.del": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                billId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                    };
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill or entity not found, or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Only drafts can be deleted (BILL_NOT_EDITABLE). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill deletion failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+                billId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    status: "APPROVED" | "DRAFT" | "VOIDED";
+                } | {
+                    contactId?: string | null;
+                    fileId?: string | null;
+                    supplierInvoiceNumber?: string | null;
+                    reference?: string | null;
+                    /** @enum {string} */
+                    taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
+                    supplierName?: string;
+                    notes?: string | null;
+                    issueDate?: string;
+                    dueDate?: string | null;
+                    lines?: {
+                        description: string;
+                        taxRateCode: string;
+                        quantity: string;
+                        unitPrice: string;
+                        taxRate: string;
+                        entityAccountId?: string | null;
+                        taxAmount?: string | null;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            contactId: string | null;
+                            fileId: string | null;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            supplier: {
+                                name: string;
+                                /** @enum {string|null} */
+                                contactType?: "BUSINESS" | "INDIVIDUAL" | null;
+                                gstNumber?: string | null;
+                                address?: string | null;
+                            } | null;
+                            supplierName: string;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            notes: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                entityAccountId: string | null;
+                                position: number;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                taxAmountStated: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid input (VALIDATION_ERROR) or incomplete bill with structured issues (BILL_INCOMPLETE). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bill or entity not found, or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Lifecycle or live-payment conflict (BILL_NOT_EDITABLE), or accounting period locked (ACCOUNTING_PERIOD_LOCKED). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill update failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.list": {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Comma-separated DRAFT, AWAITING_PAYMENT, PART_PAID, OVERDUE, ON_HOLD, PAID or VOIDED. */
+                displayStatuses?: string;
+                contactId?: string;
+                dueDateFrom?: string;
+                dueDateTo?: string;
+                /** @description Supplier name or supplier invoice number. */
+                search?: string;
+            };
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            supplierName: string;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            status: string;
+                            /** @enum {string} */
+                            displayStatus: "DRAFT" | "VOIDED" | "AWAITING_PAYMENT" | "PART_PAID" | "OVERDUE" | "ON_HOLD" | "PAID";
+                            total: number;
+                            amountPaid: string;
+                            amountDue: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            entity: {
+                                id: string;
+                                name: string;
+                            };
+                        }[];
+                        pagination: {
+                            currentPage: number;
+                            pageSize: number;
+                            totalCount: number;
+                            totalPages: number;
+                            hasNextPage: boolean;
+                            hasPreviousPage: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description Invalid filters or pagination (VALIDATION_ERROR). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill listing failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "bills.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entityId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    issueDate: string;
+                    reference?: string | null;
+                    notes?: string | null;
+                    contactId?: string | null;
+                    fileId?: string | null;
+                    supplierInvoiceNumber?: string | null;
+                    /** @enum {string} */
+                    taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
+                    supplierName?: string;
+                    dueDate?: string | null;
+                    lines?: {
+                        description: string;
+                        taxRateCode: string;
+                        quantity: string;
+                        unitPrice: string;
+                        taxRate: string;
+                        entityAccountId?: string | null;
+                        taxAmount?: string | null;
+                    }[];
+                };
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            id: string;
+                            entityId: string;
+                            workspaceId: string;
+                            contactId: string | null;
+                            fileId: string | null;
+                            supplierInvoiceNumber: string | null;
+                            reference: string | null;
+                            status: string;
+                            taxMode: string;
+                            /** Format: date-time */
+                            issueDate: string;
+                            /** Format: date-time */
+                            dueDate: string | null;
+                            supplier: {
+                                name: string;
+                                /** @enum {string|null} */
+                                contactType?: "BUSINESS" | "INDIVIDUAL" | null;
+                                gstNumber?: string | null;
+                                address?: string | null;
+                            } | null;
+                            supplierName: string;
+                            subtotal: number;
+                            taxTotal: number;
+                            total: number;
+                            notes: string | null;
+                            /** Format: date-time */
+                            heldAt: string | null;
+                            holdReason: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            updatedAt: string;
+                            lines: {
+                                id: string;
+                                entityAccountId: string | null;
+                                position: number;
+                                description: string;
+                                quantity: number;
+                                unitPrice: number;
+                                taxRate: number;
+                                taxRateCode: string | null;
+                                amount: number;
+                                taxAmount: number;
+                                taxAmountStated: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Invalid JSON, bill input, contact, account, tax code or file (VALIDATION_ERROR). */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Staff access required or token entity mismatch. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Entity not found or bills disabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected bill creation failure. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     "changeSets.create": {
         parameters: {
             query?: never;
@@ -4113,7 +4942,7 @@ export interface operations {
                                 description?: string;
                             }[];
                             /** @enum {string} */
-                            taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                            taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
                         };
                     } | {
                         /** @enum {string} */
@@ -4130,7 +4959,7 @@ export interface operations {
                             }[];
                             narration?: string;
                             /** @enum {string} */
-                            taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                            taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
                             confidence?: number;
                             reasoning?: string;
                         };
@@ -7298,7 +8127,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    taxMode: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                    taxMode: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
                     issueDate: string;
                     recipientName: string;
                     lines: {
@@ -7593,7 +8422,7 @@ export interface operations {
                             dimensionOptionIds?: string[];
                         }[];
                         /** @enum {string} */
-                        taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                        taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
                         fileIds?: string[];
                     }[];
                     idempotencyKey?: string;
@@ -7919,7 +8748,7 @@ export interface operations {
                     }[];
                     editReason?: string;
                     /** @enum {string} */
-                    taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                    taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
                     fileIds?: string[];
                     autoPost?: boolean;
                 };
@@ -9390,7 +10219,7 @@ export interface operations {
                     }[];
                     narration?: string;
                     /** @enum {string} */
-                    taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                    taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
                     fileIds?: string[];
                 };
             };
@@ -10867,7 +11696,7 @@ export interface operations {
                 /** @description Return invoices whose entity is associated with this client user. */
                 clientId?: string;
                 /** @description Filter by persisted invoice lifecycle status. */
-                status?: "DRAFT" | "FINALISED" | "PAID" | "VOIDED";
+                status?: "DRAFT" | "VOIDED" | "PAID" | "FINALISED";
                 /** @description Return invoices updated on or after this ISO 8601 timestamp. */
                 updatedSince?: string;
                 page?: number;
@@ -12435,7 +13264,7 @@ export interface operations {
                         };
                         narration?: string;
                         /** @enum {string} */
-                        taxMode?: "NO_TAX" | "TAX_INCLUSIVE" | "TAX_EXCLUSIVE";
+                        taxMode?: "TAX_EXCLUSIVE" | "TAX_INCLUSIVE" | "NO_TAX";
                         fileIds?: string[];
                         destinationEntityId?: string;
                         assignment?: {
