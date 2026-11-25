@@ -6,7 +6,7 @@
 - NZBN search and detail share a limit of 30 lookups per minute per workspace. A rate-limited lookup returns `429` with `Retry-After`.
 - Added `bankAccounts.create()` for a numbered bank account that can attach to a matching feed later.
 - Added `charts.propose()` to preview Xero account mappings and exceptions. Validated chart template saves can be used immediately. Template reads return the machine tax code as `taxCodeValue` and support version-only summaries and editable update payloads.
-- Added `reports.compareTrialBalance()` to compare source balances against a Prosaic report without making changes. It returns exact decimals as strings.
+- Added `reports.compareTrialBalance()` to compare source balances against a Prosaic report without making changes. It returns exact decimals as strings. Supply the saved Prosaic code for every Xero row in `mapping`, including unchanged codes. Omitted entries appear in `unmappedXero`. Omit the mapping entirely for automatic matching.
 - `journals.createBulk()` accepts `includeLines: true` to retrieve the saved posting lines on creation or on an idempotent replay.
 - Added `invoices.createDraft()`, `invoices.update()` and `invoices.del()`. Draft creation never finalises or emails. Update accepts content changes or a separate finalise/revert/void action; void only unmatches payments when explicitly requested. Existing `invoices.create()` still creates a finalised invoice. Public invoice reads include the linked `contactId` and `recipientEmails`. Writes retain staff/entity permissions, period locks and payment protections and are never automatically retried.
 

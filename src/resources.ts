@@ -1196,7 +1196,9 @@ export class ReportsResource {
    * Read-only monetary comparison in the entity's currency. Supply one row per
    * Xero account code. Cumulative mode uses asOfDate, and movement mode uses
    * the inclusive from/to date range. Dates are local to the entity.
-   * Matches use the explicit mapping, exact code, then unique mapped code.
+   * When mapping is supplied, each Xero row needs an explicit target, even
+   * when its code is unchanged or its balance is zero. Omit mapping to
+   * match by exact code, then by unique saved mapped code.
    * The tolerance defaults to zero. Differences are Xero minus Prosaic.
    *
    */

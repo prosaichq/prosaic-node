@@ -23743,7 +23743,7 @@
     "/api/public/v1/entities/{entityId}/trial-balance/compare": {
       "post": {
         "summary": "Compare a Xero trial balance with Prosaic",
-        "description": "Read-only monetary comparison in the entity's currency. Supply one row per\nXero account code. Cumulative mode uses asOfDate, and movement mode uses\nthe inclusive from/to date range. Dates are local to the entity.\nMatches use the explicit mapping, exact code, then unique mapped code.\nThe tolerance defaults to zero. Differences are Xero minus Prosaic.\n",
+        "description": "Read-only monetary comparison in the entity's currency. Supply one row per\nXero account code. Cumulative mode uses asOfDate, and movement mode uses\nthe inclusive from/to date range. Dates are local to the entity.\nWhen mapping is supplied, each Xero row needs an explicit target, even\nwhen its code is unchanged or its balance is zero. Omit mapping to\nmatch by exact code, then by unique saved mapped code.\nThe tolerance defaults to zero. Differences are Xero minus Prosaic.\n",
         "tags": [
           "Reports"
         ],
@@ -24099,6 +24099,25 @@
                         "additionalProperties": false
                       }
                     },
+                    "unmappedXero": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "xeroCode": {
+                            "type": "string"
+                          },
+                          "xeroBalance": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "xeroCode",
+                          "xeroBalance"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
                     "missingInProsaic": {
                       "type": "array",
                       "items": {
@@ -24108,6 +24127,9 @@
                             "type": "string"
                           },
                           "xeroBalance": {
+                            "type": "string"
+                          },
+                          "prosaicCode": {
                             "type": "string"
                           }
                         },
@@ -24228,6 +24250,7 @@
                     "isTied",
                     "matched",
                     "differences",
+                    "unmappedXero",
                     "missingInProsaic",
                     "extraInProsaic",
                     "ambiguous",

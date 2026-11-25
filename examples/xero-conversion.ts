@@ -24,10 +24,12 @@ export async function previewConversion(api: Prosaic, entityId: string, nzbn: st
       },
     ],
   });
+  // Use the account code saved in Prosaic for every Xero row, including unchanged codes.
   const comparison = await api.reports.compareTrialBalance(entityId, {
     reportMode: 'cumulative',
     asOfDate: '2026-03-31',
     rows: [{ code: '416', balance: '520.24' }],
+    mapping: { '416': '416' },
     tolerance: '0.01',
   });
   return { business: business.data, proposal: proposal.data, comparison };
