@@ -206,6 +206,7 @@ describe('supplier bill review', () => {
           id: 'bill-1',
           status: inReview ? 'IN_REVIEW' : 'DRAFT',
           reviewerId: inReview ? body.reviewerId : null,
+          sentBackReason: inReview ? null : body.reason,
         },
       });
     });
@@ -216,10 +217,11 @@ describe('supplier bill review', () => {
       reviewerId: 'user-2',
     });
     expect(submitted.data.reviewerId).toBe('user-2');
-    await client.bills.update('entity-1', 'bill-1', {
+    const sentBack = await client.bills.update('entity-1', 'bill-1', {
       status: 'DRAFT',
       reason: 'Freight belongs in Direct Costs',
     });
+    expect(sentBack.data.sentBackReason).toBe('Freight belongs in Direct Costs');
 
     expect(calls).toEqual([
       { method: 'PATCH', body: { status: 'IN_REVIEW', reviewerId: 'user-2' } },

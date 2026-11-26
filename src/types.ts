@@ -4213,6 +4213,10 @@ export interface operations {
                             heldAt: string | null;
                             holdReason: string | null;
                             reviewerId: string | null;
+                            sentBackReason: string | null;
+                            sentBackById: string | null;
+                            /** Format: date-time */
+                            sentBackAt: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4327,6 +4331,10 @@ export interface operations {
                             heldAt: string | null;
                             holdReason: string | null;
                             reviewerId: string | null;
+                            sentBackReason: string | null;
+                            sentBackById: string | null;
+                            /** Format: date-time */
+                            sentBackAt: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4434,6 +4442,10 @@ export interface operations {
                             heldAt: string | null;
                             holdReason: string | null;
                             reviewerId: string | null;
+                            sentBackReason: string | null;
+                            sentBackById: string | null;
+                            /** Format: date-time */
+                            sentBackAt: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4633,6 +4645,10 @@ export interface operations {
                             heldAt: string | null;
                             holdReason: string | null;
                             reviewerId: string | null;
+                            sentBackReason: string | null;
+                            sentBackById: string | null;
+                            /** Format: date-time */
+                            sentBackAt: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4870,6 +4886,10 @@ export interface operations {
                             heldAt: string | null;
                             holdReason: string | null;
                             reviewerId: string | null;
+                            sentBackReason: string | null;
+                            sentBackById: string | null;
+                            /** Format: date-time */
+                            sentBackAt: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
