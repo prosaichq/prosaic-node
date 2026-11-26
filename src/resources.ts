@@ -33,8 +33,13 @@ export type EntitiesListResponse = operations["entities.list"]['responses'][200]
 export type EntitiesListParams = NonNullable<operations["entities.list"]['parameters']['query']>;
 export type EntitiesCreateResponse = operations["entities.create"]['responses'][201]['content']['application/json'];
 export type EntitiesCreateParams = operations["entities.create"]['requestBody']['content']['application/json'];
+export type EntitiesDelResponse = operations["entities.del"]['responses'][202]['content']['application/json'];
+export type EntitiesUpdateResponse = operations["entities.update"]['responses'][200]['content']['application/json'];
+export type EntitiesUpdateParams = operations["entities.update"]['requestBody']['content']['application/json'];
 export type BankAccountsLinkResponse = operations["bankAccounts.link"]['responses'][200]['content']['application/json'];
 export type BankAccountsLinkParams = operations["bankAccounts.link"]['requestBody']['content']['application/json'];
+export type BankAccountsCreateResponse = operations["bankAccounts.create"]['responses'][201]['content']['application/json'];
+export type BankAccountsCreateParams = operations["bankAccounts.create"]['requestBody']['content']['application/json'];
 export type BankAccountsCreateWithTransactionsResponse = operations["bankAccounts.createWithTransactions"]['responses'][201]['content']['application/json'];
 export type BankAccountsCreateWithTransactionsParams = operations["bankAccounts.createWithTransactions"]['requestBody']['content']['application/json'];
 export type BankAccountsImportTransactionsResponse = operations["bankAccounts.importTransactions"]['responses'][200]['content']['application/json'];
@@ -133,14 +138,21 @@ export type TransactionsReverseResponse = operations["transactions.reverse"]['re
 export type TransactionsReverseParams = operations["transactions.reverse"]['requestBody']['content']['application/json'];
 export type ReportsTrialBalanceResponse = operations["reports.trialBalance"]['responses'][200]['content']['application/json'];
 export type ReportsTrialBalanceParams = NonNullable<operations["reports.trialBalance"]['parameters']['query']>;
+export type ReportsCompareTrialBalanceResponse = operations["reports.compareTrialBalance"]['responses'][200]['content']['application/json'];
+export type ReportsCompareTrialBalanceParams = operations["reports.compareTrialBalance"]['requestBody']['content']['application/json'];
 export type ExtensionsRequestResponse = operations["extensions.request"]['responses'][200]['content']['application/json'];
 export type ExtensionsRequestParams = operations["extensions.request"]['requestBody']['content']['application/json'];
 export type GlobalAccountsListResponse = operations["globalAccounts.list"]['responses'][200]['content']['application/json'];
 export type GstReturnsListResponse = operations["gstReturns.list"]['responses'][200]['content']['application/json'];
 export type GstReturnsListParams = NonNullable<operations["gstReturns.list"]['parameters']['query']>;
+export type IndustryCodesSearchResponse = operations["industryCodes.search"]['responses'][200]['content']['application/json'];
+export type IndustryCodesSearchParams = NonNullable<operations["industryCodes.search"]['parameters']['query']>;
 export type InvoicesListResponse = operations["invoices.list"]['responses'][200]['content']['application/json'];
 export type InvoicesListParams = NonNullable<operations["invoices.list"]['parameters']['query']>;
 export type MeRetrieveResponse = operations["me.retrieve"]['responses'][200]['content']['application/json'];
+export type NzbnSearchResponse = operations["nzbn.search"]['responses'][200]['content']['application/json'];
+export type NzbnSearchParams = NonNullable<operations["nzbn.search"]['parameters']['query']>;
+export type NzbnRetrieveResponse = operations["nzbn.retrieve"]['responses'][200]['content']['application/json'];
 export type ReportCategoriesListForWorkspaceResponse = operations["reportCategories.listForWorkspace"]['responses'][200]['content']['application/json'];
 export type RulesListResponse = operations["rules.list"]['responses'][200]['content']['application/json'];
 export type RulesListParams = NonNullable<operations["rules.list"]['parameters']['query']>;
@@ -160,6 +172,8 @@ export type ScheduledTasksUpdateParams = operations["scheduledTasks.update"]['re
 export type ScheduledTasksRunResponse = operations["scheduledTasks.run"]['responses'][202]['content']['application/json'];
 export type TransactionsReconcileBulkResponse = operations["transactions.reconcileBulk"]['responses'][200]['content']['application/json'];
 export type TransactionsReconcileBulkParams = operations["transactions.reconcileBulk"]['requestBody']['content']['application/json'];
+export type ChartsProposeResponse = operations["charts.propose"]['responses'][200]['content']['application/json'];
+export type ChartsProposeParams = operations["charts.propose"]['requestBody']['content']['application/json'];
 export type ChartsListXeroReportMappingsResponse = operations["charts.listXeroReportMappings"]['responses'][200]['content']['application/json'];
 
 export class VersionResource {
@@ -185,7 +199,7 @@ export class ChartsResource {
 
   /**
    * Create a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * In nonactivated workspaces, creates a chart from global definitions. Every system global
    * account (see `GET /api/public/v1/global-accounts`, `isSystem: true`) must be present
    * in `accounts` with `isIncluded: true` — otherwise the request fails with
@@ -193,11 +207,8 @@ export class ChartsResource {
    * `includeSystemAccounts: true` to have any omitted system accounts added
    * automatically from their global definitions. Requires API key authentication.
    *
-   * **Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.
-   * Passing a name (e.g. `"15% GST on Income"`) is stored verbatim and resolves to null wherever the
-   * code is looked up. Valid codes are `NZ_GST_15_INC` (15% GST on Income), `NZ_GST_15_EXP`
-   * (15% GST on Expenses), `NZ_GST_0_NONE` (No GST), and `NZ_GST_0_ZERO` (Zero-rated GST). Omit
-   * `taxCode` or set it to null to default to `NZ_GST_0_NONE` (No GST).
+   * **Tax codes**: Send a machine code for the workspace country, such as `NZ_GST_15_INC`.
+   * Activated workspaces require a code on each included row. Legacy inputs may omit `taxCode`.
    *
    * **Description defaults**: `description` is optional per account; omitting it (or null) leaves
    * the account description empty.
@@ -217,7 +228,7 @@ export class ChartsResource {
    *
    * To fetch the chart of accounts for a specific entity (including bank-account-linked accounts and any custom accounts), use `GET /api/public/v1/entities/{entityId}/charts`. The bank-account-to-GL linkage is also embedded on each entity's bank account at `bankAccounts[].entityAccount` in the `GET /api/public/v1/entities` response.
    *
-   * **Tax codes**: The `taxCode` field is returned as the human-readable tax *name* (e.g. `"15% GST on Income"`, or `"No GST"` when unset), not the machine code. When creating or updating a template you must pass the machine *code* instead (`NZ_GST_15_INC`, `NZ_GST_15_EXP`, `NZ_GST_0_NONE`, `NZ_GST_0_ZERO`), so convert the name back to its code before writing.
+   * `taxCode` retains the display name (for example `"No GST"`). `taxCodeValue` is the stored machine code, or null when unset. Send the machine code as `taxCode` in writes.
    *
    */
   listAccounts(chartId: string, params: ChartsListAccountsParams = {}, options: RequestOptions = {}): APIListPromise<ChartsListAccountsResponse> {
@@ -226,11 +237,11 @@ export class ChartsResource {
 
   /**
    * Add a single account to a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * Adds one account to a chart of accounts template without resending the full account list. To
    * add a legacy top-level account in a nonactivated workspace, provide its global account `code`; to add a legacy child
    * account, provide `code`, `name`, and `parentCode` (the child code must be `{parentCode}.{digits}`).
-   * Activated rows use the explicit fields above and remain subject to review before reporting propagation. Requires bearer authentication.
+   * Activated additions are provisioned to linked charts under the same rules as an editor save. Requires bearer authentication.
    *
    */
   createAccount(chartId: string, params: ChartsCreateAccountParams, options: RequestOptions = {}): APIPromise<ChartsCreateAccountResponse> {
@@ -242,7 +253,8 @@ export class ChartsResource {
    * Removes one account from a chart of accounts template without resending the full account list.
    * The removal propagates to every entity using the template. Accounts that have journal entries,
    * child accounts, or are system accounts cannot be removed. `accountId` is the TemplateAccount ID
-   * from `GET /charts/{chartId}`. Requires API key authentication.
+   * from `GET /charts/{chartId}`.
+   * Requires bearer authentication.
    *
    */
   deleteAccount(chartId: string, accountId: string, params: ChartsDeleteAccountParams = {}, options: RequestOptions = {}): APIPromise<ChartsDeleteAccountResponse> {
@@ -251,14 +263,14 @@ export class ChartsResource {
 
   /**
    * Update a single account in a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * Updates one account in a chart of accounts template without resending the full account list.
    * Supports `name`, `description`, `taxCode`, `mappedCode` and `code` (rename, kept under the same
    * parent). A code rename cascades non-destructively to every entity account derived from this
    * template account (balances and customizations are preserved). Metadata changes follow existing propagation policy for entities
    * using the template. Omitted fields preserve their existing values; send `description: null` to
    * clear the description. `accountId` is the TemplateAccount ID from `GET /charts/{chartId}`.
-   * Reporting changes remain subject to human review before propagation. Requires bearer authentication.
+   * Reporting changes to the template leave existing entity reporting assignments intact. Requires bearer authentication.
    *
    */
   updateAccount(chartId: string, accountId: string, params: ChartsUpdateAccountParams = {}, options: RequestOptions = {}): APIPromise<ChartsUpdateAccountResponse> {
@@ -275,7 +287,7 @@ export class ChartsResource {
 
   /**
    * Update a chart of accounts template
-   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. API writes do not confirm template review or approve propagation. Reporting edits require saved template and row versions; reload after 409, and never retry using an alternate request shape.
+   * Discover the current workspace contract at GET /api/public/v1/report-categories before writing. In activated workspaces, included accounts need groupKey and an explicit categoryKey (null is valid for eligible group-only accounts); type derives from the group. Parent-only and mixed classification writes are rejected. Nonactivated workspaces retain parent inputs and reject reporting inputs. Metadata-only updates preserve saved reporting. Validated reporting writes are accepted under the authenticated user. Reporting edits require saved template and row versions; reload after 409.
    * Updates a chart of accounts template. When `accounts` is provided it fully replaces the
    * template's account list (delegates to updateAccountTemplateAccounts and propagates to all
    * entities). When `accounts` is omitted, only the provided template metadata (`name`,
@@ -288,20 +300,31 @@ export class ChartsResource {
    * accounts automatically. For surgical single-account changes use the
    * `/charts/{chartId}/accounts` endpoints instead. Requires API key authentication.
    *
-   * **Tax codes**: The `taxCode` field expects the machine code, not the human-readable tax name.
-   * Passing a name (e.g. `"15% GST on Income"`) is stored verbatim and resolves to null wherever the
-   * code is looked up. Valid codes are `NZ_GST_15_INC` (15% GST on Income), `NZ_GST_15_EXP`
-   * (15% GST on Expenses), `NZ_GST_0_NONE` (No GST), and `NZ_GST_0_ZERO` (Zero-rated GST). Note that
-   * `GET /api/public/v1/charts/{chartId}` returns the human-readable name on read — convert it back to
-   * the machine code before writing.
+   * **Tax codes**: Send `taxCodeValue` from `GET /api/public/v1/charts/{chartId}` as `taxCode`
+   * when writing. Activated replacements require a machine code for each included row.
    *
-   * **Field preserve/clear semantics**: For each account, omitting a field (`description`, `taxCode`,
+   * **Legacy field preserve/clear semantics**: For each account, omitting a field (`description`, `taxCode`,
    * `mappedCode`) preserves its existing value, while an explicit null clears it (taxCode clears to
    * `NZ_GST_0_NONE`).
    *
    */
   update(chartId: string, params: ChartsUpdateParams = {}, options: RequestOptions = {}): APIPromise<ChartsUpdateResponse> {
     return new APIPromise(this.transport.request<ChartsUpdateResponse>("POST", `/api/public/v1/charts/${pathParam(chartId)}/update`, { body: params }, options));
+  }
+
+  /**
+   * Propose a chart template from Xero accounts
+   * Read-only preview for the authorised workspace's country. Nothing is saved.
+   * A valid approved report-code placement is marked endpoint. When it is missing,
+   * exact Xero types may fall back to group-only placement: Current Asset to ass.current,
+   * Non-current Asset to ass.noncurrent, Current Liability to lia.current, Non-current Liability
+   * to lia.noncurrent, Direct Costs to exp.cogs, Overhead to exp.operating, and Other Income
+   * to rev.other. Each group must allow group-only accounts. Broad EXP, LIA and ASS codes remain
+   * unresolved. Bank rows and unresolved roles, tax labels and codes are listed as exceptions.
+   *
+   */
+  propose(params: ChartsProposeParams, options: RequestOptions = {}): APIPromise<ChartsProposeResponse> {
+    return new APIPromise(this.transport.request<ChartsProposeResponse>("POST", `/api/public/v1/xero-chart-proposals`, { body: params }, options));
   }
 
   /**
@@ -458,6 +481,22 @@ export class EntitiesResource {
   create(params: EntitiesCreateParams, options: RequestOptions = {}): APIPromise<EntitiesCreateResponse> {
     return new APIPromise(this.transport.request<EntitiesCreateResponse>("POST", `/api/public/v1/entities`, { body: params }, options));
   }
+
+  /**
+   * Queue entity deletion
+   * Requests background deletion of the entity and its accounting data.
+   */
+  del(entityId: string, options: RequestOptions = {}): APIPromise<EntitiesDelResponse> {
+    return new APIPromise(this.transport.request<EntitiesDelResponse>("DELETE", `/api/public/v1/entities/${pathParam(entityId)}`, {}, options));
+  }
+
+  /**
+   * Update entity settings
+   * Changes only the supplied settings. Changing the conversion date adjusts the start of bank activity shown in Prosaic.
+   */
+  update(entityId: string, params: EntitiesUpdateParams = {}, options: RequestOptions = {}): APIPromise<EntitiesUpdateResponse> {
+    return new APIPromise(this.transport.request<EntitiesUpdateResponse>("PATCH", `/api/public/v1/entities/${pathParam(entityId)}`, { body: params }, options));
+  }
 }
 
 export class BankAccountsResource {
@@ -476,6 +515,19 @@ export class BankAccountsResource {
    */
   link(entityId: string, params: BankAccountsLinkParams, options: RequestOptions = {}): APIPromise<BankAccountsLinkResponse> {
     return new APIPromise(this.transport.request<BankAccountsLinkResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bank-accounts`, { body: params }, options));
+  }
+
+  /**
+   * Create an unconnected bank account for an entity
+   * Create a bank account for a client of this entity and link it to a new
+   * account in the entity's chart. Use the chart account ID when posting
+   * journals. A later Akahu connection by the same client can attach to
+   * this account when the full bank account number has a unique eligible
+   * match. Confirm the mapped code before submitting it.
+   *
+   */
+  create(entityId: string, params: BankAccountsCreateParams, options: RequestOptions = {}): APIPromise<BankAccountsCreateResponse> {
+    return new APIPromise(this.transport.request<BankAccountsCreateResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/bank-accounts/create`, { body: params }, options));
   }
 
   /**
@@ -1138,6 +1190,21 @@ export class ReportsResource {
   trialBalance(entityId: string, params: ReportsTrialBalanceParams = {}, options: RequestOptions = {}): APIPromise<ReportsTrialBalanceResponse> {
     return new APIPromise(this.transport.request<ReportsTrialBalanceResponse>("GET", `/api/public/v1/entities/${pathParam(entityId)}/trial-balance`, { query: params }, options));
   }
+
+  /**
+   * Compare a Xero trial balance with Prosaic
+   * Read-only monetary comparison in the entity's currency. Supply one row per
+   * Xero account code. Cumulative mode uses asOfDate, and movement mode uses
+   * the inclusive from/to date range. Dates are local to the entity.
+   * When mapping is supplied, each Xero row needs an explicit target, even
+   * when its code is unchanged or its balance is zero. Omit mapping to
+   * match by exact code, then by unique saved mapped code.
+   * The tolerance defaults to zero. Differences are Xero minus Prosaic.
+   *
+   */
+  compareTrialBalance(entityId: string, params: ReportsCompareTrialBalanceParams, options: RequestOptions = {}): APIPromise<ReportsCompareTrialBalanceResponse> {
+    return new APIPromise(this.transport.request<ReportsCompareTrialBalanceResponse>("POST", `/api/public/v1/entities/${pathParam(entityId)}/trial-balance/compare`, { body: params }, options));
+  }
 }
 
 export class TransactionsResource {
@@ -1321,6 +1388,17 @@ export class GlobalAccountsResource {
   }
 }
 
+export class IndustryCodesResource {
+  constructor(private readonly transport: Transport) {}
+  /**
+   * Search New Zealand business industry codes
+   * Search by full or partial catalogue code, or by words describing the business activity. Returns up to 50 matches.
+   */
+  search(params: IndustryCodesSearchParams, options: RequestOptions = {}): APIListPromise<IndustryCodesSearchResponse> {
+    return new APIListPromise(this.transport.request<IndustryCodesSearchResponse>("GET", `/api/public/v1/industry-codes`, { query: params }, options));
+  }
+}
+
 export class MeResource {
   constructor(private readonly transport: Transport) {}
   /**
@@ -1336,6 +1414,25 @@ export class MeResource {
    */
   retrieve(options: RequestOptions = {}): APIPromise<MeRetrieveResponse> {
     return new APIPromise(this.transport.request<MeRetrieveResponse>("GET", `/api/public/v1/me`, {}, options));
+  }
+}
+
+export class NzbnResource {
+  constructor(private readonly transport: Transport) {}
+  /**
+   * Search the NZBN Register
+   * Search by business name or NZBN. Returns up to ten results with an industry code when one is available in the catalogue.
+   */
+  search(params: NzbnSearchParams, options: RequestOptions = {}): APIListPromise<NzbnSearchResponse> {
+    return new APIListPromise(this.transport.request<NzbnSearchResponse>("GET", `/api/public/v1/nzbn/search`, { query: params }, options));
+  }
+
+  /**
+   * Get NZBN business details
+   * Returns the registered business, its catalogue industry code and GST number when available from the register.
+   */
+  retrieve(nzbn: string, options: RequestOptions = {}): APIPromise<NzbnRetrieveResponse> {
+    return new APIPromise(this.transport.request<NzbnRetrieveResponse>("GET", `/api/public/v1/nzbn/${pathParam(nzbn)}`, {}, options));
   }
 }
 
@@ -1472,7 +1569,9 @@ export class Resources {
   readonly transactions: TransactionsResource;
   readonly extensions: ExtensionsResource;
   readonly globalAccounts: GlobalAccountsResource;
+  readonly industryCodes: IndustryCodesResource;
   readonly me: MeResource;
+  readonly nzbn: NzbnResource;
   readonly rules: RulesResource;
   readonly scheduledTasks: ScheduledTasksResource;
   constructor(transport: Transport) {
@@ -1499,7 +1598,9 @@ export class Resources {
     this.transactions = new TransactionsResource(transport);
     this.extensions = new ExtensionsResource(transport);
     this.globalAccounts = new GlobalAccountsResource(transport);
+    this.industryCodes = new IndustryCodesResource(transport);
     this.me = new MeResource(transport);
+    this.nzbn = new NzbnResource(transport);
     this.rules = new RulesResource(transport);
     this.scheduledTasks = new ScheduledTasksResource(transport);
   }

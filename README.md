@@ -225,7 +225,7 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 - `charts.listAccounts(chartId)` lists a template's accounts. With `includeHidden: true`, the response is unpaginated.
 - Chart reads expose display tax labels; writes need machine tax codes from entity tax rates.
-- Chart writes follow the selected workspace capability. Discover `reportCategories.listForWorkspace()` before creating a template. Activated included rows need `groupKey`, explicit `categoryKey` (nullable when eligible), and appropriate `systemRole` choices. Full replacement carries stable IDs, each row’s `expectedUpdatedAt`, and the template `expectedUpdatedAt`. Template account reporting edits use `expectedTemplateUpdatedAt` plus row `expectedUpdatedAt`. Metadata-only updates preserve classification. API writes leave changed template assignments unreviewed and cannot approve propagation. See [Chart of accounts](https://developer.prosaic.works/docs/ledger/chart-of-accounts) and the [system-account example](examples/system-accounts.ts).
+- Chart writes follow the selected workspace capability. Discover `reportCategories.listForWorkspace()` before creating a template. Activated included rows need `groupKey`, explicit `categoryKey` (nullable when eligible), and appropriate `systemRole` choices. Full replacement carries stable IDs, each row’s `expectedUpdatedAt`, and the template `expectedUpdatedAt`. Template account reporting edits use `expectedTemplateUpdatedAt` plus row `expectedUpdatedAt`. Metadata-only updates preserve classification. Validated API saves are ready to use immediately and follow the editor’s propagation rules. Call `charts.listAccounts(chartId, { summary: true })` to read `templateUpdatedAt` without downloading account rows. Use `{ editable: true }` to get the versioned update payload. See [Chart of accounts](https://developer.prosaic.works/docs/ledger/chart-of-accounts) and the [system-account example](examples/system-accounts.ts).
 - `reportCategories.listForWorkspace()` returns the authorised workspace’s country taxonomy, `workspaceId` and `reportingInputsEnabled`, before an entity exists. `reportCategories.list(entityId)` exposes capability across all active workspaces and returns the complete taxonomy for the authorised entity's country. Headings are structure only (`isAssignable: false`). A group's `allowGroupOnly` permission does not remove category requirements for bank or asset-account functions. See the [discovery example](examples/report-categories.ts).
 - Chart accounts expose saved `reportGroup` and nullable `reportCategory` summaries. A non-null group with a null category is a group-only assignment; a null group means unassigned. Use these fields for current reporting. `subtype` preserves legacy compatibility values and can differ from current report placement.
 - `journals.void()` and `journals.attachFiles()` take `logicalJournalId`, not the journal version's `id`.
@@ -241,11 +241,11 @@ Retries respect `Retry-After` within the request deadline. **Writes and OAuth to
 
 ## API coverage
 
-This alpha includes 90 operations across 26 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
+This alpha includes 103 operations across 28 resource groups, generated from the checked-in [API contract](openapi/prosaic.json).
 
 | Area                         | Resources                                                                      |
 | ---------------------------- | ------------------------------------------------------------------------------ |
-| Identity and setup           | `me`, `version`, `entities`, `clients`                                         |
+| Identity and setup           | `me`, `version`, `entities`, `clients`, `nzbn`, `industryCodes`                |
 | Accounts and dimensions      | `charts`, `entityAccounts`, `globalAccounts`, `dimensions`, `reportCategories` |
 | Transactions and journals    | `transactions`, `bankAccounts`, `journals`, `changeSets`                       |
 | Financial reporting          | `ledger`, `generalLedger`, `reports`, `gstReturns`                             |
@@ -257,7 +257,7 @@ Use the [API resource reference](docs/api-reference.md) to find a method, and th
 
 ### Alpha compatibility
 
-The checked-in contract includes supplier bills from **24 November 2026** and invoice draft/lifecycle operations from **25 November 2026**, alongside the previously reviewed resource contracts. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode.
+The checked-in contract includes supplier bills, invoice draft and lifecycle operations, and Xero conversion operations. The developer documentation may describe newer API capabilities. This release updates `/api/public/v1` in place. The SDK package version does not select a write mode.
 
 - **Generated code:** `yarn generate:check` confirms that code matches the checked-in snapshot. It does not verify compatibility with later server changes.
 
