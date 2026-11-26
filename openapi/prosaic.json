@@ -5724,6 +5724,23 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "reviewerId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackById": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -5810,6 +5827,10 @@
                         "notes",
                         "heldAt",
                         "holdReason",
+                        "reviewerId",
+                        "sentBackReason",
+                        "sentBackById",
+                        "sentBackAt",
                         "createdAt",
                         "updatedAt",
                         "lines"
@@ -5982,6 +6003,23 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "reviewerId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackById": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -6068,6 +6106,10 @@
                         "notes",
                         "heldAt",
                         "holdReason",
+                        "reviewerId",
+                        "sentBackReason",
+                        "sentBackById",
+                        "sentBackAt",
                         "createdAt",
                         "updatedAt",
                         "lines"
@@ -6239,6 +6281,23 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "reviewerId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackById": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -6325,6 +6384,10 @@
                         "notes",
                         "heldAt",
                         "holdReason",
+                        "reviewerId",
+                        "sentBackReason",
+                        "sentBackById",
+                        "sentBackAt",
                         "createdAt",
                         "updatedAt",
                         "lines"
@@ -6393,21 +6456,75 @@
               "schema": {
                 "anyOf": [
                   {
-                    "type": "object",
-                    "properties": {
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "APPROVED",
-                          "DRAFT",
-                          "VOIDED"
-                        ]
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "APPROVED"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "IN_REVIEW"
+                            ]
+                          },
+                          "reviewerId": {
+                            "type": "string",
+                            "nullable": true
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "DRAFT"
+                            ]
+                          },
+                          "reason": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "VOIDED"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "status"
+                        ],
+                        "additionalProperties": false
                       }
-                    },
-                    "required": [
-                      "status"
-                    ],
-                    "additionalProperties": false
+                    ]
                   },
                   {
                     "type": "object",
@@ -6602,6 +6719,23 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "reviewerId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackById": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -6688,6 +6822,10 @@
                         "notes",
                         "heldAt",
                         "holdReason",
+                        "reviewerId",
+                        "sentBackReason",
+                        "sentBackById",
+                        "sentBackAt",
                         "createdAt",
                         "updatedAt",
                         "lines"
@@ -6844,7 +6982,7 @@
           {
             "in": "query",
             "name": "displayStatuses",
-            "description": "Comma-separated DRAFT, AWAITING_PAYMENT, PART_PAID, OVERDUE, ON_HOLD, PAID or VOIDED.",
+            "description": "Comma-separated DRAFT, IN_REVIEW, AWAITING_PAYMENT, PART_PAID, OVERDUE, ON_HOLD, PAID or VOIDED.",
             "schema": {
               "type": "string"
             },
@@ -6926,6 +7064,7 @@
                           "displayStatus": {
                             "type": "string",
                             "enum": [
+                              "IN_REVIEW",
                               "DRAFT",
                               "VOIDED",
                               "AWAITING_PAYMENT",
@@ -6951,6 +7090,10 @@
                             "nullable": true
                           },
                           "holdReason": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "reviewerId": {
                             "type": "string",
                             "nullable": true
                           },
@@ -6985,6 +7128,7 @@
                           "amountDue",
                           "heldAt",
                           "holdReason",
+                          "reviewerId",
                           "entity"
                         ],
                         "additionalProperties": false
@@ -7271,6 +7415,23 @@
                           "type": "string",
                           "nullable": true
                         },
+                        "reviewerId": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackReason": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackById": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "sentBackAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time"
@@ -7357,6 +7518,10 @@
                         "notes",
                         "heldAt",
                         "holdReason",
+                        "reviewerId",
+                        "sentBackReason",
+                        "sentBackById",
+                        "sentBackAt",
                         "createdAt",
                         "updatedAt",
                         "lines"
