@@ -193,3 +193,37 @@ describe('supplier bill holds', () => {
     },
   );
 });
+
+describe('supplier bill review', () => {
+  it('submits for review to a reviewer, then sends back with a reason, through update', async () => {
+    const calls: Array<{ method: string; body: unknown }> = [];
+    const fetcher = vi.fn<typeof fetch>(async (_input, init) => {
+      const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+      calls.push({ method: init?.method ?? 'GET', body });
+      const inReview = body?.status === 'IN_REVIEW';
+      return Response.json({
+        data: {
+          id: 'bill-1',
+          status: inReview ? 'IN_REVIEW' : 'DRAFT',
+          reviewerId: inReview ? body.reviewerId : null,
+        },
+      });
+    });
+    const client = new Prosaic('test-key', { fetch: fetcher });
+
+    const submitted = await client.bills.update('entity-1', 'bill-1', {
+      status: 'IN_REVIEW',
+      reviewerId: 'user-2',
+    });
+    expect(submitted.data.reviewerId).toBe('user-2');
+    await client.bills.update('entity-1', 'bill-1', {
+      status: 'DRAFT',
+      reason: 'Freight belongs in Direct Costs',
+    });
+
+    expect(calls).toEqual([
+      { method: 'PATCH', body: { status: 'IN_REVIEW', reviewerId: 'user-2' } },
+      { method: 'PATCH', body: { status: 'DRAFT', reason: 'Freight belongs in Direct Costs' } },
+    ]);
+  });
+});

@@ -4212,6 +4212,7 @@ export interface operations {
                             /** Format: date-time */
                             heldAt: string | null;
                             holdReason: string | null;
+                            reviewerId: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4325,6 +4326,7 @@ export interface operations {
                             /** Format: date-time */
                             heldAt: string | null;
                             holdReason: string | null;
+                            reviewerId: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4431,6 +4433,7 @@ export interface operations {
                             /** Format: date-time */
                             heldAt: string | null;
                             holdReason: string | null;
+                            reviewerId: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4555,10 +4558,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": {
+                "application/json": ({
                     /** @enum {string} */
-                    status: "APPROVED" | "DRAFT" | "VOIDED";
+                    status: "APPROVED";
                 } | {
+                    /** @enum {string} */
+                    status: "IN_REVIEW";
+                    reviewerId?: string | null;
+                } | {
+                    /** @enum {string} */
+                    status: "DRAFT";
+                    reason?: string;
+                } | {
+                    /** @enum {string} */
+                    status: "VOIDED";
+                }) | {
                     contactId?: string | null;
                     fileId?: string | null;
                     supplierInvoiceNumber?: string | null;
@@ -4618,6 +4632,7 @@ export interface operations {
                             /** Format: date-time */
                             heldAt: string | null;
                             holdReason: string | null;
+                            reviewerId: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */
@@ -4688,7 +4703,7 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
-                /** @description Comma-separated DRAFT, AWAITING_PAYMENT, PART_PAID, OVERDUE, ON_HOLD, PAID or VOIDED. */
+                /** @description Comma-separated DRAFT, IN_REVIEW, AWAITING_PAYMENT, PART_PAID, OVERDUE, ON_HOLD, PAID or VOIDED. */
                 displayStatuses?: string;
                 contactId?: string;
                 dueDateFrom?: string;
@@ -4722,13 +4737,14 @@ export interface operations {
                             dueDate: string | null;
                             status: string;
                             /** @enum {string} */
-                            displayStatus: "DRAFT" | "VOIDED" | "AWAITING_PAYMENT" | "PART_PAID" | "OVERDUE" | "ON_HOLD" | "PAID";
+                            displayStatus: "IN_REVIEW" | "DRAFT" | "VOIDED" | "AWAITING_PAYMENT" | "PART_PAID" | "OVERDUE" | "ON_HOLD" | "PAID";
                             total: number;
                             amountPaid: string;
                             amountDue: string | null;
                             /** Format: date-time */
                             heldAt: string | null;
                             holdReason: string | null;
+                            reviewerId: string | null;
                             entity: {
                                 id: string;
                                 name: string;
@@ -4853,6 +4869,7 @@ export interface operations {
                             /** Format: date-time */
                             heldAt: string | null;
                             holdReason: string | null;
+                            reviewerId: string | null;
                             /** Format: date-time */
                             createdAt: string;
                             /** Format: date-time */

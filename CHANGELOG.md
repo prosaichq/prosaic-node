@@ -2,6 +2,7 @@
 
 ## 0.1.0-alpha.3 (unreleased)
 
+- Added supplier bill review through `bills.update()`: `{ status: 'IN_REVIEW', reviewerId? }` submits a complete draft for review (or changes the reviewer of one already in review) without posting it, and `{ status: 'DRAFT', reason }` sends a bill in review back to draft with a required reason. Approval accepts drafts and bills in review. Bill reads and list items include `reviewerId`, and `IN_REVIEW` is a status and list filter value. Writes are never retried automatically.
 - Added `entities.update()` for partial settings edits and `entities.del()` to queue entity deletion. `entities.create()` now requires a recognised industry code. Use `nzbn.search()`, `nzbn.retrieve()` or `industryCodes.search()` to find it.
 - NZBN search and detail share a limit of 30 lookups per minute per workspace. A rate-limited lookup returns `429` with `Retry-After`.
 - Added `bankAccounts.create()` for a numbered bank account that can attach to a matching feed later.
